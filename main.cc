@@ -10,6 +10,7 @@
 
 int main(int argc, char *argv[])
 {
+  qSetMessagePattern("[%{time h:mm:ss.zzz} %{if-debug}DEBG%{endif}%{if-info}INFO%{endif}%{if-warning}WARN%{endif}%{if-critical}CRIT%{endif}%{if-fatal}FATL%{endif}] %{file}:%{line} - %{message}");
   QApplication a(argc, argv);
   MainWindow w;
   w.show();
