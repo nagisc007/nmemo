@@ -8,6 +8,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "core.h"
+
 #include <QMainWindow>
 
 namespace Ui {
@@ -21,7 +23,9 @@ class MainWindow : public QMainWindow
 public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
-  // methods
+  // methods: base
+  bool InitWidgets();
+  // methods: menus
   void OpenFile();
   void CloseFile();
   void SaveFile();
@@ -39,8 +43,15 @@ private slots:
   void on_actionAbout_Qt_triggered();
   void on_actionAbout_Nmemo_triggered();
 
+  void on_action_Add_triggered();
+
+  void on_action_Insert_triggered();
+
+  void on_action_Delete_triggered();
+
 private:
   Ui::MainWindow *ui;
+  QScopedPointer<NMEMO::Core> core_;
 };
 
 #endif // MAINWINDOW_H

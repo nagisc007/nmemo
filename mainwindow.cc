@@ -9,17 +9,25 @@
 #include "ui_mainwindow.h"
 
 #include <QDebug>
+#include <QLabel>
+#include <QStringList>
+#include <QStringListModel>
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
-  ui(new Ui::MainWindow)
+  ui(new Ui::MainWindow),
+  core_(new NMEMO::Core())
 {
   ui->setupUi(this);
   qDebug() << "MainWindow: construct";
+  if (!InitWidgets()) {
+    qWarning() << "MainWindow: Cannot initialize widgets!";
+  }
 }
 
 MainWindow::~MainWindow()
 {
+  if (core_) core_.reset();
   delete ui;
   qDebug() << "MainWindow: destruct";
 }
@@ -37,6 +45,12 @@ auto MainWindow::AboutQt() -> void
 auto MainWindow::CloseFile() -> void
 {
   qDebug() << "MainWindow: Close file (unimplemented)";
+}
+
+auto MainWindow::InitWidgets() -> bool
+{
+  return core_->SetEditor(ui->memoEditor) &&
+      core_->SetListView(ui->titleDisplay);
 }
 
 auto MainWindow::OpenFile() -> void
@@ -95,4 +109,19 @@ void MainWindow::on_actionAbout_Qt_triggered()
 void MainWindow::on_actionAbout_Nmemo_triggered()
 {
   AboutApp();
+}
+
+void MainWindow::on_action_Add_triggered()
+{
+  qDebug() << "Add (unimplemented)";
+}
+
+void MainWindow::on_action_Insert_triggered()
+{
+  qDebug() << "Insert (unimplemented)";
+}
+
+void MainWindow::on_action_Delete_triggered()
+{
+  qDebug() << "Delete (unimplemented)";
 }
