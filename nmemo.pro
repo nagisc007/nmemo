@@ -26,10 +26,12 @@ CONFIG += c++14
 
 SOURCES += \
         main.cc \
-        mainwindow.cc
+        mainwindow.cc \
+    core.cc
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    core.h
 
 FORMS += \
         mainwindow.ui
