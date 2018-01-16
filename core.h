@@ -49,6 +49,7 @@ signals:
 
 public slots:
   void OnChangeBook(QListWidgetItem*);
+  void OnChangeBookAsIndex(int);
   void OnRequestChangeTitle(QListWidgetItem*);
 private:
   int next_uid_;

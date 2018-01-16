@@ -199,7 +199,7 @@ auto Core::SetList(QListWidget* view) -> bool
   list_.reset(view);
   if (list_.isNull()) return false;
   // connects
-  connect(list_.data(), &QListWidget::itemClicked, this, &Core::OnChangeBook);
+  connect(list_.data(), &QListWidget::currentRowChanged, this, &Core::OnChangeBookAsIndex);
   connect(list_.data(), &QListWidget::itemDoubleClicked, this, &Core::OnRequestChangeTitle);
   return true;
 }
@@ -234,6 +234,11 @@ void Core::OnChangeBook(QListWidgetItem* item)
   }
   editor_->setPlainText(item->data(Qt::UserRole).toString());
   pre_uid_ = item->type();
+}
+
+void Core::OnChangeBookAsIndex(int current)
+{
+  OnChangeBook(list_->item(current));
 }
 
 }  // namespace NMEMO
