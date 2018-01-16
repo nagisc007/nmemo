@@ -14,7 +14,7 @@
 /* Constatns */
 const QString MainWindow::MainValues::APP_AUTHORS = "N.T.Works";
 const QString MainWindow::MainValues::APP_NAME = "Nmemo";
-const QString MainWindow::MainValues::APP_VERSION = "1.0.0";
+const QString MainWindow::MainValues::APP_VERSION = "1.0.1";
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
