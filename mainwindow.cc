@@ -9,6 +9,7 @@
 #include "ui_mainwindow.h"
 
 #include <QDebug>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -20,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
   if (!InitWidgets()) {
     qWarning() << "MainWindow: Cannot initialize widgets!";
   }
+  core_->Reset();
 }
 
 MainWindow::~MainWindow()
@@ -29,19 +31,9 @@ MainWindow::~MainWindow()
   qDebug() << "MainWindow: destruct";
 }
 
-auto MainWindow::AboutApp() -> void
-{
-  qDebug() << "MainWindow: About app (unimplemented)";
-}
-
-auto MainWindow::AboutQt() -> void
-{
-  qDebug() << "MainWindow: About Qt (unimplemented)";
-}
-
 auto MainWindow::CloseFile() -> void
 {
-  qDebug() << "MainWindow: Close file (unimplemented)";
+  core_->Reset();
 }
 
 auto MainWindow::InitWidgets() -> bool
@@ -100,12 +92,14 @@ void MainWindow::on_actionQuit_triggered()
 
 void MainWindow::on_actionAbout_Qt_triggered()
 {
-  AboutQt();
+  QMessageBox::aboutQt(this);
 }
 
 void MainWindow::on_actionAbout_Nmemo_triggered()
 {
-  AboutApp();
+  QString title = "About Nmemo";
+  QString msg = "<h3>About Nmemo</h3><p>Nmemo is a simple memo editor by Qt.<br>Licensed by GNU GENERAL PUBLIC LICENSE Version 3.</p><p>Copyright (c) 2018 N.T.Works</p>";
+  QMessageBox::about(this, title, msg);
 }
 
 void MainWindow::on_action_Add_triggered()

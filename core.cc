@@ -37,6 +37,8 @@ Core::~Core()
 
 auto Core::AddItem() -> void
 {
+  if (editor_->isReadOnly()) editor_->setReadOnly(false);
+
   auto item = ItemConstructed();
   list_->addItem(item);
   OnChangeBook(item);
@@ -122,6 +124,8 @@ auto Core::Reset() -> void
   ClearItems();
   next_uid_ = 0;
   pre_uid_ = 0;
+  editor_->clear();
+  editor_->setReadOnly(true);
 }
 
 auto Core::SaveToFile(QWidget* win) -> void

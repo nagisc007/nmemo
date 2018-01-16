@@ -31,8 +31,6 @@ public:
   void SaveFile();
   void SaveAsFile();
   void Quit();
-  void AboutQt();
-  void AboutApp();
 
 private slots:
   void on_actionOpen_triggered();
