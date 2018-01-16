@@ -11,6 +11,11 @@
 #include <QDebug>
 #include <QMessageBox>
 
+/* Constatns */
+const QString MainWindow::MainValues::APP_AUTHORS = "N.T.Works";
+const QString MainWindow::MainValues::APP_NAME = "Nmemo";
+const QString MainWindow::MainValues::APP_VERSION = "1.0.0";
+
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow),
@@ -21,7 +26,11 @@ MainWindow::MainWindow(QWidget *parent) :
   if (!InitWidgets()) {
     qWarning() << "MainWindow: Cannot initialize widgets!";
   }
+  // connects
+  connect(core_.data(), &NMEMO::Core::filenameChanged, this, &MainWindow::OnChangeFilename);
+  // reset
   core_->Reset();
+  setWindowTitle(MainValues::APP_NAME);
 }
 
 MainWindow::~MainWindow()
@@ -54,16 +63,24 @@ auto MainWindow::Quit() -> void
 
 auto MainWindow::SaveAsFile() -> void
 {
-  core_->SaveToFile(this);
+  core_->SaveToFile(this, true);
 }
 
 auto MainWindow::SaveFile() -> void
 {
-  qDebug() << "MainWindow: Save file (unimplemented)";
+  core_->SaveToFile(this, false);
 }
 
 /*
  * slots
+ */
+void MainWindow::OnChangeFilename(const QString& filename)
+{
+  setWindowTitle(MainValues::APP_NAME + "[" + filename + "]");
+}
+
+/*
+ * slots: menus
  */
 void MainWindow::on_actionOpen_triggered()
 {
@@ -97,8 +114,10 @@ void MainWindow::on_actionAbout_Qt_triggered()
 
 void MainWindow::on_actionAbout_Nmemo_triggered()
 {
-  QString title = "About Nmemo";
-  QString msg = "<h3>About Nmemo</h3><p>Nmemo is a simple memo editor by Qt.<br>Licensed by GNU GENERAL PUBLIC LICENSE Version 3.</p><p>Copyright (c) 2018 N.T.Works</p>";
+  QString title = "About ";
+  title += MainValues::APP_NAME;
+  QString msg = "<h3>About ";
+  msg += MainValues::APP_NAME + " " + MainValues::APP_VERSION + "</h3><p>Nmemo is a simple memo editor by Qt.<br>Licensed by GNU GENERAL PUBLIC LICENSE Version 3.</p><p>Copyright (c) 2018 " + MainValues::APP_AUTHORS + "</p>";
   QMessageBox::about(this, title, msg);
 }
 

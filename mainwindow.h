@@ -23,6 +23,12 @@ class MainWindow : public QMainWindow
 public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
+  // constants
+  struct MainValues {
+    static const QString APP_NAME;
+    static const QString APP_VERSION;
+    static const QString APP_AUTHORS;
+  };
   // methods: base
   bool InitWidgets();
   // methods: menus
@@ -32,6 +38,9 @@ public:
   void SaveAsFile();
   void Quit();
 
+public slots:
+  void OnChangeFilename(const QString&);
+
 private slots:
   void on_actionOpen_triggered();
   void on_actionClose_triggered();
@@ -40,15 +49,10 @@ private slots:
   void on_actionQuit_triggered();
   void on_actionAbout_Qt_triggered();
   void on_actionAbout_Nmemo_triggered();
-
   void on_action_Add_triggered();
-
   void on_action_Insert_triggered();
-
   void on_action_Delete_triggered();
-
   void on_actionSort_A_Z_triggered();
-
   void on_actionSort_Z_A_triggered();
 
 private:

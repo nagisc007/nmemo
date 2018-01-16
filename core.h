@@ -22,6 +22,10 @@ class Core : public QObject
 public:
   explicit Core(QObject *parent = nullptr);
   ~Core();
+  // constatns
+  struct CoreValues {
+    static const QString UNDEFINED_FNAME;
+  };
   // methods: base
   bool SetEditor(QTextEdit*);
   bool SetList(QListWidget*);
@@ -34,11 +38,13 @@ public:
   QListWidgetItem* ItemByUid(int);
   void LoadFromFile(QWidget*);
   void Reset();
-  void SaveToFile(QWidget*);
+  void SaveToFile(QWidget*, bool is_new = true);
+  void SaveToFileInternal(const QString&);
   void SortItems(int order = 0);
 
 signals:
   void bookTitleChanged(QListWidgetItem*);
+  void filenameChanged(const QString&);
 
 public slots:
   void OnChangeBook(QListWidgetItem*);
@@ -46,6 +52,7 @@ public slots:
 private:
   int next_uid_;
   int pre_uid_;
+  QString filename_;
   QScopedPointer<QTextEdit> editor_;
   QScopedPointer<QListWidget> list_;
   QMap<QString, QString> datapack_;

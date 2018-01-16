@@ -16,10 +16,14 @@
 
 namespace NMEMO {
 
+/* Constants */
+const QString Core::CoreValues::UNDEFINED_FNAME = "Undefined";
+
 
 Core::Core(QObject *parent) : QObject(parent),
   next_uid_(0),
   pre_uid_(0),
+  filename_(CoreValues::UNDEFINED_FNAME),
   editor_(nullptr),
   list_(nullptr)
 {
@@ -117,6 +121,8 @@ auto Core::LoadFromFile(QWidget* win) -> void
   }
   list_->setCurrentRow(0);
   OnChangeBook(list_->item(0));
+  filename_ = filename;
+  emit filenameChanged(QFileInfo(filename).baseName());
 }
 
 auto Core::Reset() -> void
@@ -128,10 +134,21 @@ auto Core::Reset() -> void
   editor_->setReadOnly(true);
 }
 
-auto Core::SaveToFile(QWidget* win) -> void
+auto Core::SaveToFile(QWidget* win, bool is_new) -> void
 {
-  QString filename = QFileDialog::getSaveFileName(win, "Save file", "", "Memo file (*.memo);;All Files (*)");
+  QString filename;
+  if (!is_new) {
+    filename = filename_;
+  }
+  if (is_new || filename == CoreValues::UNDEFINED_FNAME) {
+    filename = QFileDialog::getSaveFileName(win, "Save file", "", "Memo file (*.memo);;All Files (*)");
+  }
 
+  SaveToFileInternal(filename);
+}
+
+auto Core::SaveToFileInternal(const QString& filename) -> void
+{
   if (filename.isEmpty()) return;
   datapack_.clear();
   for (int i = 0, size = list_->count(); i < size; ++i) {
@@ -143,13 +160,16 @@ auto Core::SaveToFile(QWidget* win) -> void
 
   QFile file(filename);
   if (!file.open(QIODevice::WriteOnly)) {
-    QMessageBox::information(win, "Core: cannot open file!", file.errorString());
+    QMessageBox::information(nullptr, "Core: cannot open file!", file.errorString());
     return;
   }
 
   QDataStream out(&file);
   out.setVersion(QDataStream::Qt_5_10);
   out << datapack_;
+
+  filename_ = filename;
+  emit filenameChanged(QFileInfo(filename).baseName());
 }
 
 auto Core::SetEditor(QTextEdit* editor) -> bool
