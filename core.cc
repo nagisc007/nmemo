@@ -177,7 +177,7 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
 
   QDataStream out(&file);
   out.setVersion(QDataStream::Qt_5_10);
-  out << datapack_;
+  out << datapack_.operator*();
 
   filename_ = filename;
   emit filenameChanged(QFileInfo(filename).baseName());
