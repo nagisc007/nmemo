@@ -8,9 +8,12 @@
 #include "core.h"
 
 #include <QDebug>
+#include <QFileDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QInputDialog>
+#include <QMessageBox>
+
 namespace NMEMO {
 
 
@@ -69,6 +72,67 @@ auto Core::ItemConstructed() -> QListWidgetItem*
   item->setText("New Book");
   item->setData(Qt::UserRole, QVariant("Input new text!"));
   return item;
+}
+
+auto Core::LoadFromFile(QWidget* win) -> void
+{
+  QString filename = QFileDialog::getOpenFileName(win, "Open file", "", "Memo file (*.memo);;All Files (*)");
+
+  if (filename.isEmpty()) return;
+
+  datapack_.clear();
+
+  QFile file(filename);
+  if (!file.open(QIODevice::ReadOnly)) {
+    QMessageBox::information(win, "Core: cannot open file!", file.errorString());
+    return;
+  }
+
+  QDataStream in(&file);
+  in.setVersion(QDataStream::Qt_5_10);
+  in >> datapack_;
+
+  if (datapack_.isEmpty()) {
+    QMessageBox::information(win, "No content in file!", "Cannot find any contents!");
+    return;
+  }
+
+  QMap<QString, QString>::const_iterator it = datapack_.constBegin();
+  while (it != datapack_.constEnd()) {
+    auto item = ItemConstructed();
+    item->setText(it.key().section(":", 1,1));
+    item->setData(Qt::UserRole, QVariant(it.value()));
+    list_->addItem(item);
+    ++it;
+  }
+  list_->setCurrentRow(0);
+  OnChangeBook(list_->item(0));
+}
+
+auto Core::SaveToFile(QWidget* win) -> void
+{
+  QString filename = QFileDialog::getSaveFileName(win, "Save file", "", "Memo file (*.memo);;All Files (*)");
+
+  if (filename.isEmpty()) return;
+  datapack_.clear();
+  for (int i = 0, size = list_->count(); i < size; ++i) {
+    auto item = list_->item(i);
+    if (!item) continue;
+    QString prefix = QString::number(item->type());
+    datapack_.insert(prefix + ":" + item->text(), item->data(Qt::UserRole).toString());
+  }
+  qDebug() << "list size: " << list_->count();
+  qDebug() << "file size: " << datapack_.size();
+
+  QFile file(filename);
+  if (!file.open(QIODevice::WriteOnly)) {
+    QMessageBox::information(win, "Core: cannot open file!", file.errorString());
+    return;
+  }
+
+  QDataStream out(&file);
+  out.setVersion(QDataStream::Qt_5_10);
+  out << datapack_;
 }
 
 auto Core::SetEditor(QTextEdit* editor) -> bool

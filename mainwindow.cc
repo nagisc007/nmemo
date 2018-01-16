@@ -52,7 +52,7 @@ auto MainWindow::InitWidgets() -> bool
 
 auto MainWindow::OpenFile() -> void
 {
-  qDebug() << "MainWindow: Open file (unimplemented)";
+  core_->LoadFromFile(this);
 }
 
 auto MainWindow::Quit() -> void
@@ -62,7 +62,7 @@ auto MainWindow::Quit() -> void
 
 auto MainWindow::SaveAsFile() -> void
 {
-  qDebug() << "MainWindow: Save As file (unimplemented)";
+  core_->SaveToFile(this);
 }
 
 auto MainWindow::SaveFile() -> void

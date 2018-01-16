@@ -10,6 +10,7 @@
 
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QMap>
 #include <QObject>
 #include <QTextEdit>
 
@@ -30,6 +31,8 @@ public:
   void InsertItem();
   QListWidgetItem* ItemConstructed();
   QListWidgetItem* ItemByUid(int);
+  void LoadFromFile(QWidget*);
+  void SaveToFile(QWidget*);
 
 signals:
   void bookTitleChanged(QListWidgetItem*);
@@ -42,6 +45,7 @@ private:
   int pre_uid_;
   QScopedPointer<QTextEdit> editor_;
   QScopedPointer<QListWidget> list_;
+  QMap<QString, QString> datapack_;
 };
 
 }  // namespace NMEMO
