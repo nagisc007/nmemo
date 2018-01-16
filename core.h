@@ -28,6 +28,7 @@ public:
   void AddItem();
   void DeleteItem();
   void InsertItem();
+  QListWidgetItem* ItemConstructed();
   QListWidgetItem* ItemByUid(int);
 
 signals:

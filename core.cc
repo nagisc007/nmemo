@@ -34,9 +34,7 @@ Core::~Core()
 
 auto Core::AddItem() -> void
 {
-  QListWidgetItem* item = new QListWidgetItem(nullptr, ++next_uid_);
-  item->setText("New Book");
-  item->setData(Qt::UserRole, QVariant("Input new text!"));
+  auto item = ItemConstructed();
   list_->addItem(item);
   OnChangeBook(item);
 }
@@ -50,7 +48,9 @@ auto Core::DeleteItem() -> void
 
 auto Core::InsertItem() -> void
 {
-  qDebug() << "insert";
+  auto item = ItemConstructed();
+  list_->insertItem(list_->currentRow(), item);
+  OnChangeBook(item);
 }
 
 auto Core::ItemByUid(int uid) -> QListWidgetItem*
@@ -61,6 +61,14 @@ auto Core::ItemByUid(int uid) -> QListWidgetItem*
     }
   }
   return nullptr;
+}
+
+auto Core::ItemConstructed() -> QListWidgetItem*
+{
+  QListWidgetItem* item = new QListWidgetItem(nullptr, ++next_uid_);
+  item->setText("New Book");
+  item->setData(Qt::UserRole, QVariant("Input new text!"));
+  return item;
 }
 
 auto Core::SetEditor(QTextEdit* editor) -> bool
