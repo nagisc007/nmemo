@@ -12,6 +12,7 @@
 #include <QListWidgetItem>
 #include <QMap>
 #include <QObject>
+#include <QStack>
 #include <QTextEdit>
 
 namespace NMEMO {
@@ -55,7 +56,8 @@ private:
   QString filename_;
   QScopedPointer<QTextEdit> editor_;
   QScopedPointer<QListWidget> list_;
-  QMap<QString, QString> datapack_;
+  QScopedPointer<QMap<QString, QString>> datapack_;
+  QScopedPointer<QStack<QListWidgetItem*>> item_pool_;
 };
 
 }  // namespace NMEMO

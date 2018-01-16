@@ -25,7 +25,9 @@ Core::Core(QObject *parent) : QObject(parent),
   pre_uid_(0),
   filename_(CoreValues::UNDEFINED_FNAME),
   editor_(nullptr),
-  list_(nullptr)
+  list_(nullptr),
+  datapack_(new QMap<QString, QString>),
+  item_pool_(new QStack<QListWidgetItem*>)
 {
   qDebug() << "Core: construct";
   // connects
@@ -34,6 +36,14 @@ Core::Core(QObject *parent) : QObject(parent),
 
 Core::~Core()
 {
+  if (item_pool_) {
+    item_pool_->clear();
+    item_pool_.reset();
+  }
+  if (datapack_) {
+    datapack_->clear();
+    datapack_.reset();
+  }
   if (list_) list_.reset();
   if (editor_) editor_.reset();
   qDebug() << "Core: destruct";
@@ -51,15 +61,14 @@ auto Core::AddItem() -> void
 auto Core::ClearItems() -> void
 {
   while (list_->count()) {
-    auto item = list_->takeItem(0);
-    delete item;
+    item_pool_->push(list_->takeItem(0));
   }
 }
 
 auto Core::DeleteItem() -> void
 {
-  auto item = list_->takeItem(list_->currentRow());
-  delete item;
+  item_pool_->push(list_->takeItem(list_->currentRow()));
+
   OnChangeBook(list_->currentItem());
 }
 
@@ -82,7 +91,8 @@ auto Core::ItemByUid(int uid) -> QListWidgetItem*
 
 auto Core::ItemConstructed() -> QListWidgetItem*
 {
-  QListWidgetItem* item = new QListWidgetItem(nullptr, ++next_uid_);
+  QListWidgetItem* item = item_pool_->isEmpty() ? new QListWidgetItem(nullptr, ++next_uid_):
+                                                  item_pool_->pop();
   item->setText("New Book");
   item->setData(Qt::UserRole, QVariant("Input new text!"));
   return item;
@@ -94,7 +104,7 @@ auto Core::LoadFromFile(QWidget* win) -> void
 
   if (filename.isEmpty()) return;
 
-  datapack_.clear();
+  datapack_->clear();
 
   QFile file(filename);
   if (!file.open(QIODevice::ReadOnly)) {
@@ -104,15 +114,15 @@ auto Core::LoadFromFile(QWidget* win) -> void
 
   QDataStream in(&file);
   in.setVersion(QDataStream::Qt_5_10);
-  in >> datapack_;
+  in >> datapack_.operator*();
 
-  if (datapack_.isEmpty()) {
+  if (datapack_->isEmpty()) {
     QMessageBox::information(win, "No content in file!", "Cannot find any contents!");
     return;
   }
   Reset();
-  QMap<QString, QString>::const_iterator it = datapack_.constBegin();
-  while (it != datapack_.constEnd()) {
+  QMap<QString, QString>::const_iterator it = datapack_->constBegin();
+  while (it != datapack_->constEnd()) {
     auto item = ItemConstructed();
     item->setText(it.key().section(":", 1,1));
     item->setData(Qt::UserRole, QVariant(it.value()));
@@ -150,12 +160,12 @@ auto Core::SaveToFile(QWidget* win, bool is_new) -> void
 auto Core::SaveToFileInternal(const QString& filename) -> void
 {
   if (filename.isEmpty()) return;
-  datapack_.clear();
+  datapack_->clear();
   for (int i = 0, size = list_->count(); i < size; ++i) {
     auto item = list_->item(i);
     if (!item) continue;
     QString prefix = QString::number(item->type());
-    datapack_.insert(prefix + ":" + item->text(), item->data(Qt::UserRole).toString());
+    datapack_->insert(prefix + ":" + item->text(), item->data(Qt::UserRole).toString());
   }
 
   QFile file(filename);
