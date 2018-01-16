@@ -131,6 +131,7 @@ auto Core::LoadFromFile(QWidget* win) -> void
   }
   list_->setCurrentRow(0);
   OnChangeBook(list_->item(0));
+  if (editor_->isReadOnly()) editor_->setReadOnly(false);
   filename_ = filename;
   emit filenameChanged(QFileInfo(filename).baseName());
 }
