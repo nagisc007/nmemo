@@ -9,9 +9,6 @@
 #include "ui_mainwindow.h"
 
 #include <QDebug>
-#include <QLabel>
-#include <QStringList>
-#include <QStringListModel>
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -50,7 +47,7 @@ auto MainWindow::CloseFile() -> void
 auto MainWindow::InitWidgets() -> bool
 {
   return core_->SetEditor(ui->memoEditor) &&
-      core_->SetListView(ui->titleDisplay);
+      core_->SetList(ui->titleDisplay);
 }
 
 auto MainWindow::OpenFile() -> void
@@ -113,7 +110,7 @@ void MainWindow::on_actionAbout_Nmemo_triggered()
 
 void MainWindow::on_action_Add_triggered()
 {
-  qDebug() << "Add (unimplemented)";
+  core_->AddItem();
 }
 
 void MainWindow::on_action_Insert_triggered()

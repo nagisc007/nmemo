@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,22 +17,47 @@
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>2</x>
+      <x>0</x>
       <y>0</y>
-      <width>391</width>
-      <height>231</height>
+      <width>401</width>
+      <height>519</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QTextEdit" name="memoEditor">
+       <property name="minimumSize">
+        <size>
+         <width>48</width>
+         <height>517</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>280</width>
+         <height>519</height>
+        </size>
+       </property>
        <property name="overwriteMode">
         <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QListView" name="titleDisplay"/>
+      <widget class="QListWidget" name="titleDisplay">
+       <property name="maximumSize">
+        <size>
+         <width>120</width>
+         <height>519</height>
+        </size>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::InternalMove</enum>
+       </property>
+       <property name="defaultDropAction">
+        <enum>Qt::TargetMoveAction</enum>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>

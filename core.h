@@ -8,10 +8,9 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include <QListView>
+#include <QListWidget>
+#include <QListWidgetItem>
 #include <QObject>
-#include <QStringList>
-#include <QStringListModel>
 #include <QTextEdit>
 
 namespace NMEMO {
@@ -24,17 +23,22 @@ public:
   ~Core();
   // methods: base
   bool SetEditor(QTextEdit*);
-  bool SetListView(QListView*);
+  bool SetList(QListWidget*);
+  // methods
+  void AddItem();
+  QListWidgetItem* ItemByUid(int);
 
 signals:
+  void bookTitleChanged(QListWidgetItem*);
 
 public slots:
-
+  void OnChangeBook(QListWidgetItem*);
+  void OnRequestChangeTitle(QListWidgetItem*);
 private:
+  int next_uid_;
+  int pre_uid_;
   QScopedPointer<QTextEdit> editor_;
-  QScopedPointer<QListView> list_view_;
-  QScopedPointer<QStringListModel> model_;
-  QScopedPointer<QStringList> titles_;
+  QScopedPointer<QListWidget> list_;
 };
 
 }  // namespace NMEMO
