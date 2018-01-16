@@ -90,6 +90,9 @@
     <addaction name="action_Add"/>
     <addaction name="action_Insert"/>
     <addaction name="action_Delete"/>
+    <addaction name="separator"/>
+    <addaction name="actionSort_A_Z"/>
+    <addaction name="actionSort_Z_A"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -112,6 +115,9 @@
    <addaction name="action_Add"/>
    <addaction name="action_Insert"/>
    <addaction name="action_Delete"/>
+   <addaction name="separator"/>
+   <addaction name="actionSort_A_Z"/>
+   <addaction name="actionSort_Z_A"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
@@ -177,6 +183,22 @@
   <action name="action_Delete">
    <property name="text">
     <string>&amp;Delete</string>
+   </property>
+  </action>
+  <action name="actionSort_A_Z">
+   <property name="text">
+    <string>Sort AtoZ</string>
+   </property>
+   <property name="iconText">
+    <string>AtoZ</string>
+   </property>
+  </action>
+  <action name="actionSort_Z_A">
+   <property name="text">
+    <string>Sort ZtoA</string>
+   </property>
+   <property name="iconText">
+    <string>ZtoA</string>
    </property>
   </action>
  </widget>

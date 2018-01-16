@@ -122,3 +122,13 @@ void MainWindow::on_action_Delete_triggered()
 {
   core_->DeleteItem();
 }
+
+void MainWindow::on_actionSort_A_Z_triggered()
+{
+  core_->SortItems(0);
+}
+
+void MainWindow::on_actionSort_Z_A_triggered()
+{
+  core_->SortItems(1);
+}

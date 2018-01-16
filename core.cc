@@ -42,6 +42,14 @@ auto Core::AddItem() -> void
   OnChangeBook(item);
 }
 
+auto Core::ClearItems() -> void
+{
+  while (list_->count()) {
+    auto item = list_->takeItem(0);
+    delete item;
+  }
+}
+
 auto Core::DeleteItem() -> void
 {
   auto item = list_->takeItem(list_->currentRow());
@@ -96,7 +104,7 @@ auto Core::LoadFromFile(QWidget* win) -> void
     QMessageBox::information(win, "No content in file!", "Cannot find any contents!");
     return;
   }
-
+  Reset();
   QMap<QString, QString>::const_iterator it = datapack_.constBegin();
   while (it != datapack_.constEnd()) {
     auto item = ItemConstructed();
@@ -107,6 +115,13 @@ auto Core::LoadFromFile(QWidget* win) -> void
   }
   list_->setCurrentRow(0);
   OnChangeBook(list_->item(0));
+}
+
+auto Core::Reset() -> void
+{
+  ClearItems();
+  next_uid_ = 0;
+  pre_uid_ = 0;
 }
 
 auto Core::SaveToFile(QWidget* win) -> void
@@ -121,8 +136,6 @@ auto Core::SaveToFile(QWidget* win) -> void
     QString prefix = QString::number(item->type());
     datapack_.insert(prefix + ":" + item->text(), item->data(Qt::UserRole).toString());
   }
-  qDebug() << "list size: " << list_->count();
-  qDebug() << "file size: " << datapack_.size();
 
   QFile file(filename);
   if (!file.open(QIODevice::WriteOnly)) {
@@ -154,6 +167,12 @@ auto Core::SetList(QListWidget* view) -> bool
   connect(list_.data(), &QListWidget::itemClicked, this, &Core::OnChangeBook);
   connect(list_.data(), &QListWidget::itemDoubleClicked, this, &Core::OnRequestChangeTitle);
   return true;
+}
+
+auto Core::SortItems(int order) -> void
+{
+  list_->sortItems(order ? Qt::DescendingOrder:
+                           Qt::AscendingOrder);
 }
 
 /*

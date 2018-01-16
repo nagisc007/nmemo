@@ -49,6 +49,10 @@ private slots:
 
   void on_action_Delete_triggered();
 
+  void on_actionSort_A_Z_triggered();
+
+  void on_actionSort_Z_A_triggered();
+
 private:
   Ui::MainWindow *ui;
   QScopedPointer<NMEMO::Core> core_;

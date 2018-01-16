@@ -27,12 +27,15 @@ public:
   bool SetList(QListWidget*);
   // methods
   void AddItem();
+  void ClearItems();
   void DeleteItem();
   void InsertItem();
   QListWidgetItem* ItemConstructed();
   QListWidgetItem* ItemByUid(int);
   void LoadFromFile(QWidget*);
+  void Reset();
   void SaveToFile(QWidget*);
+  void SortItems(int order = 0);
 
 signals:
   void bookTitleChanged(QListWidgetItem*);
