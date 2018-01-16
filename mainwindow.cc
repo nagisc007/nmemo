@@ -115,10 +115,10 @@ void MainWindow::on_action_Add_triggered()
 
 void MainWindow::on_action_Insert_triggered()
 {
-  qDebug() << "Insert (unimplemented)";
+  core_->InsertItem();
 }
 
 void MainWindow::on_action_Delete_triggered()
 {
-  qDebug() << "Delete (unimplemented)";
+  core_->DeleteItem();
 }

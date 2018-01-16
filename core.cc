@@ -41,6 +41,18 @@ auto Core::AddItem() -> void
   OnChangeBook(item);
 }
 
+auto Core::DeleteItem() -> void
+{
+  auto item = list_->takeItem(list_->currentRow());
+  delete item;
+  OnChangeBook(list_->currentItem());
+}
+
+auto Core::InsertItem() -> void
+{
+  qDebug() << "insert";
+}
+
 auto Core::ItemByUid(int uid) -> QListWidgetItem*
 {
   for (int i = 0, size = list_->count(); i < size; ++i) {
@@ -53,6 +65,8 @@ auto Core::ItemByUid(int uid) -> QListWidgetItem*
 
 auto Core::SetEditor(QTextEdit* editor) -> bool
 {
+  Q_ASSERT(editor);
+
   editor_.reset(editor);
   if (editor_.isNull()) return false;
   return true;
@@ -60,6 +74,8 @@ auto Core::SetEditor(QTextEdit* editor) -> bool
 
 auto Core::SetList(QListWidget* view) -> bool
 {
+  Q_ASSERT(view);
+
   list_.reset(view);
   if (list_.isNull()) return false;
   // connects
@@ -73,6 +89,8 @@ auto Core::SetList(QListWidget* view) -> bool
  */
 void Core::OnRequestChangeTitle(QListWidgetItem* item)
 {
+  Q_ASSERT(item);
+
   auto txt = QInputDialog::getText(nullptr, "Change book title", "Input book title:", QLineEdit::Normal, item->text());
   if (txt == "") return;
   item->setText(txt);
@@ -81,6 +99,7 @@ void Core::OnRequestChangeTitle(QListWidgetItem* item)
 
 void Core::OnChangeBook(QListWidgetItem* item)
 {
+  if (!item) return;
   if (pre_uid_ > 0) {
     auto item = ItemByUid(pre_uid_);
     if (item) {
@@ -88,7 +107,6 @@ void Core::OnChangeBook(QListWidgetItem* item)
     }
   }
   editor_->setPlainText(item->data(Qt::UserRole).toString());
-  qDebug() << "type: " << item->type();
   pre_uid_ = item->type();
 }
 

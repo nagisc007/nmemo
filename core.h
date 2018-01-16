@@ -26,6 +26,8 @@ public:
   bool SetList(QListWidget*);
   // methods
   void AddItem();
+  void DeleteItem();
+  void InsertItem();
   QListWidgetItem* ItemByUid(int);
 
 signals:
