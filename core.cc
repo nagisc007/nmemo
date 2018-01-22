@@ -119,6 +119,7 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
   out << datapack_.operator*();
 
   filename_ = filename;
+  is_editing_ = false;
   emit filenameChanged(QFileInfo(filename).baseName());
   emit statusMessageRequested("File saved.");
 }
