@@ -8,11 +8,11 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include "itempool.h"
+
 #include <QListWidget>
-#include <QListWidgetItem>
 #include <QMap>
 #include <QObject>
-#include <QStack>
 #include <QTextEdit>
 
 namespace NMEMO {
@@ -24,41 +24,41 @@ public:
   explicit Core(QObject *parent = nullptr);
   ~Core();
   // constatns
-  struct CoreValues {
+  struct Values {
     static const QString UNDEFINED_FNAME;
+    static const QString DEFAULT_BOOK_NAME;
+    static const QVariant DEFAULT_VALUE;
   };
   // methods: base
   bool SetEditor(QTextEdit*);
   bool SetList(QListWidget*);
-  // methods
-  void AddItem();
-  void ClearItems();
-  void DeleteItem();
-  void InsertItem();
-  QListWidgetItem* ItemConstructed();
+  // methods: features
   QListWidgetItem* ItemByUid(int);
-  void LoadFromFile(QWidget*);
-  void Reset();
-  void SaveToFile(QWidget*, bool is_new = true);
   void SaveToFileInternal(const QString&);
-  void SortItems(int order = 0);
 
 signals:
   void bookTitleChanged(QListWidgetItem*);
   void filenameChanged(const QString&);
 
 public slots:
+  void OnAddItem();
   void OnChangeBook(QListWidgetItem*);
   void OnChangeBookAsIndex(int);
+  void OnDeleteItem();
+  void OnInsertItem();
+  void OnLoadFile(QWidget*);
   void OnRequestChangeTitle(QListWidgetItem*);
+  void OnReset();
+  void OnSaveToFile(QWidget*, bool is_new = true);
+  void OnSortItems(int order = 0);
+
 private:
-  int next_uid_;
   int pre_uid_;
   QString filename_;
   QScopedPointer<QTextEdit> editor_;
   QScopedPointer<QListWidget> list_;
   QScopedPointer<QMap<QString, QString>> datapack_;
-  QScopedPointer<QStack<QListWidgetItem*>> item_pool_;
+  QScopedPointer<ItemPool> item_pool_;
 };
 
 }  // namespace NMEMO

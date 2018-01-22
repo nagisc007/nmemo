@@ -23,20 +23,25 @@ class MainWindow : public QMainWindow
 public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
-  // constants
-  struct MainValues {
+  // values
+  struct Values {
     static const QString APP_NAME;
     static const QString APP_VERSION;
     static const QString APP_AUTHORS;
   };
   // methods: base
+  bool InitActions();
   bool InitWidgets();
-  // methods: menus
-  void OpenFile();
-  void CloseFile();
-  void SaveFile();
-  void SaveAsFile();
-  void Quit();
+  // methods: features
+
+signals:
+  void fileOpend(QWidget*);
+  void itemAddRequested();
+  void itemDeleteRequested();
+  void itemInsertRequested();
+  void itemSortRequested(int);
+  void resetRequested();
+  void saveFileRequested(QWidget*, bool);
 
 public slots:
   void OnChangeFilename(const QString&);
