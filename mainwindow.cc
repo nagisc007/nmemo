@@ -68,9 +68,10 @@ auto MainWindow::InitWidgets() -> bool
 /* methods: features */
 
 /* slots */
-void MainWindow::OnChangeFilename(const QString& filename)
+void MainWindow::OnChangeFilename(const QString& filename, bool is_modified)
 {
-  setWindowTitle(Values::APP_NAME + "[" + filename + "]");
+  QString prefix = is_modified ? "*": "";
+  setWindowTitle(prefix + Values::APP_NAME + "[" + filename + "]");
 }
 
 /* slots: menus */

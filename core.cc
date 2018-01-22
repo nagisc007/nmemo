@@ -16,14 +16,26 @@
 
 namespace NMEMO {
 
-/* Constants */
+/* values */
 const QString Core::Values::UNDEFINED_FNAME = "Undefined";
 const QString Core::Values::DEFAULT_BOOK_NAME = "New Book";
 const QVariant Core::Values::DEFAULT_VALUE = QVariant("Input new text!");
 
+/* utils */
+auto ItemGetter::operator()(int target_id, QListWidget* list) -> QListWidgetItem*
+{
+  for (int i = 0, size = list->count(); i < size; ++i) {
+    if (list->item(i)->type() == target_id) {
+      return list->item(i);
+    }
+  }
+  return nullptr;
+}
 
+/* class */
 Core::Core(QObject *parent) : QObject(parent),
-  pre_uid_(0),
+  uid_cache_(0),
+  is_editing_(false),
   filename_(Values::UNDEFINED_FNAME),
   editor_(nullptr),
   list_(nullptr),
@@ -47,16 +59,31 @@ Core::~Core()
   qDebug() << "Core: destruct";
 }
 
-auto Core::ItemByUid(int uid) -> QListWidgetItem*
+/* methods: base */
+auto Core::SetEditor(QTextEdit* editor) -> bool
 {
-  for (int i = 0, size = list_->count(); i < size; ++i) {
-    if (list_->item(i)->type() == uid) {
-      return list_->item(i);
-    }
-  }
-  return nullptr;
+  Q_ASSERT(editor);
+
+  editor_.reset(editor);
+  if (editor_.isNull()) return false;
+  // connects
+  connect(editor_.data(), &QTextEdit::textChanged, this, &Core::OnChangeText);
+  return true;
 }
 
+auto Core::SetList(QListWidget* view) -> bool
+{
+  Q_ASSERT(view);
+
+  list_.reset(view);
+  if (list_.isNull()) return false;
+  // connects
+  connect(list_.data(), &QListWidget::currentRowChanged, this, &Core::OnChangeBookAsIndex);
+  connect(list_.data(), &QListWidget::itemDoubleClicked, this, &Core::OnRequestChangeTitle);
+  return true;
+}
+
+/* methods: features */
 auto Core::SaveToFileInternal(const QString& filename) -> void
 {
   if (filename.isEmpty()) return;
@@ -64,7 +91,7 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
   for (int i = 0, size = list_->count(); i < size; ++i) {
     auto item = list_->item(i);
     if (!item) continue;
-    QString prefix = QString::number(item->type());
+    QString prefix = QString::number(i);
     datapack_->insert(prefix + ":" + item->text(), item->data(Qt::UserRole).toString());
   }
 
@@ -82,27 +109,6 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
   emit filenameChanged(QFileInfo(filename).baseName());
 }
 
-auto Core::SetEditor(QTextEdit* editor) -> bool
-{
-  Q_ASSERT(editor);
-
-  editor_.reset(editor);
-  if (editor_.isNull()) return false;
-  return true;
-}
-
-auto Core::SetList(QListWidget* view) -> bool
-{
-  Q_ASSERT(view);
-
-  list_.reset(view);
-  if (list_.isNull()) return false;
-  // connects
-  connect(list_.data(), &QListWidget::currentRowChanged, this, &Core::OnChangeBookAsIndex);
-  connect(list_.data(), &QListWidget::itemDoubleClicked, this, &Core::OnRequestChangeTitle);
-  return true;
-}
-
 /* slots */
 void Core::OnAddItem()
 {
@@ -116,19 +122,29 @@ void Core::OnAddItem()
 void Core::OnChangeBook(QListWidgetItem* item)
 {
   if (!item) return;
-  if (pre_uid_ > 0) {
-    auto item = ItemByUid(pre_uid_);
+  if (uid_cache_ > 0) {
+    auto item = ItemGetter()(uid_cache_, list_.data());
     if (item) {
       item->setData(Qt::UserRole, QVariant(editor_->toPlainText()));
     }
   }
   editor_->setPlainText(item->data(Qt::UserRole).toString());
-  pre_uid_ = item->type();
+  uid_cache_ = item->type();
+  is_editing_ = false;
 }
 
 void Core::OnChangeBookAsIndex(int current)
 {
   OnChangeBook(list_->item(current));
+}
+
+auto Core::OnChangeText() -> void
+{
+  if (is_editing_) {
+    filenameChanged(QFileInfo(filename_).baseName(), true);
+  } else {
+    is_editing_ = true;
+  }
 }
 
 void Core::OnDeleteItem()
@@ -197,7 +213,7 @@ void Core::OnLoadFile(QWidget* win)
 auto Core::OnReset() -> void
 {
   item_pool_->Reset(list_.data());
-  pre_uid_ = 0;
+  uid_cache_ = 0;
   editor_->clear();
   editor_->setReadOnly(true);
 }

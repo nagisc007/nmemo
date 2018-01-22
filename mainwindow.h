@@ -44,7 +44,7 @@ signals:
   void saveFileRequested(QWidget*, bool);
 
 public slots:
-  void OnChangeFilename(const QString&);
+  void OnChangeFilename(const QString&, bool is_modified = false);
 
 private slots:
   void on_actionOpen_triggered();

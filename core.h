@@ -17,6 +17,11 @@
 
 namespace NMEMO {
 
+/* utils */
+struct ItemGetter {
+  QListWidgetItem* operator()(int, QListWidget*);
+};
+
 class Core : public QObject
 {
   Q_OBJECT
@@ -33,17 +38,18 @@ public:
   bool SetEditor(QTextEdit*);
   bool SetList(QListWidget*);
   // methods: features
-  QListWidgetItem* ItemByUid(int);
+  void PreSaveContext();
   void SaveToFileInternal(const QString&);
 
 signals:
   void bookTitleChanged(QListWidgetItem*);
-  void filenameChanged(const QString&);
+  void filenameChanged(const QString&, bool is_modified = false);
 
 public slots:
   void OnAddItem();
   void OnChangeBook(QListWidgetItem*);
   void OnChangeBookAsIndex(int);
+  void OnChangeText();
   void OnDeleteItem();
   void OnInsertItem();
   void OnLoadFile(QWidget*);
@@ -53,7 +59,8 @@ public slots:
   void OnSortItems(int order = 0);
 
 private:
-  int pre_uid_;
+  int uid_cache_;
+  bool is_editing_;
   QString filename_;
   QScopedPointer<QTextEdit> editor_;
   QScopedPointer<QListWidget> list_;
