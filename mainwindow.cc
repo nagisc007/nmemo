@@ -14,7 +14,7 @@
 /* values */
 const QString MainWindow::Values::APP_AUTHORS = "N.T.Works";
 const QString MainWindow::Values::APP_NAME = "Nmemo";
-const QString MainWindow::Values::APP_VERSION = "1.0.1";
+const QString MainWindow::Values::APP_VERSION = "1.0.2";
 const int MainWindow::Values::STATUS_MESSAGE_TIME = 3000;
 
 /* class */
