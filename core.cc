@@ -84,10 +84,23 @@ auto Core::SetList(QListWidget* view) -> bool
 }
 
 /* methods: features */
+auto Core::PreSaveContext() -> void
+{
+  if (uid_cache_ > 0) {
+    auto item = ItemGetter()(uid_cache_, list_.data());
+    if (item) {
+      item->setData(Qt::UserRole, QVariant(editor_->toPlainText()));
+    }
+  }
+}
+
 auto Core::SaveToFileInternal(const QString& filename) -> void
 {
   if (filename.isEmpty()) return;
+
+  PreSaveContext();
   datapack_->clear();
+
   for (int i = 0, size = list_->count(); i < size; ++i) {
     auto item = list_->item(i);
     if (!item) continue;
@@ -122,12 +135,7 @@ void Core::OnAddItem()
 void Core::OnChangeBook(QListWidgetItem* item)
 {
   if (!item) return;
-  if (uid_cache_ > 0) {
-    auto item = ItemGetter()(uid_cache_, list_.data());
-    if (item) {
-      item->setData(Qt::UserRole, QVariant(editor_->toPlainText()));
-    }
-  }
+  PreSaveContext();
   editor_->setPlainText(item->data(Qt::UserRole).toString());
   uid_cache_ = item->type();
   is_editing_ = false;
