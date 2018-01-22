@@ -28,6 +28,7 @@ public:
     static const QString APP_NAME;
     static const QString APP_VERSION;
     static const QString APP_AUTHORS;
+    static const int STATUS_MESSAGE_TIME;
   };
   // methods: base
   bool InitActions();
@@ -45,6 +46,7 @@ signals:
 
 public slots:
   void OnChangeFilename(const QString&, bool is_modified = false);
+  void OnStatusMessage(const QString&);
 
 private slots:
   void on_actionOpen_triggered();

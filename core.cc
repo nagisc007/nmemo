@@ -120,6 +120,7 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
 
   filename_ = filename;
   emit filenameChanged(QFileInfo(filename).baseName());
+  emit statusMessageRequested("File saved.");
 }
 
 /* slots */
@@ -130,6 +131,7 @@ void Core::OnAddItem()
   auto item = item_pool_->operator()(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_VALUE);
   list_->addItem(item);
   OnChangeBook(item);
+  emit statusMessageRequested("Item added.");
 }
 
 void Core::OnChangeBook(QListWidgetItem* item)
@@ -160,6 +162,7 @@ void Core::OnDeleteItem()
   item_pool_->Release(list_->takeItem(list_->currentRow()));
 
   OnChangeBook(list_->currentItem());
+  emit statusMessageRequested("Item deleted.");
 }
 
 void Core::OnInsertItem()
@@ -167,6 +170,7 @@ void Core::OnInsertItem()
   auto item = item_pool_->operator()(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_VALUE);
   list_->insertItem(list_->currentRow(), item);
   OnChangeBook(item);
+  emit statusMessageRequested("Item added.");
 }
 
 
@@ -216,6 +220,7 @@ void Core::OnLoadFile(QWidget* win)
   if (editor_->isReadOnly()) editor_->setReadOnly(false);
   filename_ = filename;
   emit filenameChanged(QFileInfo(filename).baseName());
+  emit statusMessageRequested("File loaded.");
 }
 
 auto Core::OnReset() -> void
@@ -243,6 +248,7 @@ auto Core::OnSortItems(int order) -> void
 {
   list_->sortItems(order ? Qt::DescendingOrder:
                            Qt::AscendingOrder);
+  emit statusMessageRequested("Item sorted.");
 }
 
 }  // namespace NMEMO

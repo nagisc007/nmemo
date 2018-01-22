@@ -44,6 +44,7 @@ public:
 signals:
   void bookTitleChanged(QListWidgetItem*);
   void filenameChanged(const QString&, bool is_modified = false);
+  void statusMessageRequested(const QString&);
 
 public slots:
   void OnAddItem();
