@@ -31,6 +31,7 @@ public:
   // constatns
   struct Values {
     static const QString UNDEFINED_FNAME;
+    static const QString FILE_EXT;
   };
   // methods: base
   bool SetEditor(QTextEdit*);
@@ -63,7 +64,7 @@ private:
   QString filename_;
   QScopedPointer<QTextEdit> editor_;
   QScopedPointer<QListWidget> list_;
-  QScopedPointer<QMap<QString, QString>> datapack_;
+  QScopedPointer<QStringList> datapack_;
   QScopedPointer<ItemPool> item_pool_;
 };
 

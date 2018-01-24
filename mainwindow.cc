@@ -100,6 +100,7 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionSave_As_triggered()
 {
+  qDebug() << "[save as]";
   emit saveFileQueue(this, true);
 }
 

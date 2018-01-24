@@ -18,6 +18,7 @@ namespace NMEMO {
 
 /* values */
 const QString Core::Values::UNDEFINED_FNAME = "Undefined";
+const QString Core::Values::FILE_EXT = "memo";
 
 /* class */
 Core::Core(QObject *parent) : QObject(parent),
@@ -26,7 +27,7 @@ Core::Core(QObject *parent) : QObject(parent),
   filename_(Values::UNDEFINED_FNAME),
   editor_(nullptr),
   list_(nullptr),
-  datapack_(new QMap<QString, QString>),
+  datapack_(new QStringList()),
   item_pool_(new ItemPool())
 {
   qDebug() << "Core: construct";
@@ -92,7 +93,8 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
     auto item = list_->item(i);
     if (!item) continue;
     QString prefix = QString::number(i);
-    datapack_->insert(prefix + ":" + item->text(), item->data(Qt::UserRole).toString());
+    datapack_->operator <<(prefix + ":" + item->text());
+    datapack_->operator <<(item->data(Qt::UserRole).toString());
   }
 
   QFile file(filename);
@@ -186,11 +188,12 @@ void Core::OnLoadFile(QWidget* win)
     return;
   }
   OnReset();
-  QMap<QString, QString>::const_iterator it = datapack_->constBegin();
+  QStringList::const_iterator it = datapack_->constBegin();
   while (it != datapack_->constEnd()) {
     auto item = item_pool_->operator()(ItemGenerator());
-    item->setText(it.key().section(":", 1,1));
-    item->setData(Qt::UserRole, QVariant(it.value()));
+    item->setText(it.operator *().section(":", 1,1));
+    ++it;
+    item->setData(Qt::UserRole, QVariant(it.operator *()));
     list_->addItem(item);
     ++it;
   }
@@ -224,12 +227,15 @@ auto Core::OnReset() -> void
 
 auto Core::OnSaveToFile(QWidget* win, bool is_new) -> void
 {
-  QString filename;
-  if (!is_new) {
-    filename = filename_;
-  }
+  qDebug() << "save file to";
+  QString filename = is_new ? "":
+                              filename_;
+
   if (is_new || filename == Values::UNDEFINED_FNAME) {
-    filename = QFileDialog::getSaveFileName(win, "Save file", "", "Memo file (*.memo);;All Files (*)");
+    filename = QFileDialog::getSaveFileName(win,
+                                            "Save file",
+                                            "",
+                                            "Memo file (*.memo);;All Files (*)");
   }
 
   SaveToFileInternal(filename);
