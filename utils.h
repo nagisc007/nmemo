@@ -27,6 +27,10 @@ struct ItemGenerator
   QListWidgetItem* operator ()(const QString&, const QString&, int);
 };
 
+struct ItemFindById {
+  QListWidgetItem* operator ()(const QListWidget*, int);
+};
+
 class ItemPool
 {
 public:

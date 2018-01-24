@@ -16,6 +16,14 @@ const QString Values::DEFAULT_BOOK_NAME = "New Book";
 const QString Values::DEFAULT_BOOK_TEXT = "new text";
 
 /* utils */
+auto ItemFindById::operator ()(const QListWidget* list, int item_id) -> QListWidgetItem*
+{
+  for (int i = 0, size = list->count(); i < size; ++i) {
+    if (list->item(i)->type() == item_id) return list->item(i);
+  }
+  return nullptr;
+}
+
 auto ItemGenerator::operator ()(const QString& label, const QString& text,
                                 int item_id) -> QListWidgetItem*
 {

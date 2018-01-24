@@ -21,17 +21,6 @@ const QString Core::Values::UNDEFINED_FNAME = "Undefined";
 const QString Core::Values::DEFAULT_BOOK_NAME = "New Book";
 const QVariant Core::Values::DEFAULT_VALUE = QVariant("Input new text!");
 
-/* utils */
-auto ItemGetter::operator()(int target_id, QListWidget* list) -> QListWidgetItem*
-{
-  for (int i = 0, size = list->count(); i < size; ++i) {
-    if (list->item(i)->type() == target_id) {
-      return list->item(i);
-    }
-  }
-  return nullptr;
-}
-
 /* class */
 Core::Core(QObject *parent) : QObject(parent),
   uid_cache_(0),
@@ -87,7 +76,7 @@ auto Core::SetList(QListWidget* view) -> bool
 auto Core::PreSaveContext() -> void
 {
   if (uid_cache_ > 0) {
-    auto item = ItemGetter()(uid_cache_, list_.data());
+    auto item = ItemFindById()(list_.data(), uid_cache_);
     if (item) {
       item->setData(Qt::UserRole, QVariant(editor_->toPlainText()));
     }

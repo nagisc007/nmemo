@@ -17,11 +17,6 @@
 
 namespace NMEMO {
 
-/* utils */
-struct ItemGetter {
-  QListWidgetItem* operator()(int, QListWidget*);
-};
-
 class Core : public QObject
 {
   Q_OBJECT
