@@ -129,7 +129,7 @@ void Core::OnAddItem()
 {
   if (editor_->isReadOnly()) editor_->setReadOnly(false);
 
-  auto item = item_pool_->operator()(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_VALUE);
+  auto item = item_pool_->operator()(ItemGenerator());
   list_->addItem(item);
   OnChangeBook(item);
   emit statusMessageRequested("Item added.");
@@ -160,7 +160,7 @@ auto Core::OnChangeText() -> void
 
 void Core::OnDeleteItem()
 {
-  item_pool_->Release(list_->takeItem(list_->currentRow()));
+  if (!item_pool_->Release(list_->takeItem(list_->currentRow()))) return;
 
   OnChangeBook(list_->currentItem());
   emit statusMessageRequested("Item deleted.");
@@ -168,7 +168,7 @@ void Core::OnDeleteItem()
 
 void Core::OnInsertItem()
 {
-  auto item = item_pool_->operator()(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_VALUE);
+  auto item = item_pool_->operator()(ItemGenerator());
   list_->insertItem(list_->currentRow(), item);
   OnChangeBook(item);
   emit statusMessageRequested("Item added.");
@@ -210,7 +210,7 @@ void Core::OnLoadFile(QWidget* win)
   OnReset();
   QMap<QString, QString>::const_iterator it = datapack_->constBegin();
   while (it != datapack_->constEnd()) {
-    auto item = item_pool_->operator()(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_VALUE);
+    auto item = item_pool_->operator()(ItemGenerator());
     item->setText(it.key().section(":", 1,1));
     item->setData(Qt::UserRole, QVariant(it.value()));
     list_->addItem(item);
@@ -226,7 +226,7 @@ void Core::OnLoadFile(QWidget* win)
 
 auto Core::OnReset() -> void
 {
-  item_pool_->Reset(list_.data());
+  item_pool_->ReleaseAll(list_.data());
   uid_cache_ = 0;
   editor_->clear();
   editor_->setReadOnly(true);

@@ -5,11 +5,25 @@
  *   Licensed under GPLv3                                                  *
  *                                                                         *
  ***************************************************************************/
-#include "itempool.h"
+#include "utils.h"
 
 #include <QDebug>
 
 namespace NMEMO {
+
+/* values */
+const QString Values::DEFAULT_BOOK_NAME = "New Book";
+const QString Values::DEFAULT_BOOK_TEXT = "new text";
+
+/* utils */
+auto ItemGenerator::operator ()(const QString& label, const QString& text,
+                                int item_id) -> QListWidgetItem*
+{
+  auto item = new QListWidgetItem(nullptr, item_id);
+  item->setText(label);
+  item->setData(Qt::UserRole, text);
+  return item;
+}
 
 /* class */
 ItemPool::ItemPool():
@@ -29,26 +43,27 @@ ItemPool::~ItemPool()
 }
 
 /* methods: features */
-auto ItemPool::operator()(const QString& text, const QVariant& val) -> QListWidgetItem*
+auto ItemPool::operator()(GenerateFnc fn) -> QListWidgetItem*
 {
-  QListWidgetItem* item = pool_->isEmpty() ? new QListWidgetItem(nullptr, ++next_uid_):
-                                             pool_->pop();
-  item->setText(text);
-  item->setData(Qt::UserRole, val);
-  return item;
+  return !pool_->isEmpty() ?
+        pool_->pop():
+        fn(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_BOOK_TEXT, ++next_uid_);
 }
 
-auto ItemPool::Release(QListWidgetItem* item) -> void
+auto ItemPool::Release(QListWidgetItem* item) -> bool
 {
+  if (!item) return false;
   pool_->push(item);
+  return true;
 }
 
-auto ItemPool::Reset(QListWidget* list) -> void
+auto ItemPool::ReleaseAll(QListWidget* list) -> bool
 {
   while (list->count()) {
     pool_->push(list->takeItem(0));
   }
   next_uid_ = 0;
+  return true;
 }
 
 }  // namespace NMEMO

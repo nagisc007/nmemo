@@ -8,7 +8,7 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include "itempool.h"
+#include "utils.h"
 
 #include <QListWidget>
 #include <QMap>

@@ -29,12 +29,12 @@ SOURCES += \
         main.cc \
         mainwindow.cc \
     core.cc \
-    itempool.cc
+    utils.cc
 
 HEADERS += \
         mainwindow.h \
     core.h \
-    itempool.h
+    utils.h
 
 FORMS += \
         mainwindow.ui
