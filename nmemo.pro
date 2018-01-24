@@ -34,7 +34,8 @@ SOURCES += \
 HEADERS += \
         mainwindow.h \
     core.h \
-    utils.h
+    utils.h \
+    app.h
 
 FORMS += \
         mainwindow.ui

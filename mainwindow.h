@@ -8,6 +8,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "app.h"
 #include "core.h"
 
 #include <QMainWindow>
