@@ -36,13 +36,13 @@ public:
   // methods: features
 
 signals:
-  void fileOpend(QWidget*);
-  void itemAddRequested();
-  void itemDeleteRequested();
-  void itemInsertRequested();
-  void itemSortRequested(int);
-  void resetRequested();
-  void saveFileRequested(QWidget*, bool);
+  void fileOpenQueue(QWidget*);
+  void itemAddQueue();
+  void itemDeleteQueue();
+  void itemInsertQueue();
+  void itemSortQueue(NMEMO::SortStyle);
+  void resetQueue();
+  void saveFileQueue(QWidget*, bool);
 
 public slots:
   void OnChangeFilename(const QString&, bool is_modified = false);

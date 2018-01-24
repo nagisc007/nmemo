@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
   // reset
   setWindowTitle(Values::APP_NAME);
-  emit resetRequested();
+  emit resetQueue();
 }
 
 MainWindow::~MainWindow()
@@ -47,15 +47,16 @@ MainWindow::~MainWindow()
 /* methods: base */
 auto MainWindow::InitActions() -> bool
 {
-  connect(this, &MainWindow::fileOpend, core_.data(), &NMEMO::Core::OnLoadFile);
-  connect(core_.data(), &NMEMO::Core::filenameChanged, this, &MainWindow::OnChangeFilename);
-  connect(this, &MainWindow::itemAddRequested, core_.data(), &NMEMO::Core::OnAddItem);
-  connect(this, &MainWindow::itemDeleteRequested, core_.data(), &NMEMO::Core::OnDeleteItem);
-  connect(this, &MainWindow::itemInsertRequested, core_.data(), &NMEMO::Core::OnInsertItem);
-  connect(this, &MainWindow::resetRequested, core_.data(), &NMEMO::Core::OnReset);
-  connect(this, &MainWindow::itemSortRequested, core_.data(), &NMEMO::Core::OnSortItems);
-  connect(this, &MainWindow::saveFileRequested, core_.data(), &NMEMO::Core::OnSaveToFile);
-  connect(core_.data(), &NMEMO::Core::statusMessageRequested, this, &MainWindow::OnStatusMessage);
+  if (core_.isNull()) return false;
+  connect(this, &MainWindow::fileOpenQueue, core_.data(), &NMEMO::Core::OnLoadFile);
+  connect(this, &MainWindow::itemAddQueue, core_.data(), &NMEMO::Core::OnAddItem);
+  connect(this, &MainWindow::itemDeleteQueue, core_.data(), &NMEMO::Core::OnDeleteItem);
+  connect(this, &MainWindow::itemInsertQueue, core_.data(), &NMEMO::Core::OnInsertItem);
+  connect(this, &MainWindow::resetQueue, core_.data(), &NMEMO::Core::OnReset);
+  connect(this, &MainWindow::itemSortQueue, core_.data(), &NMEMO::Core::OnSortItems);
+  connect(this, &MainWindow::saveFileQueue, core_.data(), &NMEMO::Core::OnSaveToFile);
+  connect(core_.data(), &NMEMO::Core::filenameChangeQueue, this, &MainWindow::OnChangeFilename);
+  connect(core_.data(), &NMEMO::Core::statusMessageQueue, this, &MainWindow::OnStatusMessage);
   return true;
 }
 
@@ -84,22 +85,22 @@ auto MainWindow::OnStatusMessage(const QString& msg) -> void
 /* slots: menus */
 void MainWindow::on_actionOpen_triggered()
 {
-  emit fileOpend(this);
+  emit fileOpenQueue(this);
 }
 
 void MainWindow::on_actionClose_triggered()
 {
-  emit resetRequested();
+  emit resetQueue();
 }
 
 void MainWindow::on_actionSave_triggered()
 {
-  emit saveFileRequested(this, false);
+  emit saveFileQueue(this, false);
 }
 
 void MainWindow::on_actionSave_As_triggered()
 {
-  emit saveFileRequested(this, true);
+  emit saveFileQueue(this, true);
 }
 
 void MainWindow::on_actionQuit_triggered()
@@ -123,25 +124,25 @@ void MainWindow::on_actionAbout_Nmemo_triggered()
 
 void MainWindow::on_action_Add_triggered()
 {
-  emit itemAddRequested();
+  emit itemAddQueue();
 }
 
 void MainWindow::on_action_Insert_triggered()
 {
-  emit itemInsertRequested();
+  emit itemInsertQueue();
 }
 
 void MainWindow::on_action_Delete_triggered()
 {
-  emit itemDeleteRequested();
+  emit itemDeleteQueue();
 }
 
 void MainWindow::on_actionSort_A_Z_triggered()
 {
-  emit itemSortRequested(0);
+  emit itemSortQueue(NMEMO::SortStyle::AtoZ);
 }
 
 void MainWindow::on_actionSort_Z_A_triggered()
 {
-  emit itemSortRequested(1);
+  emit itemSortQueue(NMEMO::SortStyle::ZtoA);
 }
