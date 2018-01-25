@@ -8,7 +8,7 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include "itempool.h"
+#include "utils.h"
 
 #include <QListWidget>
 #include <QMap>
@@ -17,9 +17,9 @@
 
 namespace NMEMO {
 
-/* utils */
-struct ItemGetter {
-  QListWidgetItem* operator()(int, QListWidget*);
+enum SortStyle {
+  AtoZ,
+  ZtoA,
 };
 
 class Core : public QObject
@@ -31,8 +31,7 @@ public:
   // constatns
   struct Values {
     static const QString UNDEFINED_FNAME;
-    static const QString DEFAULT_BOOK_NAME;
-    static const QVariant DEFAULT_VALUE;
+    static const QString FILE_EXT;
   };
   // methods: base
   bool SetEditor(QTextEdit*);
@@ -43,8 +42,8 @@ public:
 
 signals:
   void bookTitleChanged(QListWidgetItem*);
-  void filenameChanged(const QString&, bool is_modified = false);
-  void statusMessageRequested(const QString&);
+  void filenameChangeQueue(const QString&, bool is_modified = false);
+  void statusMessageQueue(const QString&);
 
 public slots:
   void OnAddItem();
@@ -54,10 +53,10 @@ public slots:
   void OnDeleteItem();
   void OnInsertItem();
   void OnLoadFile(QWidget*);
-  void OnRequestChangeTitle(QListWidgetItem*);
+  void OnPopTitleChangeDialog(QListWidgetItem*);
   void OnReset();
   void OnSaveToFile(QWidget*, bool is_new = true);
-  void OnSortItems(int order = 0);
+  void OnSortItems(SortStyle);
 
 private:
   int uid_cache_;
@@ -65,7 +64,7 @@ private:
   QString filename_;
   QScopedPointer<QTextEdit> editor_;
   QScopedPointer<QListWidget> list_;
-  QScopedPointer<QMap<QString, QString>> datapack_;
+  QScopedPointer<QStringList> datapack_;
   QScopedPointer<ItemPool> item_pool_;
 };
 

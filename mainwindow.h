@@ -16,6 +16,25 @@ namespace Ui {
 class MainWindow;
 }
 
+namespace APP {
+
+struct Version {
+  static const int MAJOR;
+  static const int MINOR;
+  static const int MICRO;
+};
+
+struct Values {
+  static const QString NAME;
+  static const QString VERSION;
+  static const QString AUTHORS;
+  static const QString DESCRIPTION;
+  static const QString LICENSE;
+  static const QString COPYRIGHT;
+};
+
+}  // namespace APP
+
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -36,13 +55,13 @@ public:
   // methods: features
 
 signals:
-  void fileOpend(QWidget*);
-  void itemAddRequested();
-  void itemDeleteRequested();
-  void itemInsertRequested();
-  void itemSortRequested(int);
-  void resetRequested();
-  void saveFileRequested(QWidget*, bool);
+  void fileOpenQueue(QWidget*);
+  void itemAddQueue();
+  void itemDeleteQueue();
+  void itemInsertQueue();
+  void itemSortQueue(NMEMO::SortStyle);
+  void resetQueue();
+  void saveFileQueue(QWidget*, bool);
 
 public slots:
   void OnChangeFilename(const QString&, bool is_modified = false);

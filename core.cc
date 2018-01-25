@@ -18,19 +18,7 @@ namespace NMEMO {
 
 /* values */
 const QString Core::Values::UNDEFINED_FNAME = "Undefined";
-const QString Core::Values::DEFAULT_BOOK_NAME = "New Book";
-const QVariant Core::Values::DEFAULT_VALUE = QVariant("Input new text!");
-
-/* utils */
-auto ItemGetter::operator()(int target_id, QListWidget* list) -> QListWidgetItem*
-{
-  for (int i = 0, size = list->count(); i < size; ++i) {
-    if (list->item(i)->type() == target_id) {
-      return list->item(i);
-    }
-  }
-  return nullptr;
-}
+const QString Core::Values::FILE_EXT = "memo";
 
 /* class */
 Core::Core(QObject *parent) : QObject(parent),
@@ -39,7 +27,7 @@ Core::Core(QObject *parent) : QObject(parent),
   filename_(Values::UNDEFINED_FNAME),
   editor_(nullptr),
   list_(nullptr),
-  datapack_(new QMap<QString, QString>),
+  datapack_(new QStringList()),
   item_pool_(new ItemPool())
 {
   qDebug() << "Core: construct";
@@ -79,7 +67,7 @@ auto Core::SetList(QListWidget* view) -> bool
   if (list_.isNull()) return false;
   // connects
   connect(list_.data(), &QListWidget::currentRowChanged, this, &Core::OnChangeBookAsIndex);
-  connect(list_.data(), &QListWidget::itemDoubleClicked, this, &Core::OnRequestChangeTitle);
+  connect(list_.data(), &QListWidget::itemDoubleClicked, this, &Core::OnPopTitleChangeDialog);
   return true;
 }
 
@@ -87,7 +75,7 @@ auto Core::SetList(QListWidget* view) -> bool
 auto Core::PreSaveContext() -> void
 {
   if (uid_cache_ > 0) {
-    auto item = ItemGetter()(uid_cache_, list_.data());
+    auto item = ItemFindById()(list_.data(), uid_cache_);
     if (item) {
       item->setData(Qt::UserRole, QVariant(editor_->toPlainText()));
     }
@@ -105,7 +93,8 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
     auto item = list_->item(i);
     if (!item) continue;
     QString prefix = QString::number(i);
-    datapack_->insert(prefix + ":" + item->text(), item->data(Qt::UserRole).toString());
+    datapack_->operator <<(prefix + ":" + item->text());
+    datapack_->operator <<(item->data(Qt::UserRole).toString());
   }
 
   QFile file(filename);
@@ -120,8 +109,8 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
 
   filename_ = filename;
   is_editing_ = false;
-  emit filenameChanged(QFileInfo(filename).baseName());
-  emit statusMessageRequested("File saved.");
+  emit filenameChangeQueue(QFileInfo(filename_).baseName());
+  emit statusMessageQueue("File saved.");
 }
 
 /* slots */
@@ -129,10 +118,11 @@ void Core::OnAddItem()
 {
   if (editor_->isReadOnly()) editor_->setReadOnly(false);
 
-  auto item = item_pool_->operator()(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_VALUE);
+  auto item = item_pool_->operator()(ItemGenerator());
   list_->addItem(item);
+  list_->setCurrentRow(list_->count() - 1);
   OnChangeBook(item);
-  emit statusMessageRequested("Item added.");
+  emit statusMessageQueue("Item added.");
 }
 
 void Core::OnChangeBook(QListWidgetItem* item)
@@ -152,7 +142,7 @@ void Core::OnChangeBookAsIndex(int current)
 auto Core::OnChangeText() -> void
 {
   if (is_editing_) {
-    filenameChanged(QFileInfo(filename_).baseName(), true);
+    filenameChangeQueue(QFileInfo(filename_).baseName(), true);
   } else {
     is_editing_ = true;
   }
@@ -160,30 +150,20 @@ auto Core::OnChangeText() -> void
 
 void Core::OnDeleteItem()
 {
-  item_pool_->Release(list_->takeItem(list_->currentRow()));
+  if (!item_pool_->Release(list_->takeItem(list_->currentRow()))) return;
 
   OnChangeBook(list_->currentItem());
-  emit statusMessageRequested("Item deleted.");
+  emit statusMessageQueue("Item deleted.");
 }
 
 void Core::OnInsertItem()
 {
-  auto item = item_pool_->operator()(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_VALUE);
+  auto item = item_pool_->operator()(ItemGenerator());
   list_->insertItem(list_->currentRow(), item);
   OnChangeBook(item);
-  emit statusMessageRequested("Item added.");
+  emit statusMessageQueue("Item added.");
 }
 
-
-void Core::OnRequestChangeTitle(QListWidgetItem* item)
-{
-  Q_ASSERT(item);
-
-  auto txt = QInputDialog::getText(nullptr, "Change book title", "Input book title:", QLineEdit::Normal, item->text());
-  if (txt == "") return;
-  item->setText(txt);
-  OnChangeBook(item);
-}
 
 void Core::OnLoadFile(QWidget* win)
 {
@@ -208,11 +188,12 @@ void Core::OnLoadFile(QWidget* win)
     return;
   }
   OnReset();
-  QMap<QString, QString>::const_iterator it = datapack_->constBegin();
+  QStringList::const_iterator it = datapack_->constBegin();
   while (it != datapack_->constEnd()) {
-    auto item = item_pool_->operator()(Values::DEFAULT_BOOK_NAME, Values::DEFAULT_VALUE);
-    item->setText(it.key().section(":", 1,1));
-    item->setData(Qt::UserRole, QVariant(it.value()));
+    auto item = item_pool_->operator()(ItemGenerator());
+    item->setText(it.operator *().section(":", 1,1));
+    ++it;
+    item->setData(Qt::UserRole, QVariant(it.operator *()));
     list_->addItem(item);
     ++it;
   }
@@ -220,13 +201,25 @@ void Core::OnLoadFile(QWidget* win)
   OnChangeBook(list_->item(0));
   if (editor_->isReadOnly()) editor_->setReadOnly(false);
   filename_ = filename;
-  emit filenameChanged(QFileInfo(filename).baseName());
-  emit statusMessageRequested("File loaded.");
+  emit filenameChangeQueue(QFileInfo(filename).baseName());
+  emit statusMessageQueue("File loaded.");
+}
+
+auto Core::OnPopTitleChangeDialog(QListWidgetItem* item) -> void
+{
+  Q_ASSERT(item);
+
+  auto txt = QInputDialog::getText(nullptr,
+                                   "Change book title", "Input book title:",
+                                   QLineEdit::Normal, item->text());
+  if (txt == "") return;
+  item->setText(txt);
+  OnChangeBook(item);
 }
 
 auto Core::OnReset() -> void
 {
-  item_pool_->Reset(list_.data());
+  item_pool_->ReleaseAll(list_.data());
   uid_cache_ = 0;
   editor_->clear();
   editor_->setReadOnly(true);
@@ -234,22 +227,33 @@ auto Core::OnReset() -> void
 
 auto Core::OnSaveToFile(QWidget* win, bool is_new) -> void
 {
-  QString filename;
-  if (!is_new) {
-    filename = filename_;
-  }
+  QString filename = is_new ? "":
+                              filename_;
+
   if (is_new || filename == Values::UNDEFINED_FNAME) {
-    filename = QFileDialog::getSaveFileName(win, "Save file", "", "Memo file (*.memo);;All Files (*)");
+    filename = QFileDialog::getSaveFileName(win,
+                                            "Save file",
+                                            "",
+                                            "Memo file (*.memo);;All Files (*)");
   }
 
-  SaveToFileInternal(filename);
+  auto fname_validated = FilenameValidator()(filename, Values::FILE_EXT);
+
+  if (QFile(fname_validated).exists()) {
+    auto button = QMessageBox::question(win,
+                                        "Does Overwrite?",
+                                        "The file is exists. overwrite don't you?");
+    if (!(button & QMessageBox::Yes)) return;
+  }
+
+  SaveToFileInternal(fname_validated);
 }
 
-auto Core::OnSortItems(int order) -> void
+auto Core::OnSortItems(SortStyle order) -> void
 {
   list_->sortItems(order ? Qt::DescendingOrder:
                            Qt::AscendingOrder);
-  emit statusMessageRequested("Item sorted.");
+  emit statusMessageQueue("Item sorted.");
 }
 
 }  // namespace NMEMO
