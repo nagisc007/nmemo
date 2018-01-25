@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.1.0] - 2018-01-25
+### Added
+- ChangeLog file.
+- APP namespace in mainwindow.
+
+### Changed
+- Save method style changed using QStringList from QMap(so, old save data is not used).
+- utility functor into utils.
+
+### Fixed
+- Incorrect order books when save overwrite.
+
 ## [1.0.2] - 2018-01-22
 ### Added
 - Logo file
