@@ -109,7 +109,7 @@ auto Core::SaveToFileInternal(const QString& filename) -> void
 
   filename_ = filename;
   is_editing_ = false;
-  emit filenameChangeQueue(QFileInfo(filename).baseName());
+  emit filenameChangeQueue(QFileInfo(filename_).baseName());
   emit statusMessageQueue("File saved.");
 }
 
@@ -227,7 +227,6 @@ auto Core::OnReset() -> void
 
 auto Core::OnSaveToFile(QWidget* win, bool is_new) -> void
 {
-  qDebug() << "save file to";
   QString filename = is_new ? "":
                               filename_;
 
@@ -238,7 +237,16 @@ auto Core::OnSaveToFile(QWidget* win, bool is_new) -> void
                                             "Memo file (*.memo);;All Files (*)");
   }
 
-  SaveToFileInternal(filename);
+  auto fname_validated = FilenameValidator()(filename, Values::FILE_EXT);
+
+  if (QFile(fname_validated).exists()) {
+    auto button = QMessageBox::question(win,
+                                        "Does Overwrite?",
+                                        "The file is exists. overwrite don't you?");
+    if (!(button & QMessageBox::Yes)) return;
+  }
+
+  SaveToFileInternal(fname_validated);
 }
 
 auto Core::OnSortItems(SortStyle order) -> void

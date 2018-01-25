@@ -8,6 +8,7 @@
 #include "utils.h"
 
 #include <QDebug>
+#include <QFileInfo>
 
 namespace NMEMO {
 
@@ -16,6 +17,13 @@ const QString Values::DEFAULT_BOOK_NAME = "New Book";
 const QString Values::DEFAULT_BOOK_TEXT = "new text";
 
 /* utils */
+auto FilenameValidator::operator ()(const QString& filename, const QString& extension) -> QString
+{
+  return QFileInfo(filename).suffix() == extension ?
+        filename:
+        QString("%1.%2").arg(filename).arg(extension);
+}
+
 auto ItemFindById::operator ()(const QListWidget* list, int item_id) -> QListWidgetItem*
 {
   for (int i = 0, size = list->count(); i < size; ++i) {

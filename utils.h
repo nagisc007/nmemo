@@ -22,6 +22,10 @@ struct Values {
 };
 
 /* utils */
+struct FilenameValidator {
+  QString operator ()(const QString&, const QString&);
+};
+
 struct ItemGenerator
 {
   QListWidgetItem* operator ()(const QString&, const QString&, int);
