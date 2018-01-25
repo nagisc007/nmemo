@@ -12,12 +12,19 @@
 #include <QMessageBox>
 
 /* values */
-const QString MainWindow::Values::APP_AUTHORS = "N.T.Works";
-const QString MainWindow::Values::APP_NAME = "Nmemo";
-const QString MainWindow::Values::APP_VERSION = QString("%1.%2.%3")
+const int APP::Version::MAJOR = 1;
+const int APP::Version::MINOR = 1;
+const int APP::Version::MICRO = 0;
+
+const QString APP::Values::AUTHORS = "N.T.Works";
+const QString APP::Values::NAME = "Nmemo";
+const QString APP::Values::VERSION = QString("%1.%2.%3")
     .arg(QString::number(APP::Version::MAJOR))
     .arg(QString::number(APP::Version::MINOR))
     .arg(QString::number(APP::Version::MICRO));
+const QString APP::Values::DESCRIPTION = "Nmemo is a simple memo editor by Qt.";
+const QString APP::Values::LICENSE = "GNU GENERAL PUBLIC LICENSE Version 3";
+const QString APP::Values::COPYRIGHT = "Copyright (c) 2018";
 const int MainWindow::Values::STATUS_MESSAGE_TIME = 3000;
 
 /* class */
@@ -36,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
   qDebug() << "MainWindow: construct";
 
   // reset
-  setWindowTitle(Values::APP_NAME);
+  setWindowTitle(APP::Values::NAME);
   emit resetQueue();
 }
 
@@ -76,8 +83,11 @@ auto MainWindow::InitWidgets() -> bool
 /* slots */
 void MainWindow::OnChangeFilename(const QString& filename, bool is_modified)
 {
-  QString prefix = is_modified ? "*": "";
-  setWindowTitle(prefix + Values::APP_NAME + "[" + filename + "]");
+  auto title = QString("%1%2[%3]")
+      .arg(is_modified ? "*": "")
+      .arg(APP::Values::NAME)
+      .arg(filename);
+  setWindowTitle(title);
 }
 
 auto MainWindow::OnStatusMessage(const QString& msg) -> void
@@ -103,7 +113,6 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionSave_As_triggered()
 {
-  qDebug() << "[save as]";
   emit saveFileQueue(this, true);
 }
 
@@ -119,10 +128,15 @@ void MainWindow::on_actionAbout_Qt_triggered()
 
 void MainWindow::on_actionAbout_Nmemo_triggered()
 {
-  QString title = "About ";
-  title += Values::APP_NAME;
-  QString msg = "<h3>About ";
-  msg += Values::APP_NAME + " " + Values::APP_VERSION + "</h3><p>Nmemo is a simple memo editor by Qt.<br>Licensed by GNU GENERAL PUBLIC LICENSE Version 3.</p><p>Copyright (c) 2018 " + Values::APP_AUTHORS + "</p>";
+  auto title = QString("About %1")
+      .arg(APP::Values::NAME);
+  auto msg = QString("<h3>About %1 %2</h3><p>%3<br>Licensed by %4.<br>%5</p><p>%6</p>")
+      .arg(APP::Values::NAME)
+      .arg(APP::Values::VERSION)
+      .arg(APP::Values::DESCRIPTION)
+      .arg(APP::Values::LICENSE)
+      .arg(APP::Values::COPYRIGHT)
+      .arg(APP::Values::AUTHORS);
   QMessageBox::about(this, title, msg);
 }
 

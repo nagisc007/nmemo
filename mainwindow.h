@@ -8,7 +8,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "app.h"
 #include "core.h"
 
 #include <QMainWindow>
@@ -16,6 +15,25 @@
 namespace Ui {
 class MainWindow;
 }
+
+namespace APP {
+
+struct Version {
+  static const int MAJOR;
+  static const int MINOR;
+  static const int MICRO;
+};
+
+struct Values {
+  static const QString NAME;
+  static const QString VERSION;
+  static const QString AUTHORS;
+  static const QString DESCRIPTION;
+  static const QString LICENSE;
+  static const QString COPYRIGHT;
+};
+
+}  // namespace APP
 
 class MainWindow : public QMainWindow
 {
