@@ -8,8 +8,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "core.h"
-
 #include <QMainWindow>
 
 namespace Ui {
@@ -44,46 +42,55 @@ public:
   ~MainWindow();
   // values
   struct Values {
-    static const QString APP_NAME;
-    static const QString APP_VERSION;
-    static const QString APP_AUTHORS;
     static const int STATUS_MESSAGE_TIME;
   };
   // methods: base
-  bool InitActions();
-  bool InitWidgets();
   // methods: features
 
 signals:
-  void fileOpenQueue(QWidget*);
-  void itemAddQueue();
-  void itemDeleteQueue();
-  void itemInsertQueue();
-  void itemSortQueue(NMEMO::SortStyle);
-  void resetQueue();
-  void saveFileQueue(QWidget*, bool);
 
 public slots:
-  void OnChangeFilename(const QString&, bool is_modified = false);
-  void OnStatusMessage(const QString&);
 
 private slots:
-  void on_actionOpen_triggered();
-  void on_actionClose_triggered();
-  void on_actionSave_triggered();
-  void on_actionSave_As_triggered();
-  void on_actionQuit_triggered();
-  void on_actionAbout_Qt_triggered();
-  void on_actionAbout_Nmemo_triggered();
-  void on_action_Add_triggered();
-  void on_action_Insert_triggered();
-  void on_action_Delete_triggered();
-  void on_actionSort_A_Z_triggered();
-  void on_actionSort_Z_A_triggered();
+
+  void on_actOpen_triggered();
+
+  void on_actClose_triggered();
+
+  void on_actSave_triggered();
+
+  void on_actSaveAs_triggered();
+
+  void on_actQuit_triggered();
+
+  void on_actAboutQt_triggered();
+
+  void on_actAboutApp_triggered();
+
+  void on_actNew_triggered();
+
+  void on_actUndo_triggered();
+
+  void on_actRedo_triggered();
+
+  void on_actCut_triggered();
+
+  void on_actCopy_triggered();
+
+  void on_actPaste_triggered();
+
+  void on_actErase_triggered();
+
+  void on_actSelectAll_triggered();
+
+  void on_actAddBook_triggered();
+
+  void on_actDeleteBook_triggered();
+
+  void on_actFullscreen_triggered();
 
 private:
   Ui::MainWindow *ui;
-  QScopedPointer<NMEMO::Core> core_;
 };
 
 #endif // MAINWINDOW_H
