@@ -62,13 +62,17 @@ void Core::Update(CmdSig cmd, int index, QVariant arg, const QString &)
 
   auto tab_res = Utl::OperateTabData()(cmd, m_tabs_.data(), m_paths_.data(),
                                        tid_r, tid_w, index, tname, arg);
-
+  auto book_res = Utl::OperateBookData()(cmd, m_books_.data(), m_labels_.data(),
+                                         tid_r, tid_w, bid_r, bid_w, index, bname, arg);
   qDebug() << "tid:" << tid_r << "|" << tid_w;
   qDebug() << "tname:" << tname;
   qDebug() << "bid:" << bid_r << "|" << bid_w;
   qDebug() << "bname:" << bname;
   qDebug() << "tab:: tab_i: " << tab_res.at(0).toInt();
   qDebug() << "tab:: tnames: " << tab_res.at(1).toStringList().count();
+  qDebug() << "book:: book_i: " << book_res.at(0).toInt();
+  qDebug() << "book:: bnames: " << book_res.at(1).toStringList().count();
+  qDebug() << "book:: bremoves: " << (book_res.count() - 2);
 }
 
 }  // namespace Nmemo

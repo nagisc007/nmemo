@@ -15,6 +15,7 @@
 #include <QListWidgetItem>
 #include <QMessageBox>
 #include <QMutex>
+#include <QPair>
 #include <QStack>
 #include <QTabBar>
 #include <QTextEdit>
@@ -68,6 +69,24 @@ struct OverrideList
 };
 
 /* utils: QMap */
+template<typename S, typename T>
+struct listMapAdded
+{
+  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
+};
+
+template<typename S, typename T>
+struct listMapRemoved
+{
+  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
+};
+
+template<typename S, typename T>
+struct listMapMoved
+{
+  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, int);
+};
+
 template<typename T>
 struct strMapAdded
 {
@@ -157,6 +176,28 @@ struct bookIdFrom
   int operator ()(CmdSig, const T_idpack*, int, int);
 };
 
+struct bookIndexFrom
+{
+  int operator ()(CmdSig, const T_idpack*, int, int);
+};
+
+struct booksOperated
+{
+  T_idpack operator ()(CmdSig, const T_idpack*,
+                       int, int, int, int, int, QVariant);
+};
+
+struct RemovedBooks
+{
+  T_ids operator ()(CmdSig, T_idpack*, int);
+};
+
+struct labelsOperated
+{
+  T_labels operator ()(CmdSig, const T_labels*,
+                       int, int, int, int, const QString&);
+};
+
 struct GetBookIdToRead
 {
   int operator ()(CmdSig, const T_idpack*, int, int, int);
@@ -170,6 +211,13 @@ struct GetBookIdToWrite
 struct GetBookNameToWrite
 {
   QString operator ()(CmdSig, QVariant);
+};
+
+struct OperateBookData
+{
+  QList<QVariant> operator ()(CmdSig, T_idpack*, T_labels*,
+                              int, int,
+                              int, int, int, const QString&, QVariant);
 };
 
 }  // namespace Utl

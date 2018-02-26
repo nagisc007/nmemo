@@ -61,6 +61,33 @@ auto OverrideList<T>::operator ()(QList<T>* list, QList<T>& updated) -> void
 }
 
 /* utils: QMap */
+template<typename S, typename T>
+QMap<S, QList<T>> listMapAdded<S, T>::operator ()(const QMap<S, QList<T>>* map,
+                                                  S key, T val)
+{
+  auto tmp = QMap<S, QList<T>>(*map);
+  tmp[key].append(val);
+  return tmp;
+}
+
+template<typename S, typename T>
+QMap<S, QList<T>> listMapRemoved<S, T>::operator ()(const QMap<S, QList<T>>* map,
+                                                    S key, T val)
+{
+  auto tmp = QMap<S, QList<T>>(*map);
+  if (tmp.contains(key)) tmp[key].removeAll(val);
+  return tmp;
+}
+
+template<typename S, typename T>
+QMap<S, QList<T>> listMapMoved<S, T>::operator ()(const QMap<S, QList<T>>* map,
+                                                  S key, int from, int to)
+{
+  auto tmp = QMap<S, QList<T>>(*map);
+  if (tmp.contains(key)) tmp[key].move(from, to);
+  return tmp;
+}
+
 template<typename T>
 auto strMapAdded<T>::operator ()(const QMap<T, QString>* map,
                                  T key, const QString& val) -> QMap<T, QString>
@@ -242,6 +269,45 @@ auto bookIdFrom::operator ()(CmdSig cmd, const T_idpack* books,
             -1;
 }
 
+auto bookIndexFrom::operator ()(CmdSig cmd, const T_idpack* books,
+                                int tid, int bid) -> int
+{
+  return 0;
+}
+
+auto booksOperated::operator ()(CmdSig cmd, const T_idpack* m_books,
+                                int tid_r, int tid_w,
+                                int bid_r, int bid_w,
+                                int index, QVariant arg) -> T_idpack
+{
+  return hasCmd()(cmd, CmdSig::BOOK) ?
+        hasCmd()(cmd, CmdSig::ADD) ?
+          listMapAdded<int, int>()(m_books, tid_w, bid_w):
+        hasCmd()(cmd, CmdSig::DELETE) ?
+          listMapRemoved<int, int>()(m_books, tid_w, bid_w):
+        hasCmd()(cmd, CmdSig::MOVE) ?
+          listMapMoved<int, int>()(m_books, tid_w, index, arg.toInt()):
+          T_idpack(*m_books):
+          T_idpack(*m_books);
+}
+
+auto RemovedBooks::operator ()(CmdSig cmd, T_idpack* books,
+                               int tid_w) -> T_ids
+{
+  if (hasCmd()(cmd, CmdSig::TAB_DELETE) && books->contains(tid_w)) {
+    auto tmp = books->take(tid_w);
+    return tmp;
+  }
+  return T_ids();
+}
+
+auto labelsOperated::operator ()(CmdSig cmd, const T_labels* m_labels,
+                                 int tid_r, int tid_w,
+                                 int bid_r, int bid_w, const QString& bname) -> T_labels
+{
+  return T_labels(*m_labels);
+}
+
 auto GetBookIdToRead::operator ()(CmdSig cmd, const T_idpack* books,
                                   int tid, int index, int book_i) -> int
 {
@@ -270,10 +336,36 @@ auto GetBookNameToWrite::operator ()(CmdSig cmd, QVariant arg) -> QString
           QString("");
 }
 
+auto OperateBookData::operator ()(CmdSig cmd, T_idpack* m_books, T_labels* m_labels,
+                                  int tid_r, int tid_w,
+                                  int bid_r, int bid_w, int index,
+                                  const QString& bname, QVariant arg) -> QList<QVariant>
+{
+  QList<QVariant> result;
+  auto books = booksOperated()(cmd, m_books,
+                               tid_r, tid_w, bid_r, bid_w, index, arg);
+  auto removed = RemovedBooks()(cmd, &books, tid_w);
+  auto labels = labelsOperated()(cmd, m_labels,
+                                 tid_r, tid_w, bid_r, bid_w, bname);
+  auto bnames = strListDerivedIds()(&labels, &books[tid_r]);
+  auto book_i = bookIndexFrom()(cmd, &books, tid_r, bid_r);
+  OverrideListMap<int, int>()(m_books, books);
+  OverrideStringMap<int>()(m_labels, labels);
+  result << QVariant(book_i);
+  result << QVariant(bnames);
+  for (int i = 0, size = removed.count(); i < size; ++i) {
+    result << QVariant(removed.at(i));
+  }
+  return result;
+}
+
 /* declare templates */
 template struct listAdded<int>;
 template struct listRemoved<int>;
 template struct listMoved<int>;
+template struct listMapAdded<int, int>;
+template struct listMapRemoved<int, int>;
+template struct listMapMoved<int, int>;
 template struct strMapAdded<int>;
 template struct strMapRemoved<int>;
 template struct OverrideList<int>;
