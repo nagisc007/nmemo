@@ -77,6 +77,7 @@ auto MainWindow::InitWidgets() -> bool
   editor_.reset(new QTextEdit(this));
   // set props
   tab_->setTabsClosable(true);
+  tab_->setMovable(true);
   // set layout
   mainLayout->addWidget(tab_.data());
   subLayout->addWidget(editor_.data());
@@ -151,15 +152,19 @@ void MainWindow::DeleteTab(int index)
           editor_->toPlainText());
 }
 
-void MainWindow::ChangeTab(int)
+void MainWindow::ChangeTab(int index)
 {
   if (is_tab_updating_) return;
-
+  qDebug() << "change tab ...." << index;
+  updated(CmdSig::TAB_CHANGE, index, QVariant(0),
+         editor_->toPlainText());
 }
 
-void MainWindow::MoveTab(int, int)
+void MainWindow::MoveTab(int from, int to)
 {
   if (is_tab_updating_) return;
+  updated(CmdSig::TAB_MOVE, from, QVariant(to),
+         editor_->toPlainText());
 }
 
 void MainWindow::RenameTab()
