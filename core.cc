@@ -60,10 +60,15 @@ void Core::Update(CmdSig cmd, int index, QVariant arg, const QString &)
   auto bid_w = Utl::GetBookIdToWrite()(cmd, bid_r);
   auto bname = Utl::GetBookNameToWrite()(cmd, arg);
 
+  auto tab_res = Utl::OperateTabData()(cmd, m_tabs_.data(), m_paths_.data(),
+                                       tid_r, tid_w, index, tname, arg);
+
   qDebug() << "tid:" << tid_r << "|" << tid_w;
   qDebug() << "tname:" << tname;
   qDebug() << "bid:" << bid_r << "|" << bid_w;
   qDebug() << "bname:" << bname;
+  qDebug() << "tab:: tab_i: " << tab_res.at(0).toInt();
+  qDebug() << "tab:: tnames: " << tab_res.at(1).toStringList().count();
 }
 
 }  // namespace Nmemo

@@ -43,6 +43,60 @@ struct ReleaseId
 };
 
 /* utils: QList */
+template<typename T>
+struct listAdded
+{
+  QList<T> operator ()(const QList<T>*, T);
+};
+
+template<typename T>
+struct listRemoved
+{
+  QList<T> operator ()(const QList<T>*, T);
+};
+
+template<typename T>
+struct listMoved
+{
+  QList<T> operator ()(const QList<T>*, int, int);
+};
+
+template<typename T>
+struct OverrideList
+{
+  void operator ()(QList<T>*, QList<T>&);
+};
+
+/* utils: QMap */
+template<typename T>
+struct strMapAdded
+{
+  QMap<T, QString> operator ()(const QMap<T, QString>*, T, const QString&);
+};
+
+template<typename T>
+struct strMapRemoved
+{
+  QMap<T, QString> operator ()(const QMap<T, QString>*, T);
+};
+
+template<typename S, typename T>
+struct OverrideListMap
+{
+  void operator ()(QMap<S, QList<T>>*, QMap<S, QList<T>>&);
+};
+
+template<typename T>
+struct OverrideStringMap
+{
+  void operator ()(QMap<T, QString>*, QMap<T, QString>&);
+};
+
+/* utils: QStringList */
+struct strListDerivedIds
+{
+  QStringList operator ()(const T_labels*, const T_ids*);
+};
 
 /* utils: QListWidget */
 struct OverrideListWidget
@@ -57,9 +111,23 @@ struct OverrideTabBar
 };
 
 /* operation: for tab */
+struct pathsOperated
+{
+  T_labels operator ()(CmdSig, const T_labels*, int, const QString&);
+};
 struct tabIdFrom
 {
   int operator ()(CmdSig, const T_ids*, int);
+};
+
+struct tabIndexFrom
+{
+  int operator ()(CmdSig, const T_ids*, int);
+};
+
+struct tabsOperated
+{
+  T_ids operator ()(CmdSig, const T_ids*, int, int, QVariant);
 };
 
 struct GetTabIdToRead
@@ -75,6 +143,12 @@ struct GetTabIdToWrite
 struct GetTabNameToWrite
 {
   QString operator ()(CmdSig, QVariant);
+};
+
+struct OperateTabData
+{
+  QList<QVariant> operator ()(CmdSig, T_ids*, T_labels*,
+                              int, int, int, const QString&, QVariant);
 };
 
 /* operation: for book */
