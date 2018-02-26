@@ -186,12 +186,7 @@ auto pathsOperated::operator ()(CmdSig cmd, const T_labels* m_labels,
 auto tabIdFrom::operator ()(CmdSig cmd, const T_ids* tabs, int index) -> int
 {
   return index >= 0 && tabs->count() > 0 && index < tabs->count() ?
-        hasCmd()(cmd, CmdSig::TAB_DELETE) ?
-          index - 1 < tabs->count() ?
-            tabs->at(index - 1):
-            -1:
-            tabs->at(index):
-          -1;
+        tabs->at(index): -1;
 }
 
 auto tabIndexFrom::operator ()(CmdSig cmd, const T_ids* tabs, int tid) -> int
@@ -222,7 +217,7 @@ auto GetTabIdToRead::operator ()(CmdSig cmd, const T_ids* tabs, int index, int t
   return hasCmd()(cmd, CmdSig::TAB) ?
         hasCmd()(cmd, CmdSig::ADD) ?
           GetId()():
-          tabIdFrom()(cmd, tabs, index):
+          tabIdFrom()(cmd, tabs, hasCmd()(cmd, CmdSig::DELETE) ? index - 1: index):
           tid;
 }
 

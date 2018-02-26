@@ -51,24 +51,28 @@ Core::~Core()
 /* slots */
 void Core::Update(CmdSig cmd, int index, QVariant arg, const QString& text)
 {
+  qDebug() << "Update Core:: starting ...";
   auto tid_r = Utl::GetTabIdToRead()(cmd, m_tabs_.data(), index, m_tid_);
-  if (tid_r < 0) return;
+  //if (tid_r < 0) return;
 
   auto tid_w = Utl::GetTabIdToWrite()(cmd, m_tabs_.data(), index, tid_r);
   auto tname = Utl::GetTabNameToWrite()(cmd, arg);
+  qDebug() << "tid:" << tid_r << "|" << tid_w;
+  qDebug() << "tname:" << tname;
   auto bid_r = Utl::GetBookIdToRead()(cmd, m_books_.data(), tid_r, index, m_book_i_);
   auto bid_w = Utl::GetBookIdToWrite()(cmd, bid_r);
   auto bname = Utl::GetBookNameToWrite()(cmd, arg);
+  qDebug() << "bid:" << bid_r << "|" << bid_w;
+  qDebug() << "bname:" << bname;
 
   auto tab_res = Utl::OperateTabData()(cmd, m_tabs_.data(), m_paths_.data(),
                                        tid_r, tid_w, index, tname, arg);
   auto book_res = Utl::OperateBookData()(cmd, m_books_.data(), m_labels_.data(),
                                          tid_r, tid_w, bid_r, bid_w, index, bname, arg);
   auto memo_res = Utl::OperateMemoData()(cmd, m_memos_.data(), bid_r, bid_w, text);
-  qDebug() << "tid:" << tid_r << "|" << tid_w;
-  qDebug() << "tname:" << tname;
-  qDebug() << "bid:" << bid_r << "|" << bid_w;
-  qDebug() << "bname:" << bname;
+  m_tid_ = tid_r;
+  m_bid_ = bid_r;
+  m_book_i_ = book_res.at(0).toInt();
   qDebug() << "tab:: tab_i: " << tab_res.at(0).toInt();
   qDebug() << "tab:: tnames: " << tab_res.at(1).toStringList().count();
   qDebug() << "book:: book_i: " << book_res.at(0).toInt();

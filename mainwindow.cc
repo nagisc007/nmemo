@@ -76,6 +76,7 @@ auto MainWindow::InitWidgets() -> bool
   booklist_.reset(new QListWidget(this));
   editor_.reset(new QTextEdit(this));
   // set props
+  tab_->setTabsClosable(true);
   // set layout
   mainLayout->addWidget(tab_.data());
   subLayout->addWidget(editor_.data());
@@ -139,12 +140,15 @@ void MainWindow::outputToEditor(bool stat, const QString& text)
 void MainWindow::AddTab()
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_ADD, -1, QVariant(0), QString(""));
+  updated(CmdSig::TAB_ADD, -1, QVariant(0),
+          editor_->toPlainText());
 }
 
-void MainWindow::DeleteTab(int)
+void MainWindow::DeleteTab(int index)
 {
   if (is_tab_updating_) return;
+  updated(CmdSig::TAB_DELETE, index, QVariant(0),
+          editor_->toPlainText());
 }
 
 void MainWindow::ChangeTab(int)
