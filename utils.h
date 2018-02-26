@@ -11,6 +11,8 @@
 #include "common_types.h"
 
 #include <QDebug>
+#include <QInputDialog>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QMessageBox>
@@ -41,6 +43,12 @@ struct GetId
 struct ReleaseId
 {
   int operator ()(int);
+};
+
+/* utils: QInputDialog */
+struct GetBookName
+{
+  QString operator ()(QWidget*, const QString&);
 };
 
 /* utils: QList */

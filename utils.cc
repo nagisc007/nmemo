@@ -31,6 +31,15 @@ auto ReleaseId::operator ()(int released) -> int
   return released;
 }
 
+/* utils: QInputDialog */
+auto GetBookName::operator ()(QWidget* parent, const QString& text) -> QString
+{
+  return QInputDialog::getText(parent,
+                               "Book name.",
+                               "Input a book name:",
+                               QLineEdit::Normal, text);
+}
+
 /* utils: QList */
 template<typename T>
 auto listAdded<T>::operator ()(const QList<T>* list, T val) -> QList<T>

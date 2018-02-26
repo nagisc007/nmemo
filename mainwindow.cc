@@ -177,8 +177,12 @@ void MainWindow::RenameTab()
 void MainWindow::AddBook()
 {
   if (is_booklist_updating_) return;
-  updated(CmdSig::BOOK_ADD, -1, QVariant("New Book"),
-          editor_->toPlainText());
+  if (tab_->count() > 0) {
+    auto name = Utl::GetBookName()(this, "New Book");
+    updated(CmdSig::BOOK_ADD, -1,
+            QVariant(name == "" ? "New Book": name),
+            editor_->toPlainText());
+  }
 }
 
 void MainWindow::DeleteBook(int index)
@@ -203,6 +207,14 @@ void MainWindow::MoveBook(int, int)
 void MainWindow::RenameBook()
 {
   if (is_booklist_updating_) return;
+  if (tab_->count() > 0 && booklist_->count() > 0) {
+    auto item = booklist_->currentItem();
+    if (!item) return;
+    auto name = Utl::GetBookName()(this, item->text());
+    updated(CmdSig::BOOK_RENAME, booklist_->currentRow(),
+            QVariant(name == "" ? item->text(): name),
+            editor_->toPlainText());
+  }
 }
 
 /* slots: menus - File */
