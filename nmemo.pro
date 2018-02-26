@@ -27,10 +27,15 @@ CONFIG(release, debug | release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 SOURCES += \
         main.cc \
-        mainwindow.cc
+        mainwindow.cc \
+    utils.cc \
+    core.cc
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    common_types.h \
+    utils.h \
+    core.h
 
 FORMS += \
         mainwindow.ui

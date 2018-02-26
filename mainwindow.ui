@@ -77,6 +77,12 @@
      <string>View(&amp;V)</string>
     </property>
     <addaction name="actFullscreen"/>
+    <addaction name="separator"/>
+    <addaction name="actNextTab"/>
+    <addaction name="actPreviousTab"/>
+    <addaction name="separator"/>
+    <addaction name="actNextBook"/>
+    <addaction name="actPreviousBook"/>
    </widget>
    <widget class="QMenu" name="menuBook">
     <property name="title">
@@ -84,6 +90,11 @@
     </property>
     <addaction name="actAddBook"/>
     <addaction name="actDeleteBook"/>
+    <addaction name="separator"/>
+    <addaction name="actRenameBook"/>
+    <addaction name="separator"/>
+    <addaction name="actMoveNext"/>
+    <addaction name="actMovePrevious"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -227,6 +238,59 @@
    </property>
    <property name="text">
     <string>Fullscreen(&amp;F)</string>
+   </property>
+  </action>
+  <action name="actRenameBook">
+   <property name="text">
+    <string>Rename(&amp;R)</string>
+   </property>
+  </action>
+  <action name="actMoveNext">
+   <property name="text">
+    <string>MoveNext(&amp;N)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Down</string>
+   </property>
+  </action>
+  <action name="actMovePrevious">
+   <property name="text">
+    <string>MovePrevious(&amp;P)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Up</string>
+   </property>
+  </action>
+  <action name="actNextTab">
+   <property name="text">
+    <string>NextTab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Right</string>
+   </property>
+  </action>
+  <action name="actPreviousTab">
+   <property name="text">
+    <string>PreviousTab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Left</string>
+   </property>
+  </action>
+  <action name="actNextBook">
+   <property name="text">
+    <string>NextBook</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Down</string>
+   </property>
+  </action>
+  <action name="actPreviousBook">
+   <property name="text">
+    <string>PreviousBook</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Up</string>
    </property>
   </action>
  </widget>
