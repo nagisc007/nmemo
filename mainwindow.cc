@@ -94,6 +94,7 @@ auto MainWindow::InitActions() -> bool
   connect(tab_.data(), &QTabBar::tabBarClicked, this, &MainWindow::ChangeTab);
   connect(tab_.data(), &QTabBar::tabCloseRequested, this, &MainWindow::DeleteTab);
   connect(tab_.data(), &QTabBar::tabMoved, this, &MainWindow::MoveTab);
+  connect(booklist_.data(), &QListWidget::currentRowChanged, this, &MainWindow::ChangeBook);
   connect(this, &MainWindow::updated, core_.data(), &Nmemo::Core::Update);
   connect(core_.data(), &Nmemo::Core::tabOutputted, this, &MainWindow::outputToTab);
   connect(core_.data(), &Nmemo::Core::booksOutputted, this, &MainWindow::outputToBookList);
@@ -176,16 +177,22 @@ void MainWindow::RenameTab()
 void MainWindow::AddBook()
 {
   if (is_booklist_updating_) return;
+  updated(CmdSig::BOOK_ADD, -1, QVariant("New Book"),
+          editor_->toPlainText());
 }
 
-void MainWindow::DeleteBook(int)
+void MainWindow::DeleteBook(int index)
 {
   if (is_booklist_updating_) return;
+  updated(CmdSig::BOOK_DELETE, index, QVariant(0),
+          editor_->toPlainText());
 }
 
-void MainWindow::ChangeBook(int)
+void MainWindow::ChangeBook(int index)
 {
   if (is_booklist_updating_) return;
+  updated(CmdSig::BOOK_CHANGE, index, QVariant(0),
+          editor_->toPlainText());
 }
 
 void MainWindow::MoveBook(int, int)

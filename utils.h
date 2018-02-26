@@ -206,7 +206,7 @@ struct GetBookIdToRead
 
 struct GetBookIdToWrite
 {
-  int operator ()(CmdSig, int);
+  int operator ()(CmdSig, const T_idpack*, int, int, int);
 };
 
 struct GetBookNameToWrite

@@ -254,7 +254,6 @@ auto OperateTabData::operator ()(CmdSig cmd, T_ids* m_tabs, T_labels* m_paths,
   auto tab_i = tabIndexFrom()(cmd, &tabs, tid_r);
   OverrideList<int>()(m_tabs, tabs);
   OverrideStringMap<int>()(m_paths, paths);
-  qDebug() << "TO:: tab_i:" << tab_i << "(tid_r:" << tid_r << "|" << tabs.indexOf(tid_r);
   result << QVariant(tab_i);
   result << QVariant(tnames);
   return result;
@@ -266,12 +265,8 @@ auto bookIdFrom::operator ()(CmdSig cmd, const T_idpack* books,
 {
   return index >= 0 && books->contains(tid) &&
       books->value(tid).count() > 0 && index < books->value(tid).count() ?
-        hasCmd()(cmd, CmdSig::BOOK) && hasCmd()(cmd, CmdSig::DELETE) ?
-          index - 1 < books->value(tid).count() ?
-            books->value(tid).at(index - 1):
-            -1:
-            books->value(tid).at(index):
-            -1;
+        books->value(tid).at(index):
+        -1;
 }
 
 auto bookIndexFrom::operator ()(CmdSig cmd, const T_idpack* books,
@@ -292,11 +287,11 @@ auto booksOperated::operator ()(CmdSig cmd, const T_idpack* m_books,
 {
   return hasCmd()(cmd, CmdSig::BOOK) ?
         hasCmd()(cmd, CmdSig::ADD) ?
-          listMapAdded<int, int>()(m_books, tid_w, bid_w):
+          listMapAdded<int, int>()(m_books, tid_r, bid_w):
         hasCmd()(cmd, CmdSig::DELETE) ?
-          listMapRemoved<int, int>()(m_books, tid_w, bid_w):
+          listMapRemoved<int, int>()(m_books, tid_r, bid_w):
         hasCmd()(cmd, CmdSig::MOVE) ?
-          listMapMoved<int, int>()(m_books, tid_w, index, arg.toInt()):
+          listMapMoved<int, int>()(m_books, tid_r, index, arg.toInt()):
           T_idpack(*m_books):
         hasCmd()(cmd, CmdSig::TAB) && hasCmd()(cmd, CmdSig::DELETE) ?
         listMapRemovedList<int, int>()(m_books, tid_w):
@@ -322,16 +317,20 @@ auto GetBookIdToRead::operator ()(CmdSig cmd, const T_idpack* books,
   return hasCmd()(cmd, CmdSig::BOOK) ?
         hasCmd()(cmd, CmdSig::ADD) ?
           GetId()():
-          bookIdFrom()(cmd, books, tid, index):
+          bookIdFrom()(cmd, books, tid,
+                       hasCmd()(cmd, CmdSig::DELETE) ? index - 1: index):
           bookIdFrom()(cmd, books, tid, book_i);
 }
 
-auto GetBookIdToWrite::operator ()(CmdSig cmd, int bid) -> int
+auto GetBookIdToWrite::operator ()(CmdSig cmd, const T_idpack* books,
+                                   int tid, int index, int bid) -> int
 {
   return hasCmd()(cmd, CmdSig::BOOK) ?
         hasCmd()(cmd, CmdSig::ADD) ?
           bid:
-          -1:
+          hasCmd()(cmd, CmdSig::DELETE) ?
+          bookIdFrom()(cmd, books, tid, index):
+            -1:
           -1;
 }
 
@@ -358,6 +357,8 @@ auto OperateBookData::operator ()(CmdSig cmd, T_idpack* m_books, T_labels* m_lab
   auto book_i = bookIndexFrom()(cmd, &books, tid_r, bid_r);
   OverrideListMap<int, int>()(m_books, books);
   OverrideStringMap<int>()(m_labels, labels);
+  qDebug() << "BO:: book_i:" << book_i << "(tid:" << tid_r << "|" << tid_w
+           << "(bid: " << bid_r << "|" << bid_w;
   result << QVariant(book_i);
   result << QVariant(bnames);
   return result;

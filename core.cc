@@ -53,14 +53,13 @@ void Core::Update(CmdSig cmd, int index, QVariant arg, const QString& text)
 {
   qDebug() << "Update Core:: starting ...";
   auto tid_r = Utl::GetTabIdToRead()(cmd, m_tabs_.data(), index, m_tid_);
-  //if (tid_r < 0) return;
-
   auto tid_w = Utl::GetTabIdToWrite()(cmd, m_tabs_.data(), index, tid_r);
   auto tname = Utl::GetTabNameToWrite()(cmd, arg);
+  if (tid_r < 0 && tid_w < 0) return;
   qDebug() << "tid:" << tid_r << "|" << tid_w;
   qDebug() << "tname:" << tname;
   auto bid_r = Utl::GetBookIdToRead()(cmd, m_books_.data(), tid_r, index, m_book_i_);
-  auto bid_w = Utl::GetBookIdToWrite()(cmd, bid_r);
+  auto bid_w = Utl::GetBookIdToWrite()(cmd, m_books_.data(), tid_r, index, bid_r);
   auto bname = Utl::GetBookNameToWrite()(cmd, arg);
   qDebug() << "bid:" << bid_r << "|" << bid_w;
   qDebug() << "bname:" << bname;
