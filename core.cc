@@ -49,7 +49,7 @@ Core::~Core()
 }
 
 /* slots */
-void Core::Update(CmdSig cmd, int index, QVariant arg, const QString &)
+void Core::Update(CmdSig cmd, int index, QVariant arg, const QString& text)
 {
   auto tid_r = Utl::GetTabIdToRead()(cmd, m_tabs_.data(), index, m_tid_);
   if (tid_r < 0) return;
@@ -64,6 +64,7 @@ void Core::Update(CmdSig cmd, int index, QVariant arg, const QString &)
                                        tid_r, tid_w, index, tname, arg);
   auto book_res = Utl::OperateBookData()(cmd, m_books_.data(), m_labels_.data(),
                                          tid_r, tid_w, bid_r, bid_w, index, bname, arg);
+  auto memo_res = Utl::OperateMemoData()(cmd, m_memos_.data(), bid_r, bid_w, text);
   qDebug() << "tid:" << tid_r << "|" << tid_w;
   qDebug() << "tname:" << tname;
   qDebug() << "bid:" << bid_r << "|" << bid_w;
@@ -73,6 +74,11 @@ void Core::Update(CmdSig cmd, int index, QVariant arg, const QString &)
   qDebug() << "book:: book_i: " << book_res.at(0).toInt();
   qDebug() << "book:: bnames: " << book_res.at(1).toStringList().count();
   qDebug() << "book:: bremoves: " << (book_res.count() - 2);
+  qDebug() << "memo:: stat: " << memo_res.at(0).toBool();
+  qDebug() << "memo:: text: " << memo_res.at(1).toString();
+  emit tabOutputted(tab_res.at(0).toInt(), tab_res.at(1).toStringList());
+  emit booksOutputted(book_res.at(0).toInt(), book_res.at(1).toStringList());
+  emit editorOutputted(memo_res.at(0).toBool(), memo_res.at(1).toString());
 }
 
 }  // namespace Nmemo

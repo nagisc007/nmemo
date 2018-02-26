@@ -82,6 +82,12 @@ struct listMapRemoved
 };
 
 template<typename S, typename T>
+struct listMapRemovedList
+{
+  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S);
+};
+
+template<typename S, typename T>
 struct listMapMoved
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, int);
@@ -187,11 +193,6 @@ struct booksOperated
                        int, int, int, int, int, QVariant);
 };
 
-struct RemovedBooks
-{
-  T_ids operator ()(CmdSig, T_idpack*, int);
-};
-
 struct labelsOperated
 {
   T_labels operator ()(CmdSig, const T_labels*,
@@ -218,6 +219,17 @@ struct OperateBookData
   QList<QVariant> operator ()(CmdSig, T_idpack*, T_labels*,
                               int, int,
                               int, int, int, const QString&, QVariant);
+};
+
+/* operation: memo */
+struct memosOperated
+{
+  T_labels operator ()(CmdSig, const T_labels*, int, const QString&);
+};
+
+struct OperateMemoData
+{
+  QList<QVariant> operator ()(CmdSig, T_labels*, int, int, const QString&);
 };
 
 }  // namespace Utl
