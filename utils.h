@@ -232,12 +232,12 @@ struct OperateBookData
 /* operation: memo */
 struct memosOperated
 {
-  T_labels operator ()(CmdSig, const T_labels*, int, const QString&);
+  T_labels operator ()(CmdSig, const T_labels*, int, int, const QString&);
 };
 
 struct OperateMemoData
 {
-  QList<QVariant> operator ()(CmdSig, T_labels*, int, int, const QString&);
+  QList<QVariant> operator ()(CmdSig, T_labels*, int, int, int, const QString&);
 };
 
 }  // namespace Utl

@@ -375,29 +375,33 @@ auto OperateBookData::operator ()(CmdSig cmd, T_idpack* m_books, T_labels* m_lab
 
 /* operation: memo */
 auto memosOperated::operator ()(CmdSig cmd, const T_labels* m_memos,
-                                int bid_w, const QString& text) -> T_labels
+                                int bid_w, int bid_d, const QString& text) -> T_labels
 {
   return hasCmd()(cmd, CmdSig::BOOK) ?
+        hasCmd()(cmd, CmdSig::ADD) ?
+          strMapAdded<int>()(m_memos, bid_w, text):
         hasCmd()(cmd, CmdSig::DELETE) ?
           strMapRemoved<int>()(m_memos, bid_w):
-          bid_w > 0 ?
-            strMapAdded<int>()(m_memos, bid_w, text):
+          bid_d > 0 ?
+            strMapAdded<int>()(m_memos, bid_d, text):
             T_labels(*m_memos):
-            bid_w > 0 ?
-              strMapAdded<int>()(m_memos, bid_w, text):
+            bid_d > 0 ?
+              strMapAdded<int>()(m_memos, bid_d, text):
               T_labels(*m_memos);
 }
 
 auto OperateMemoData::operator ()(CmdSig cmd, T_labels* m_memos,
-                                  int bid_r, int bid_w,
+                                  int bid_r, int bid_w, int bid_d,
                                   const QString& text) -> QList<QVariant>
 {
   QList<QVariant> result;
-  auto memos = memosOperated()(cmd, m_memos, bid_w, text);
-  auto stat = memos.contains(bid_r) ? true: false;
-  auto s_text = stat ?
+  auto memos = memosOperated()(cmd, m_memos, bid_w, bid_d, text);
+  auto stat = memos.contains(bid_r) ? false: true;
+  auto s_text = (!stat) ?
         memos.value(bid_r):
-        "Please create new book!";
+        "Please create new book, or choose a book!";
+  qDebug() << "MO::" << memos.count() << "bid: " << bid_r << "|" << bid_w << "(" << stat;
+  OverrideStringMap<int>()(m_memos, memos);
   result << QVariant(stat);
   result << QVariant(s_text);
   return result;

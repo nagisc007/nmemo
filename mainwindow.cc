@@ -181,7 +181,7 @@ void MainWindow::AddBook()
     auto name = Utl::GetBookName()(this, "New Book");
     updated(CmdSig::BOOK_ADD, -1,
             QVariant(name == "" ? "New Book": name),
-            editor_->toPlainText());
+            "new text");
   }
 }
 

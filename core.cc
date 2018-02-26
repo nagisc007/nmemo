@@ -68,7 +68,7 @@ void Core::Update(CmdSig cmd, int index, QVariant arg, const QString& text)
                                        tid_r, tid_w, index, tname, arg);
   auto book_res = Utl::OperateBookData()(cmd, m_books_.data(), m_labels_.data(),
                                          tid_r, tid_w, bid_r, bid_w, index, bname, arg);
-  auto memo_res = Utl::OperateMemoData()(cmd, m_memos_.data(), bid_r, bid_w, text);
+  auto memo_res = Utl::OperateMemoData()(cmd, m_memos_.data(), bid_r, bid_w, m_bid_, text);
   m_tid_ = tid_r;
   m_bid_ = bid_r;
   m_book_i_ = book_res.at(0).toInt();
