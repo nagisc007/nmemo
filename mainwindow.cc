@@ -102,22 +102,22 @@ auto MainWindow::InitActions() -> bool
 /* methods: features */
 
 /* slots: output */
-void MainWindow::outputToTab(int index, T_labels labels)
+void MainWindow::outputToTab(int index, QStringList slist)
 {
   mutex_.lock();
   is_tab_updating_ = true;
-  Utl::OverrideTabBar()(tab_.data(), labels);
+  Utl::OverrideTabBar()(tab_.data(), slist);
   tab_->setCurrentIndex(index);
   mutex_.unlock();
 
   is_tab_updating_ = false;
 }
 
-void MainWindow::outputToBookList(int index, T_labels labels)
+void MainWindow::outputToBookList(int index, QStringList slist)
 {
   mutex_.lock();
   is_booklist_updating_ = true;
-  Utl::OverrideListWidget()(booklist_.data(), labels);
+  Utl::OverrideListWidget()(booklist_.data(), slist);
   booklist_->setCurrentRow(index);
   mutex_.unlock();
 
@@ -139,6 +139,7 @@ void MainWindow::outputToEditor(bool stat, const QString& text)
 void MainWindow::AddTab()
 {
   if (is_tab_updating_) return;
+  updated(CmdSig::TAB_ADD, -1, QVariant(0), QString(""));
 }
 
 void MainWindow::DeleteTab(int)

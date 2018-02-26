@@ -61,8 +61,8 @@ signals:
 
 public slots:
   /* for output */
-  void outputToTab(int, T_labels);
-  void outputToBookList(int, T_labels);
+  void outputToTab(int, QStringList);
+  void outputToBookList(int, QStringList);
   void outputToEditor(bool, const QString&);
   /* for tab */
   void AddTab();

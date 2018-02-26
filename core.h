@@ -24,12 +24,22 @@ public:
   ~Core();
 
 signals:
-  void tabOutputted(int, T_labels);
-  void booksOutputted(int, T_labels);
+  void tabOutputted(int, QStringList);
+  void booksOutputted(int, QStringList);
   void editorOutputted(bool, const QString&);
 
 public slots:
   void Update(CmdSig, int, QVariant, const QString&);
+
+private:
+  int m_tid_;
+  int m_bid_;
+  int m_book_i_;
+  QScopedPointer<T_idpack> m_books_;
+  QScopedPointer<T_labels> m_labels_;
+  QScopedPointer<T_labels> m_memos_;
+  QScopedPointer<T_labels> m_paths_;
+  QScopedPointer<T_ids> m_tabs_;
 };
 
 }  // namespace Nmemo

@@ -30,8 +30,12 @@ enum class CmdSig {
   BOOK_CHANGE = BOOK | CHANGE,
   BOOK_MOVE = BOOK | MOVE,
   BOOK_RENAME = BOOK | RENAME,
+  // utils
+  ADD_RENAME = ADD | RENAME,
 };
 
-using T_labels = QStringList;
+using T_ids = QList<int>;
+using T_labels = QMap<int, QString>;
+using T_idpack = QMap<int, T_ids>;
 
 #endif // COMMON_TYPES_H
