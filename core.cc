@@ -76,7 +76,6 @@ void Core::Update(CmdSig cmd, int index, QVariant arg, const QString& text)
   qDebug() << "tab:: tnames: " << tab_res.at(1).toStringList().count();
   qDebug() << "book:: book_i: " << book_res.at(0).toInt();
   qDebug() << "book:: bnames: " << book_res.at(1).toStringList().count();
-  qDebug() << "book:: bremoves: " << (book_res.count() - 2);
   qDebug() << "memo:: stat: " << memo_res.at(0).toBool();
   qDebug() << "memo:: text: " << memo_res.at(1).toString();
   emit tabOutputted(tab_res.at(0).toInt(), tab_res.at(1).toStringList());

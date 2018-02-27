@@ -76,6 +76,7 @@ public slots:
   void ChangeBook(int);
   void MoveBook(int, int);
   void RenameBook();
+  void DoubleClickBook(QListWidgetItem*);
 
 private slots:
   /* menus: File */

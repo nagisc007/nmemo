@@ -95,6 +95,7 @@ auto MainWindow::InitActions() -> bool
   connect(tab_.data(), &QTabBar::tabCloseRequested, this, &MainWindow::DeleteTab);
   connect(tab_.data(), &QTabBar::tabMoved, this, &MainWindow::MoveTab);
   connect(booklist_.data(), &QListWidget::currentRowChanged, this, &MainWindow::ChangeBook);
+  connect(booklist_.data(), &QListWidget::itemDoubleClicked, this, &MainWindow::DoubleClickBook);
   connect(this, &MainWindow::updated, core_.data(), &Nmemo::Core::Update);
   connect(core_.data(), &Nmemo::Core::tabOutputted, this, &MainWindow::outputToTab);
   connect(core_.data(), &Nmemo::Core::booksOutputted, this, &MainWindow::outputToBookList);
@@ -156,7 +157,6 @@ void MainWindow::DeleteTab(int index)
 void MainWindow::ChangeTab(int index)
 {
   if (is_tab_updating_) return;
-  qDebug() << "change tab ...." << index;
   updated(CmdSig::TAB_CHANGE, index, QVariant(0),
          editor_->toPlainText());
 }
@@ -181,7 +181,7 @@ void MainWindow::AddBook()
     auto name = Utl::GetBookName()(this, "New Book");
     updated(CmdSig::BOOK_ADD, -1,
             QVariant(name == "" ? "New Book": name),
-            "new text");
+            editor_->toPlainText());
   }
 }
 
@@ -206,10 +206,15 @@ void MainWindow::MoveBook(int, int)
 
 void MainWindow::RenameBook()
 {
+  auto item = booklist_->currentItem();
+  if (!item) return;
+  DoubleClickBook(item);
+}
+
+void MainWindow::DoubleClickBook(QListWidgetItem* item)
+{
   if (is_booklist_updating_) return;
   if (tab_->count() > 0 && booklist_->count() > 0) {
-    auto item = booklist_->currentItem();
-    if (!item) return;
     auto name = Utl::GetBookName()(this, item->text());
     updated(CmdSig::BOOK_RENAME, booklist_->currentRow(),
             QVariant(name == "" ? item->text(): name),

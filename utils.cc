@@ -80,6 +80,19 @@ QMap<S, QList<T>> listMapAdded<S, T>::operator ()(const QMap<S, QList<T>>* map,
 }
 
 template<typename S, typename T>
+QMap<S, QList<T>> listMapUpdated<S, T>::operator ()(const QMap<S, QList<T>>* map,
+                                                    S key, int index, T val)
+{
+  auto tmp = QMap<S, QList<T>>(*map);
+  if (index >= 0 && tmp.contains(key) && index < tmp[key].count()) {
+    tmp[key][index] = val;
+  } else {
+    tmp[key].append(val);
+  }
+  return tmp;
+}
+
+template<typename S, typename T>
 QMap<S, QList<T>> listMapRemoved<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                     S key, T val)
 {
@@ -312,7 +325,7 @@ auto labelsOperated::operator ()(CmdSig cmd, const T_labels* m_labels,
                                  int bid_r, int bid_w, const QString& bname) -> T_labels
 {
   return hasCmd()(cmd, CmdSig::BOOK) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
+        hasCmd()(cmd, CmdSig::ADD) || hasCmd()(cmd, CmdSig::RENAME) ?
           strMapAdded<int>()(m_labels, bid_w, bname):
           hasCmd()(cmd, CmdSig::DELETE) ?
             strMapRemoved<int>()(m_labels, bid_w):
@@ -335,7 +348,7 @@ auto GetBookIdToWrite::operator ()(CmdSig cmd, const T_idpack* books,
                                    int tid, int index, int bid) -> int
 {
   return hasCmd()(cmd, CmdSig::BOOK) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
+        hasCmd()(cmd, CmdSig::ADD) || hasCmd()(cmd, CmdSig::RENAME) ?
           bid:
           hasCmd()(cmd, CmdSig::DELETE) ?
           bookIdFrom()(cmd, books, tid, index):
@@ -366,8 +379,6 @@ auto OperateBookData::operator ()(CmdSig cmd, T_idpack* m_books, T_labels* m_lab
   auto book_i = bookIndexFrom()(cmd, &books, tid_r, bid_r);
   OverrideListMap<int, int>()(m_books, books);
   OverrideStringMap<int>()(m_labels, labels);
-  qDebug() << "BO:: book_i:" << book_i << "(tid:" << tid_r << "|" << tid_w
-           << "(bid: " << bid_r << "|" << bid_w;
   result << QVariant(book_i);
   result << QVariant(bnames);
   return result;
@@ -377,17 +388,17 @@ auto OperateBookData::operator ()(CmdSig cmd, T_idpack* m_books, T_labels* m_lab
 auto memosOperated::operator ()(CmdSig cmd, const T_labels* m_memos,
                                 int bid_w, int bid_d, const QString& text) -> T_labels
 {
+  auto memos = T_labels(*m_memos);
+  if (bid_d > 0 && memos.contains(bid_d)) {
+    memos[bid_d] = text;
+  }
   return hasCmd()(cmd, CmdSig::BOOK) ?
         hasCmd()(cmd, CmdSig::ADD) ?
-          strMapAdded<int>()(m_memos, bid_w, text):
+          strMapAdded<int>()(&memos, bid_w, QString("new text")):
         hasCmd()(cmd, CmdSig::DELETE) ?
-          strMapRemoved<int>()(m_memos, bid_w):
-          bid_d > 0 ?
-            strMapAdded<int>()(m_memos, bid_d, text):
-            T_labels(*m_memos):
-            bid_d > 0 ?
-              strMapAdded<int>()(m_memos, bid_d, text):
-              T_labels(*m_memos);
+          strMapRemoved<int>()(&memos, bid_w):
+            memos:
+            memos;
 }
 
 auto OperateMemoData::operator ()(CmdSig cmd, T_labels* m_memos,
@@ -400,7 +411,6 @@ auto OperateMemoData::operator ()(CmdSig cmd, T_labels* m_memos,
   auto s_text = (!stat) ?
         memos.value(bid_r):
         "Please create new book, or choose a book!";
-  qDebug() << "MO::" << memos.count() << "bid: " << bid_r << "|" << bid_w << "(" << stat;
   OverrideStringMap<int>()(m_memos, memos);
   result << QVariant(stat);
   result << QVariant(s_text);
@@ -412,6 +422,7 @@ template struct listAdded<int>;
 template struct listRemoved<int>;
 template struct listMoved<int>;
 template struct listMapAdded<int, int>;
+template struct listMapUpdated<int, int>;
 template struct listMapRemoved<int, int>;
 template struct listMapRemovedList<int, int>;
 template struct listMapMoved<int, int>;

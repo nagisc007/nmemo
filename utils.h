@@ -84,6 +84,12 @@ struct listMapAdded
 };
 
 template<typename S, typename T>
+struct listMapUpdated
+{
+  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, T);
+};
+
+template<typename S, typename T>
 struct listMapRemoved
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
