@@ -49,9 +49,10 @@ Core::~Core()
 }
 
 /* slots */
-void Core::Update(CmdSig cmd, int index, QVariant arg, const QString& text)
+void Core::Update(CmdSig cmd, int index, QVariant arg)
 {
   qDebug() << "Update Core:: starting ...";
+  auto text = text_cached_;
   auto tid_r = Utl::GetTabIdToRead()(cmd, m_tabs_.data(), index, m_tid_);
   auto tid_w = Utl::GetTabIdToWrite()(cmd, m_tabs_.data(), index, tid_r);
   auto tname = Utl::GetTabNameToWrite()(cmd, arg);
@@ -81,6 +82,12 @@ void Core::Update(CmdSig cmd, int index, QVariant arg, const QString& text)
   emit tabOutputted(tab_res.at(0).toInt(), tab_res.at(1).toStringList());
   emit booksOutputted(book_res.at(0).toInt(), book_res.at(1).toStringList());
   emit editorOutputted(memo_res.at(0).toBool(), memo_res.at(1).toString());
+}
+
+void Core::UpdateText(const QString& text)
+{
+  qDebug() << "TEXT:::::" << text;
+  text_cached_ = text;
 }
 
 }  // namespace Nmemo

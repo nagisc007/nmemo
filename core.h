@@ -29,12 +29,14 @@ signals:
   void editorOutputted(bool, const QString&);
 
 public slots:
-  void Update(CmdSig, int, QVariant, const QString&);
+  void Update(CmdSig, int, QVariant);
+  void UpdateText(const QString&);
 
 private:
   int m_tid_;
   int m_bid_;
   int m_book_i_;
+  QString text_cached_;
   QScopedPointer<T_idpack> m_books_;
   QScopedPointer<T_labels> m_labels_;
   QScopedPointer<T_labels> m_memos_;

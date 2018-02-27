@@ -78,6 +78,8 @@ auto MainWindow::InitWidgets() -> bool
   // set props
   tab_->setTabsClosable(true);
   tab_->setMovable(true);
+  editor_->setReadOnly(true);
+  editor_->setText("Welcome to Nmemo pad!");
   // set layout
   mainLayout->addWidget(tab_.data());
   subLayout->addWidget(editor_.data());
@@ -96,7 +98,9 @@ auto MainWindow::InitActions() -> bool
   connect(tab_.data(), &QTabBar::tabMoved, this, &MainWindow::MoveTab);
   connect(booklist_.data(), &QListWidget::currentRowChanged, this, &MainWindow::ChangeBook);
   connect(booklist_.data(), &QListWidget::itemDoubleClicked, this, &MainWindow::DoubleClickBook);
+  connect(editor_.data(), &QTextEdit::textChanged, this, &MainWindow::ChangedMemo);
   connect(this, &MainWindow::updated, core_.data(), &Nmemo::Core::Update);
+  connect(this, &MainWindow::textUpdated, core_.data(), &Nmemo::Core::UpdateText);
   connect(core_.data(), &Nmemo::Core::tabOutputted, this, &MainWindow::outputToTab);
   connect(core_.data(), &Nmemo::Core::booksOutputted, this, &MainWindow::outputToBookList);
   connect(core_.data(), &Nmemo::Core::editorOutputted, this, &MainWindow::outputToEditor);
@@ -143,29 +147,25 @@ void MainWindow::outputToEditor(bool stat, const QString& text)
 void MainWindow::AddTab()
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_ADD, -1, QVariant(0),
-          editor_->toPlainText());
+  updated(CmdSig::TAB_ADD, -1, QVariant(0));
 }
 
 void MainWindow::DeleteTab(int index)
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_DELETE, index, QVariant(0),
-          editor_->toPlainText());
+  updated(CmdSig::TAB_DELETE, index, QVariant(0));
 }
 
 void MainWindow::ChangeTab(int index)
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_CHANGE, index, QVariant(0),
-         editor_->toPlainText());
+  updated(CmdSig::TAB_CHANGE, index, QVariant(0));
 }
 
 void MainWindow::MoveTab(int from, int to)
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_MOVE, from, QVariant(to),
-         editor_->toPlainText());
+  updated(CmdSig::TAB_MOVE, from, QVariant(to));
 }
 
 void MainWindow::RenameTab()
@@ -180,23 +180,20 @@ void MainWindow::AddBook()
   if (tab_->count() > 0) {
     auto name = Utl::GetBookName()(this, "New Book");
     updated(CmdSig::BOOK_ADD, -1,
-            QVariant(name == "" ? "New Book": name),
-            editor_->toPlainText());
+            QVariant(name == "" ? "New Book": name));
   }
 }
 
 void MainWindow::DeleteBook(int index)
 {
   if (is_booklist_updating_) return;
-  updated(CmdSig::BOOK_DELETE, index, QVariant(0),
-          editor_->toPlainText());
+  updated(CmdSig::BOOK_DELETE, index, QVariant(0));
 }
 
 void MainWindow::ChangeBook(int index)
 {
   if (is_booklist_updating_) return;
-  updated(CmdSig::BOOK_CHANGE, index, QVariant(0),
-          editor_->toPlainText());
+  updated(CmdSig::BOOK_CHANGE, index, QVariant(0));
 }
 
 void MainWindow::MoveBook(int, int)
@@ -217,9 +214,14 @@ void MainWindow::DoubleClickBook(QListWidgetItem* item)
   if (tab_->count() > 0 && booklist_->count() > 0) {
     auto name = Utl::GetBookName()(this, item->text());
     updated(CmdSig::BOOK_RENAME, booklist_->currentRow(),
-            QVariant(name == "" ? item->text(): name),
-            editor_->toPlainText());
+            QVariant(name == "" ? item->text(): name));
   }
+}
+
+/* slots: memo */
+void MainWindow::ChangedMemo()
+{
+  emit textUpdated(editor_->toPlainText());
 }
 
 /* slots: menus - File */

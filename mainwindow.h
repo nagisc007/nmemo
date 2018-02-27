@@ -57,7 +57,8 @@ public:
   /* methods: features */
 
 signals:
-  void updated(CmdSig, int, QVariant, const QString&);
+  void updated(CmdSig, int, QVariant);
+  void textUpdated(const QString&);
 
 public slots:
   /* for output */
@@ -77,6 +78,8 @@ public slots:
   void MoveBook(int, int);
   void RenameBook();
   void DoubleClickBook(QListWidgetItem*);
+  /* for memo */
+  void ChangedMemo();
 
 private slots:
   /* menus: File */
