@@ -24,226 +24,156 @@
 
 namespace Utl {
 
-/* values */
-extern int next_id;
-extern QStack<int> id_pool;
+/* functors: ID */
+struct IdUnit
+{
+  IdUnit();
+  ~IdUnit();
+  T_id operator ()();  // to Get
+  T_id operator ()(T_id);  // to Release
+  T_id next_id;
+  QScopedPointer<QStack<T_id>> pool;
+};
 
-/* utils: bits */
+/* functors: bits */
 struct hasCmd
 {
-  bool operator ()(CmdSig, CmdSig);
+  bool operator ()(T_cmd, T_cmd);
 };
 
-/* utils: for id */
-struct GetId
-{
-  int operator ()();
-};
-
-struct ReleaseId
-{
-  int operator ()(int);
-};
-
-/* utils: QInputDialog */
-struct GetBookName
+/* functors: QInputDialog */
+struct BookNameToGet
 {
   QString operator ()(QWidget*, const QString&);
 };
 
-/* utils: QList */
+/* functors: QList */
 template<typename T>
-struct listAdded
+struct listToAdd
 {
   QList<T> operator ()(const QList<T>*, T);
 };
 
 template<typename T>
-struct listRemoved
+struct listToRemove
 {
   QList<T> operator ()(const QList<T>*, T);
 };
 
 template<typename T>
-struct listMoved
+struct listToMove
 {
   QList<T> operator ()(const QList<T>*, int, int);
 };
 
 template<typename T>
-struct OverrideList
+struct listValToFetch
 {
-  void operator ()(QList<T>*, QList<T>&);
+  T operator ()(const QList<T>*, int, T);
 };
 
-/* utils: QMap */
+template<typename T>
+struct listIndexToFetch
+{
+  int operator ()(const QList<T>*, T);
+};
+
+template<typename T>
+struct ListToOverride
+{
+  bool operator ()(QList<T>*, QList<T>&);
+};
+
+/* functors: QMap(S, T) */
 template<typename S, typename T>
-struct listMapAdded
+struct listMapToAdd
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
 };
 
 template<typename S, typename T>
-struct listMapUpdated
+struct listMapToUpdate
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, T);
 };
 
 template<typename S, typename T>
-struct listMapRemoved
+struct listMapToRemove
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
 };
 
 template<typename S, typename T>
-struct listMapRemovedList
+struct listMapToRemoveByKey
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S);
 };
 
 template<typename S, typename T>
-struct listMapMoved
+struct listMapToMove
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, int);
 };
 
+template<typename S, typename T>
+struct listMapValToFetch
+{
+  T operator ()(const QMap<S, QList<T>>*, S, int, T);
+};
+
+template<typename S, typename T>
+struct listMapListToFetch
+{
+  QList<T> operator ()(const QMap<S, QList<T>>*, S);
+};
+
+template<typename S, typename T>
+struct ListMapToOverride
+{
+  bool operator ()(QMap<S, QList<T>>*, QMap<S, QList<T>>&);
+};
+
+/* functors: QMap(T, QString) */
 template<typename T>
-struct strMapAdded
+struct strMapToUpdate
 {
   QMap<T, QString> operator ()(const QMap<T, QString>*, T, const QString&);
 };
 
 template<typename T>
-struct strMapRemoved
+struct strMapToRemove
 {
   QMap<T, QString> operator ()(const QMap<T, QString>*, T);
 };
 
-template<typename S, typename T>
-struct OverrideListMap
+template<typename T>
+struct StrMapToOverride
 {
-  void operator ()(QMap<S, QList<T>>*, QMap<S, QList<T>>&);
+  bool operator ()(QMap<T, QString>*, QMap<T, QString>&);
 };
 
 template<typename T>
-struct OverrideStringMap
+struct strListFromMapToConv
 {
-  void operator ()(QMap<T, QString>*, QMap<T, QString>&);
+  QStringList operator ()(const QMap<T, QString>*, const QList<T>*);
 };
 
-/* utils: QStringList */
-struct strListDerivedIds
+template<typename T>
+struct strMapValToFetch
 {
-  QStringList operator ()(const T_labels*, const T_ids*);
+  QString operator ()(const QMap<T, QString>*, T);
 };
 
-/* utils: QListWidget */
-struct OverrideListWidget
+/* functors: QListWidget */
+struct ListWidgetToOverride
 {
-  void operator ()(QListWidget*, const QStringList&);
+  bool operator ()(QListWidget*, const QStringList&);
 };
 
-/* utils: QTabBar */
-struct OverrideTabBar
+/* functors: QTabBar */
+struct TabBarToOverride
 {
-  void operator ()(QTabBar*, const QStringList&);
-};
-
-/* operation: for tab */
-struct pathsOperated
-{
-  T_labels operator ()(CmdSig, const T_labels*, int, const QString&);
-};
-struct tabIdFrom
-{
-  int operator ()(CmdSig, const T_ids*, int);
-};
-
-struct tabIndexFrom
-{
-  int operator ()(CmdSig, const T_ids*, int);
-};
-
-struct tabsOperated
-{
-  T_ids operator ()(CmdSig, const T_ids*, int, int, QVariant);
-};
-
-struct GetTabIdToRead
-{
-  int operator ()(CmdSig, const T_ids*, int, int);
-};
-
-struct GetTabIdToWrite
-{
-  int operator ()(CmdSig, const T_ids*, int, int);
-};
-
-struct GetTabNameToWrite
-{
-  QString operator ()(CmdSig, QVariant);
-};
-
-struct OperateTabData
-{
-  QList<QVariant> operator ()(CmdSig, T_ids*, T_labels*,
-                              int, int, int, const QString&, QVariant);
-};
-
-/* operation: for book */
-struct bookIdFrom
-{
-  int operator ()(CmdSig, const T_idpack*, int, int);
-};
-
-struct bookIndexFrom
-{
-  int operator ()(CmdSig, const T_idpack*, int, int);
-};
-
-struct booksOperated
-{
-  T_idpack operator ()(CmdSig, const T_idpack*,
-                       int, int, int, int, int, QVariant);
-};
-
-struct labelsOperated
-{
-  T_labels operator ()(CmdSig, const T_labels*,
-                       int, int, int, int, const QString&);
-};
-
-struct GetBookIdToRead
-{
-  int operator ()(CmdSig, const T_idpack*, int, int, int);
-};
-
-struct GetBookIdToWrite
-{
-  int operator ()(CmdSig, const T_idpack*, int, int, int);
-};
-
-struct GetBookNameToWrite
-{
-  QString operator ()(CmdSig, QVariant);
-};
-
-struct OperateBookData
-{
-  QList<QVariant> operator ()(CmdSig, T_idpack*, T_labels*,
-                              int, int,
-                              int, int, int, const QString&, QVariant);
-};
-
-/* operation: memo */
-struct memosOperated
-{
-  T_labels operator ()(CmdSig, const T_labels*, int, int, const QString&);
-};
-
-struct OperateMemoData
-{
-  QList<QVariant> operator ()(CmdSig, T_labels*, int, int, int, const QString&);
+  bool operator ()(QTabBar*, const QStringList&);
 };
 
 }  // namespace Utl

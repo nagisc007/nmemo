@@ -98,45 +98,47 @@ auto MainWindow::InitActions() -> bool
   connect(tab_.data(), &QTabBar::tabMoved, this, &MainWindow::MoveTab);
   connect(booklist_.data(), &QListWidget::currentRowChanged, this, &MainWindow::ChangeBook);
   connect(booklist_.data(), &QListWidget::itemDoubleClicked, this, &MainWindow::DoubleClickBook);
-  connect(editor_.data(), &QTextEdit::textChanged, this, &MainWindow::ChangedMemo);
   connect(this, &MainWindow::updated, core_.data(), &Nmemo::Core::Update);
-  connect(this, &MainWindow::textUpdated, core_.data(), &Nmemo::Core::UpdateText);
+  connect(this, &MainWindow::loaded, core_.data(), &Nmemo::Core::LoadData);
+  connect(this, &MainWindow::saved, core_.data(), &Nmemo::Core::SaveData);
   connect(core_.data(), &Nmemo::Core::tabOutputted, this, &MainWindow::outputToTab);
   connect(core_.data(), &Nmemo::Core::booksOutputted, this, &MainWindow::outputToBookList);
-  connect(core_.data(), &Nmemo::Core::editorOutputted, this, &MainWindow::outputToEditor);
+  connect(core_.data(), &Nmemo::Core::memoOutputted, this, &MainWindow::outputToEditor);
+  connect(core_.data(), &Nmemo::Core::filenameToSaveRequested,
+          this, &MainWindow::on_actSaveAs_triggered);
   return true;
 }
 
 /* methods: features */
 
 /* slots: output */
-void MainWindow::outputToTab(int index, QStringList slist)
+void MainWindow::outputToTab(T_tab_i index, T_tabnames slist)
 {
   mutex_.lock();
   is_tab_updating_ = true;
-  Utl::OverrideTabBar()(tab_.data(), slist);
+  Utl::TabBarToOverride()(tab_.data(), slist);
   tab_->setCurrentIndex(index);
   mutex_.unlock();
 
   is_tab_updating_ = false;
 }
 
-void MainWindow::outputToBookList(int index, QStringList slist)
+void MainWindow::outputToBookList(T_book_i index, T_booknames slist)
 {
   mutex_.lock();
   is_booklist_updating_ = true;
-  Utl::OverrideListWidget()(booklist_.data(), slist);
+  Utl::ListWidgetToOverride()(booklist_.data(), slist);
   booklist_->setCurrentRow(index);
   mutex_.unlock();
 
   is_booklist_updating_ = false;
 }
 
-void MainWindow::outputToEditor(bool stat, const QString& text)
+void MainWindow::outputToEditor(T_stat stat, const T_text& text)
 {
   mutex_.lock();
   is_editor_updating_ = true;
-  editor_->setReadOnly(stat);
+  editor_->setReadOnly(!stat);
   editor_->setText(text);
   mutex_.unlock();
 
@@ -147,25 +149,25 @@ void MainWindow::outputToEditor(bool stat, const QString& text)
 void MainWindow::AddTab()
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_ADD, -1, QVariant(0));
+  updated(CmdSig::TAB_ADD, -1, editor_->toPlainText(), QVariant(0));
 }
 
 void MainWindow::DeleteTab(int index)
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_DELETE, index, QVariant(0));
+  updated(CmdSig::TAB_DELETE, index, editor_->toPlainText(), QVariant(0));
 }
 
 void MainWindow::ChangeTab(int index)
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_CHANGE, index, QVariant(0));
+  updated(CmdSig::TAB_CHANGE, index, editor_->toPlainText(), QVariant(0));
 }
 
 void MainWindow::MoveTab(int from, int to)
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_MOVE, from, QVariant(to));
+  updated(CmdSig::TAB_MOVE, from, editor_->toPlainText(), QVariant(to));
 }
 
 void MainWindow::RenameTab()
@@ -178,8 +180,8 @@ void MainWindow::AddBook()
 {
   if (is_booklist_updating_) return;
   if (tab_->count() > 0) {
-    auto name = Utl::GetBookName()(this, "New Book");
-    updated(CmdSig::BOOK_ADD, -1,
+    auto name = Utl::BookNameToGet()(this, "New Book");
+    updated(CmdSig::BOOK_ADD, -1, editor_->toPlainText(),
             QVariant(name == "" ? "New Book": name));
   }
 }
@@ -187,13 +189,13 @@ void MainWindow::AddBook()
 void MainWindow::DeleteBook(int index)
 {
   if (is_booklist_updating_) return;
-  updated(CmdSig::BOOK_DELETE, index, QVariant(0));
+  updated(CmdSig::BOOK_DELETE, index, editor_->toPlainText(), QVariant(0));
 }
 
 void MainWindow::ChangeBook(int index)
 {
   if (is_booklist_updating_) return;
-  updated(CmdSig::BOOK_CHANGE, index, QVariant(0));
+  updated(CmdSig::BOOK_CHANGE, index, editor_->toPlainText(), QVariant(0));
 }
 
 void MainWindow::MoveBook(int, int)
@@ -212,16 +214,10 @@ void MainWindow::DoubleClickBook(QListWidgetItem* item)
 {
   if (is_booklist_updating_) return;
   if (tab_->count() > 0 && booklist_->count() > 0) {
-    auto name = Utl::GetBookName()(this, item->text());
-    updated(CmdSig::BOOK_RENAME, booklist_->currentRow(),
+    auto name = Utl::BookNameToGet()(this, item->text());
+    updated(CmdSig::BOOK_RENAME, booklist_->currentRow(), editor_->toPlainText(),
             QVariant(name == "" ? item->text(): name));
   }
-}
-
-/* slots: memo */
-void MainWindow::ChangedMemo()
-{
-  emit textUpdated(editor_->toPlainText());
 }
 
 /* slots: menus - File */
@@ -232,7 +228,7 @@ void MainWindow::on_actNew_triggered()
 
 void MainWindow::on_actOpen_triggered()
 {
-
+  emit loaded(QString(""), tab_->currentIndex(), editor_->toPlainText());
 }
 
 void MainWindow::on_actClose_triggered()
@@ -242,12 +238,12 @@ void MainWindow::on_actClose_triggered()
 
 void MainWindow::on_actSave_triggered()
 {
-
+  emit saved(QString(""), tab_->currentIndex(), editor_->toPlainText());
 }
 
 void MainWindow::on_actSaveAs_triggered()
 {
-
+  emit saved(QString(""), tab_->currentIndex(), editor_->toPlainText());
 }
 
 void MainWindow::on_actQuit_triggered()

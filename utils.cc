@@ -9,30 +9,39 @@
 
 namespace Utl {
 
-/* values */
-int next_id = 0;
-QStack<int> id_pool;
+/* functors: ID */
+IdUnit::IdUnit():
+  next_id(0),
+  pool(new QStack<T_id>())
+{}
 
-/* utils: bits */
+IdUnit::~IdUnit()
+{
+  if (pool) {
+    pool->clear();
+    pool.reset();
+  }
+}
+
+auto IdUnit::operator ()() -> T_id
+{
+  return pool->isEmpty() ? ++next_id: pool->pop();
+}
+
+auto IdUnit::operator ()(T_id id) -> T_id
+{
+  pool->push(id);
+  return id;
+}
+
+/* functors: bits */
 auto hasCmd::operator ()(CmdSig a, CmdSig b) -> bool
 {
   return (static_cast<int>(a) & static_cast<int>(b)) != 0;
 }
 
-/* utils: for id */
-auto GetId::operator ()() -> int
-{
-  return id_pool.isEmpty() ? ++next_id: id_pool.pop();
-}
-
-auto ReleaseId::operator ()(int released) -> int
-{
-  id_pool.push(released);
-  return released;
-}
-
-/* utils: QInputDialog */
-auto GetBookName::operator ()(QWidget* parent, const QString& text) -> QString
+/* functors: QInputDialog */
+auto BookNameToGet::operator ()(QWidget* parent, const QString& text) -> QString
 {
   return QInputDialog::getText(parent,
                                "Book name.",
@@ -40,15 +49,15 @@ auto GetBookName::operator ()(QWidget* parent, const QString& text) -> QString
                                QLineEdit::Normal, text);
 }
 
-/* utils: QList */
+/* functors: QList */
 template<typename T>
-auto listAdded<T>::operator ()(const QList<T>* list, T val) -> QList<T>
+auto listToAdd<T>::operator ()(const QList<T>* list, T val) -> QList<T>
 {
   return (*list) + QList<T>{val};
 }
 
 template<typename T>
-auto listRemoved<T>::operator ()(const QList<T>* list, T val) -> QList<T>
+auto listToRemove<T>::operator ()(const QList<T>* list, T val) -> QList<T>
 {
   auto tmp = QList<T>(*list);
   tmp.removeAll(val);
@@ -56,7 +65,7 @@ auto listRemoved<T>::operator ()(const QList<T>* list, T val) -> QList<T>
 }
 
 template<typename T>
-auto listMoved<T>::operator ()(const QList<T>* list, int from, int to) -> QList<T>
+auto listToMove<T>::operator ()(const QList<T>* list, int from, int to) -> QList<T>
 {
   auto tmp = QList<T>(*list);
   tmp.move(from, to);
@@ -64,14 +73,28 @@ auto listMoved<T>::operator ()(const QList<T>* list, int from, int to) -> QList<
 }
 
 template<typename T>
-auto OverrideList<T>::operator ()(QList<T>* list, QList<T>& updated) -> void
+auto listValToFetch<T>::operator ()(const QList<T>* list, int index, T defval) -> T
+{
+  return index >= 0 && list->count() > 0 && index < list->count() ?
+        list->at(index): defval;
+}
+
+template<typename T>
+auto listIndexToFetch<T>::operator ()(const QList<T>* list, T val) -> int
+{
+  return list->contains(val) ? list->indexOf(val): -1;
+}
+
+template<typename T>
+auto ListToOverride<T>::operator ()(QList<T>* list, QList<T>& updated) -> bool
 {
   list->swap(updated);
+  return true;
 }
 
 /* utils: QMap */
 template<typename S, typename T>
-QMap<S, QList<T>> listMapAdded<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapToAdd<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                   S key, T val)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -80,7 +103,7 @@ QMap<S, QList<T>> listMapAdded<S, T>::operator ()(const QMap<S, QList<T>>* map,
 }
 
 template<typename S, typename T>
-QMap<S, QList<T>> listMapUpdated<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapToUpdate<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                     S key, int index, T val)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -93,7 +116,7 @@ QMap<S, QList<T>> listMapUpdated<S, T>::operator ()(const QMap<S, QList<T>>* map
 }
 
 template<typename S, typename T>
-QMap<S, QList<T>> listMapRemoved<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapToRemove<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                     S key, T val)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -102,7 +125,7 @@ QMap<S, QList<T>> listMapRemoved<S, T>::operator ()(const QMap<S, QList<T>>* map
 }
 
 template<typename S, typename T>
-QMap<S, QList<T>> listMapRemovedList<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapToRemoveByKey<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                         S key)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -111,7 +134,7 @@ QMap<S, QList<T>> listMapRemovedList<S, T>::operator ()(const QMap<S, QList<T>>*
 }
 
 template<typename S, typename T>
-QMap<S, QList<T>> listMapMoved<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapToMove<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                   S key, int from, int to)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -119,8 +142,34 @@ QMap<S, QList<T>> listMapMoved<S, T>::operator ()(const QMap<S, QList<T>>* map,
   return tmp;
 }
 
+template<typename S, typename T>
+auto listMapValToFetch<S, T>::operator ()(const QMap<S, QList<T>>* map,
+                                        S key, int index, T defval) -> T
+{
+  return index >= 0 && map->count() > 0 && map->contains(key) &&
+      map->value(key).count() > 0 && index < map->value(key).count() ?
+        map->value(key).at(index): defval;
+}
+
+template<typename S, typename T>
+auto listMapListToFetch<S, T>::operator ()(const QMap<S, QList<T>>* map,
+                                        S key) -> QList<T>
+{
+  return map->count() > 0 && map->contains(key) ?
+        map->value(key): QList<T>{};
+}
+
+template<typename S, typename T>
+auto ListMapToOverride<S, T>::operator ()(QMap<S, QList<T>>* map,
+                                        QMap<S, QList<T>>& updated) ->  bool
+{
+  map->swap(updated);
+  return true;
+}
+
+/* functors: QMap(T, QString) */
 template<typename T>
-auto strMapAdded<T>::operator ()(const QMap<T, QString>* map,
+auto strMapToUpdate<T>::operator ()(const QMap<T, QString>* map,
                                  T key, const QString& val) -> QMap<T, QString>
 {
   auto tmp = QMap<T, QString>(*map);
@@ -129,7 +178,7 @@ auto strMapAdded<T>::operator ()(const QMap<T, QString>* map,
 }
 
 template<typename T>
-auto strMapRemoved<T>::operator ()(const QMap<T, QString>* map,
+auto strMapToRemove<T>::operator ()(const QMap<T, QString>* map,
                                    T key) -> QMap<T, QString>
 {
   auto tmp = QMap<T, QString>(*map);
@@ -137,23 +186,17 @@ auto strMapRemoved<T>::operator ()(const QMap<T, QString>* map,
   return tmp;
 }
 
-template<typename S, typename T>
-auto OverrideListMap<S, T>::operator ()(QMap<S, QList<T>>* map,
-                                        QMap<S, QList<T>>& updated) ->  void
+template<typename T>
+auto StrMapToOverride<T>::operator ()(QMap<T, QString>* map,
+                                       QMap<T, QString>& updated) -> bool
 {
   map->swap(updated);
+  return true;
 }
 
 template<typename T>
-auto OverrideStringMap<T>::operator ()(QMap<T, QString>* map,
-                                       QMap<T, QString>& updated) -> void
-{
-  map->swap(updated);
-}
-
-/* utils: QStringList */
-auto strListDerivedIds::operator ()(const T_labels* labels,
-                                    const T_ids* ids) -> QStringList
+auto strListFromMapToConv<T>::operator ()(const QMap<T, QString>* labels,
+                                    const QList<T>* ids) -> QStringList
 {
   QStringList slist;
   for (int i = 0, size = ids->count(); i < size; ++i) {
@@ -162,18 +205,26 @@ auto strListDerivedIds::operator ()(const T_labels* labels,
   return slist;
 }
 
+template<typename T>
+auto strMapValToFetch<T>::operator ()(const QMap<T, QString>* map,
+                                    T key) -> QString
+{
+  return map->value(key);
+}
+
 /* utils: QListWidget */
-auto OverrideListWidget::operator ()(QListWidget* list, const QStringList& slist) -> void
+auto ListWidgetToOverride::operator ()(QListWidget* list, const QStringList& slist) -> bool
 {
   // NOTE:
   //  The ListWidget bug to remove and add.
   //  If the reason is found, fix it.
   list->clear();
   list->addItems(slist);
+  return true;
 }
 
 /* utils: QTabBar */
-auto OverrideTabBar::operator ()(QTabBar* tab, const QStringList& slist) -> void
+auto TabBarToOverride::operator ()(QTabBar* tab, const QStringList& slist) -> bool
 {
   auto tab_size = tab->count();
   auto slist_size = slist.count();
@@ -190,247 +241,29 @@ auto OverrideTabBar::operator ()(QTabBar* tab, const QStringList& slist) -> void
       tab->addTab(slist.at(i));
     }
   }
-}
-
-/* operation: for tab */
-auto pathsOperated::operator ()(CmdSig cmd, const T_labels* m_labels,
-                                int tid, const QString& tname) -> T_labels
-{
-  return hasCmd()(cmd, CmdSig::TAB) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
-          strMapAdded<int>()(m_labels, tid, tname):
-          hasCmd()(cmd, CmdSig::DELETE) ?
-            strMapRemoved<int>()(m_labels, tid):
-            T_labels(*m_labels):
-            T_labels(*m_labels);
-}
-
-auto tabIdFrom::operator ()(CmdSig cmd, const T_ids* tabs, int index) -> int
-{
-  return index >= 0 && tabs->count() > 0 && index < tabs->count() ?
-        tabs->at(index): -1;
-}
-
-auto tabIndexFrom::operator ()(CmdSig cmd, const T_ids* tabs, int tid) -> int
-{
-  return tid > 0 && tabs->count() > 0 && tabs->contains(tid) ?
-        hasCmd()(cmd, CmdSig::TAB) && hasCmd()(cmd, CmdSig::ADD) ?
-          tabs->count() - 1:
-            tabs->indexOf(tid):
-            -1;
-}
-
-auto tabsOperated::operator ()(CmdSig cmd, const T_ids* m_tabs,
-                               int tid, int index, QVariant arg) -> T_ids
-{
-  return hasCmd()(cmd, CmdSig::TAB) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
-          listAdded<int>()(m_tabs, tid):
-          hasCmd()(cmd, CmdSig::DELETE) ?
-            listRemoved<int>()(m_tabs, tid):
-            hasCmd()(cmd, CmdSig::MOVE) ?
-              listMoved<int>()(m_tabs, index, arg.toInt()):
-              T_ids(*m_tabs):
-              T_ids(*m_tabs);
-}
-
-auto GetTabIdToRead::operator ()(CmdSig cmd, const T_ids* tabs, int index, int tid) -> int
-{
-  return hasCmd()(cmd, CmdSig::TAB) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
-          GetId()():
-          tabIdFrom()(cmd, tabs, hasCmd()(cmd, CmdSig::DELETE) ? index - 1: index):
-          tid;
-}
-
-auto GetTabIdToWrite::operator ()(CmdSig cmd, const T_ids* tabs, int index, int tid) -> int
-{
-  return hasCmd()(cmd, CmdSig::TAB) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
-          tid:
-          hasCmd()(cmd, CmdSig::DELETE) ?
-            tabIdFrom()(cmd, tabs, index):
-            -1:
-            -1;
-}
-
-auto GetTabNameToWrite::operator ()(CmdSig cmd, QVariant arg) -> QString
-{
-  return hasCmd()(cmd, CmdSig::TAB) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
-          QString("Undefined"):
-          hasCmd()(cmd, CmdSig::RENAME) ?
-            arg.toString():
-            QString(""):
-            QString("");
-}
-
-auto OperateTabData::operator ()(CmdSig cmd, T_ids* m_tabs, T_labels* m_paths,
-                                 int tid_r, int tid_w, int index,
-                                 const QString& tname, QVariant arg) -> QList<QVariant>
-{
-  QList<QVariant> result;
-  auto tabs = tabsOperated()(cmd, m_tabs, tid_w, index, arg);
-  auto paths = pathsOperated()(cmd, m_paths, tid_w, tname);
-  auto tnames = strListDerivedIds()(&paths, &tabs);
-  auto tab_i = tabIndexFrom()(cmd, &tabs, tid_r);
-  OverrideList<int>()(m_tabs, tabs);
-  OverrideStringMap<int>()(m_paths, paths);
-  result << QVariant(tab_i);
-  result << QVariant(tnames);
-  return result;
-}
-
-/* operation: for book */
-auto bookIdFrom::operator ()(CmdSig cmd, const T_idpack* books,
-                             int tid, int index) -> int
-{
-  return index >= 0 && books->contains(tid) &&
-      books->value(tid).count() > 0 && index < books->value(tid).count() ?
-        books->value(tid).at(index):
-        -1;
-}
-
-auto bookIndexFrom::operator ()(CmdSig cmd, const T_idpack* books,
-                                int tid, int bid) -> int
-{
-  return tid > 0 && books->contains(tid) &&
-      books->value(tid).count() > 0 && books->value(tid).contains(bid) ?
-        hasCmd()(cmd, CmdSig::BOOK) && hasCmd()(cmd, CmdSig::ADD) ?
-          books->value(tid).count() - 1:
-          books->value(tid).indexOf(bid):
-          -1;
-}
-
-auto booksOperated::operator ()(CmdSig cmd, const T_idpack* m_books,
-                                int tid_r, int tid_w,
-                                int bid_r, int bid_w,
-                                int index, QVariant arg) -> T_idpack
-{
-  return hasCmd()(cmd, CmdSig::BOOK) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
-          listMapAdded<int, int>()(m_books, tid_r, bid_w):
-        hasCmd()(cmd, CmdSig::DELETE) ?
-          listMapRemoved<int, int>()(m_books, tid_r, bid_w):
-        hasCmd()(cmd, CmdSig::MOVE) ?
-          listMapMoved<int, int>()(m_books, tid_r, index, arg.toInt()):
-          T_idpack(*m_books):
-        hasCmd()(cmd, CmdSig::TAB) && hasCmd()(cmd, CmdSig::DELETE) ?
-        listMapRemovedList<int, int>()(m_books, tid_w):
-          T_idpack(*m_books);
-}
-
-auto labelsOperated::operator ()(CmdSig cmd, const T_labels* m_labels,
-                                 int tid_r, int tid_w,
-                                 int bid_r, int bid_w, const QString& bname) -> T_labels
-{
-  return hasCmd()(cmd, CmdSig::BOOK) ?
-        hasCmd()(cmd, CmdSig::ADD) || hasCmd()(cmd, CmdSig::RENAME) ?
-          strMapAdded<int>()(m_labels, bid_w, bname):
-          hasCmd()(cmd, CmdSig::DELETE) ?
-            strMapRemoved<int>()(m_labels, bid_w):
-            T_labels(*m_labels):
-            T_labels(*m_labels);
-}
-
-auto GetBookIdToRead::operator ()(CmdSig cmd, const T_idpack* books,
-                                  int tid, int index, int book_i) -> int
-{
-  return hasCmd()(cmd, CmdSig::BOOK) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
-          GetId()():
-          bookIdFrom()(cmd, books, tid,
-                       hasCmd()(cmd, CmdSig::DELETE) ? index - 1: index):
-          bookIdFrom()(cmd, books, tid, book_i);
-}
-
-auto GetBookIdToWrite::operator ()(CmdSig cmd, const T_idpack* books,
-                                   int tid, int index, int bid) -> int
-{
-  return hasCmd()(cmd, CmdSig::BOOK) ?
-        hasCmd()(cmd, CmdSig::ADD) || hasCmd()(cmd, CmdSig::RENAME) ?
-          bid:
-          hasCmd()(cmd, CmdSig::DELETE) ?
-          bookIdFrom()(cmd, books, tid, index):
-            -1:
-          -1;
-}
-
-auto GetBookNameToWrite::operator ()(CmdSig cmd, QVariant arg) -> QString
-{
-  return hasCmd()(cmd, CmdSig::BOOK) ?
-        hasCmd()(cmd, CmdSig::ADD) || hasCmd()(cmd, CmdSig::RENAME) ?
-          arg.toString():
-          QString(""):
-          QString("");
-}
-
-auto OperateBookData::operator ()(CmdSig cmd, T_idpack* m_books, T_labels* m_labels,
-                                  int tid_r, int tid_w,
-                                  int bid_r, int bid_w, int index,
-                                  const QString& bname, QVariant arg) -> QList<QVariant>
-{
-  QList<QVariant> result;
-  auto books = booksOperated()(cmd, m_books,
-                               tid_r, tid_w, bid_r, bid_w, index, arg);
-  auto labels = labelsOperated()(cmd, m_labels,
-                                 tid_r, tid_w, bid_r, bid_w, bname);
-  auto bnames = strListDerivedIds()(&labels, &books[tid_r]);
-  auto book_i = bookIndexFrom()(cmd, &books, tid_r, bid_r);
-  OverrideListMap<int, int>()(m_books, books);
-  OverrideStringMap<int>()(m_labels, labels);
-  result << QVariant(book_i);
-  result << QVariant(bnames);
-  return result;
-}
-
-/* operation: memo */
-auto memosOperated::operator ()(CmdSig cmd, const T_labels* m_memos,
-                                int bid_w, int bid_d, const QString& text) -> T_labels
-{
-  auto memos = T_labels(*m_memos);
-  if (bid_d > 0 && memos.contains(bid_d)) {
-    memos[bid_d] = text;
-  }
-  return hasCmd()(cmd, CmdSig::BOOK) ?
-        hasCmd()(cmd, CmdSig::ADD) ?
-          strMapAdded<int>()(&memos, bid_w, QString("new text")):
-        hasCmd()(cmd, CmdSig::DELETE) ?
-          strMapRemoved<int>()(&memos, bid_w):
-            memos:
-            memos;
-}
-
-auto OperateMemoData::operator ()(CmdSig cmd, T_labels* m_memos,
-                                  int bid_r, int bid_w, int bid_d,
-                                  const QString& text) -> QList<QVariant>
-{
-  QList<QVariant> result;
-  auto memos = memosOperated()(cmd, m_memos, bid_w, bid_d, text);
-  auto stat = memos.contains(bid_r) ? false: true;
-  auto s_text = (!stat) ?
-        memos.value(bid_r):
-        "Please create new book, or choose a book!";
-  OverrideStringMap<int>()(m_memos, memos);
-  result << QVariant(stat);
-  result << QVariant(s_text);
-  return result;
+  return true;
 }
 
 /* declare templates */
-template struct listAdded<int>;
-template struct listRemoved<int>;
-template struct listMoved<int>;
-template struct listMapAdded<int, int>;
-template struct listMapUpdated<int, int>;
-template struct listMapRemoved<int, int>;
-template struct listMapRemovedList<int, int>;
-template struct listMapMoved<int, int>;
-template struct strMapAdded<int>;
-template struct strMapRemoved<int>;
-template struct OverrideList<int>;
-template struct OverrideListMap<int, int>;
-template struct OverrideStringMap<int>;
+template struct listToAdd<int>;
+template struct listToRemove<int>;
+template struct listToMove<int>;
+template struct listValToFetch<int>;
+template struct listIndexToFetch<int>;
+template struct ListToOverride<int>;
+template struct listMapToAdd<int, int>;
+template struct listMapToUpdate<int, int>;
+template struct listMapToRemove<int, int>;
+template struct listMapToRemoveByKey<int, int>;
+template struct listMapToMove<int, int>;
+template struct listMapValToFetch<int, int>;
+template struct listMapListToFetch<int, int>;
+template struct ListMapToOverride<int, int>;
+template struct strMapToUpdate<int>;
+template struct strMapToRemove<int>;
+template struct StrMapToOverride<int>;
+template struct strListFromMapToConv<int>;
+template struct strMapValToFetch<int>;
 
 }  // namespace Utl
 

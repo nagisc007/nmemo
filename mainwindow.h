@@ -57,14 +57,15 @@ public:
   /* methods: features */
 
 signals:
-  void updated(CmdSig, int, QVariant);
-  void textUpdated(const QString&);
+  void updated(T_cmd, T_index, T_text, T_arg);
+  void loaded(T_fname, T_tab_i, T_text);
+  void saved(T_fname, T_tab_i, T_text);
 
 public slots:
   /* for output */
-  void outputToTab(int, QStringList);
-  void outputToBookList(int, QStringList);
-  void outputToEditor(bool, const QString&);
+  void outputToTab(T_tab_i, T_tabnames);
+  void outputToBookList(T_book_i, T_booknames);
+  void outputToEditor(T_stat, const T_memo&);
   /* for tab */
   void AddTab();
   void DeleteTab(int);
@@ -79,7 +80,6 @@ public slots:
   void RenameBook();
   void DoubleClickBook(QListWidgetItem*);
   /* for memo */
-  void ChangedMemo();
 
 private slots:
   /* menus: File */
