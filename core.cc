@@ -9,23 +9,117 @@
 
 namespace Nmemo {
 
+/* functors: tabs */
+auto TabsToAdd::operator ()(T_tids* tids, T_labels* labels,
+                            const T_name& name) -> T_tid
+{
+  auto tid = Utl::idGenerated()();
+  auto tids_ = tidsAdded()(tids, tid);
+  auto labels_ = labelsUpdated()(labels, tid, name);
+  if (tids_.count() > 0) TidsToMerge()(tids, tids_);
+  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  return tid;
+}
+
+auto TabsToRemove::operator ()(T_tids* tids, T_labels* labels,
+                               T_books* books, T_tab_i tab_i) -> T_tid
+{
+  auto tid = tabIdFetched()(tids, tab_i, -1);
+  auto tids_ = tidsRemoved()(tids, tid);
+  auto labels_ = labelsRemoved()(labels, tid);
+  BookIdsToRelease()(books, tid);
+  auto books_ = booksRemovedTid()(books, tid);
+  if (tids_.count() > 0) TidsToMerge()(tids, tids_);
+  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  if (books_.count() > 0) BooksToMerge()(books, books_);
+  Utl::idReleased()(tid);
+  return tabIdFetched()(&tids_, tab_i - 1, -1);
+}
+
+auto TabsToMove::operator ()(T_tids* tids, T_tab_i tab_i, T_index to) -> T_tid
+{
+  auto tids_ = tidsMoved()(tids, tab_i, to);
+  if (tids_.count() > 0) TidsToMerge()(tids, tids_);
+  return tabIdFetched()(&tids_, to, -1);
+}
+
+auto TabsToRename::operator ()(const T_tids* tids, T_labels* labels,
+                               T_tab_i tab_i, const T_name& name) -> T_tid
+{
+  auto tid = tabIdFetched()(tids, tab_i, -1);
+  auto labels_ = labelsUpdated()(labels, tid, name);
+  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  return tid;
+}
+
+/* functors: books */
+auto BooksToAdd::operator ()(T_books* books, T_labels* labels, T_memos* memos,
+                             T_tid tid, const T_name& name,
+                             const T_text& text) -> T_bid
+{
+  auto bid = Utl::idGenerated()();
+  auto books_ = booksAdded()(books, tid, bid);
+  auto labels_ = labelsUpdated()(labels, bid, name);
+  auto memos_ = memosUpdated()(memos, bid, text);
+  if (books_.count() > 0) BooksToMerge()(books, books_);
+  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  if (memos_.count() > 0) MemosToMerge()(memos, memos_);
+  return bid;
+}
+
+auto BooksToRemove::operator ()(T_books* books, T_labels* labels,
+                                T_tid tid, T_book_i book_i) -> T_bid
+{
+  auto bid = bookIdFetched()(books, tid, book_i, -1);
+  auto books_ = booksRemoved()(books, tid, bid);
+  auto labels_ = labelsRemoved()(labels, bid);
+  if (books_.count() > 0) BooksToMerge()(books, books_);
+  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  Utl::idReleased()(bid);
+  return bookIdFetched()(&books_, tid, book_i - 1, -1);
+}
+
+auto BooksToMove::operator ()(T_books* books, T_tid tid,
+                              T_book_i book_i, T_index to) -> T_bid
+{
+  auto books_ = booksMoved()(books, tid, book_i, to);
+  if (books_.count() > 0) BooksToMerge()(books, books_);
+  return bookIdFetched()(&books_, tid, book_i, -1);
+}
+
+auto BooksToRename::operator ()(const T_books* books, T_labels* labels,
+                                T_tid tid, T_book_i book_i,
+                                const T_name& name) -> T_bid
+{
+  auto bid = bookIdFetched()(books, tid, book_i, -1);
+  auto labels_ = labelsUpdated()(labels, bid, name);
+  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  return bid;
+}
+
+auto BookIdsToRelease::operator ()(const T_books* books, T_tid tid) -> bool
+{
+  auto bids = bidsFetched()(books, tid);
+  for (int i = 0, size = bids.count(); i < size; ++i) {
+    if (bids.at(i)) Utl::idReleased()(bids.at(i));
+  }
+  return true;
+}
+
 /* class: Core */
 Core::Core(QObject* parent): QObject(parent),
   m_tid_(-1),
   m_bid_(-1),
-  idu_(new Utl::IdUnit()),
-  m_books_(new T_idmap()),
-  m_labels_(new T_strmap()),
-  m_memos_(new T_strmap()),
-  m_paths_(new T_strmap()),
-  m_tabs_(new T_ids())
+  m_books_(new T_lmap()),
+  m_labels_(new T_smap()),
+  m_memos_(new T_smap()),
+  m_tids_(new T_ids())
 {
   qDebug() << "Core: constructed";
 }
 
 Core::~Core()
 {
-  if (idu_) idu_.reset();
   if (m_books_) {
     m_books_->clear();
     m_books_.reset();
@@ -38,251 +132,122 @@ Core::~Core()
     m_memos_->clear();
     m_memos_.reset();
   }
-  if (m_paths_) {
-    m_paths_->clear();
-    m_paths_.reset();
-  }
-  if (m_tabs_) {
-    m_tabs_->clear();
-    m_tabs_.reset();
+  if (m_tids_) {
+    m_tids_->clear();
+    m_tids_.reset();
   }
   qDebug() << "Core: destructed";
 }
 
 /* methods: features */
-auto Core::UpdateData(T_cmd cmd, T_index index, const QString& text, T_arg arg) -> T_idset
+auto Core::UpdateData(T_cmd cmd, T_index index, const T_text& text, T_arg arg) -> bool
 {
-  auto tab_i = tabIndexToConv()(cmd, index, m_tid_, m_tabs_.data());
-  auto book_i = bookIndexToConv()(cmd, index, m_tid_, m_bid_, m_books_.data());
-  auto tid = TabsDataUpdator()(cmd, m_tabs_.data(), m_paths_.data(), tab_i, arg);
-  auto bid = BooksDataUpdator()(cmd, m_books_.data(), m_labels_.data(), tid, book_i, arg);
-  auto arg2 = Utl::hasCmd()(cmd, CmdSig::SET) ? QVariant(text): QVariant("new text");
-  m_bid_ = Utl::hasCmd()(cmd, CmdSig::SET) ? bid: m_bid_;
-  bid = MemosDataUpdator()(cmd, m_memos_.data(), m_bid_, text, bid, arg2);
-  return qMakePair(tid, bid);
+  UpdateMemoData(m_bid_, text);
+  return Utl::hasCmd()(cmd, CmdSig::TAB) ?
+        UpdateTabData(cmd, index, arg):
+        UpdateBookData(cmd, index, arg);
 }
 
 auto Core::OutputData(T_tid tid, T_bid bid) -> bool
 {
-  auto tab_i = tabIndexToFetch()(m_tabs_.data(), tid);
-  auto tabnames = tabNamesToConv()(m_paths_.data(), m_tabs_.data());
-  auto book = bookToFetch()(m_books_.data(), tid);
-  auto book_i = book.count() > 0 ? bookIndexToFetch()(&book, bid): -1;
-  auto booknames = bookNamesToConv()(m_labels_.data(), &book);
+  auto tab_i = tabIndexFetched()(m_tids_.data(), tid);
+  auto tabnames = tabNamesConverted()(m_labels_.data(), m_tids_.data());
+  auto book_i = bookIndexFetched()(m_books_.data(), tid, bid);
+  auto bids = bidsFetched()(m_books_.data(), tid);
+  auto booknames = bookNamesConverted()(m_labels_.data(), &bids);
   auto stat = bid > 0 && m_memos_->contains(bid) ? true: false;
-  auto memo = stat ? memoToFetch()(m_memos_.data(), bid): QString("");
+  auto memo = stat ? memoFetched()(m_memos_.data(), bid):
+                     QString("Please create new book, or choice a book!");
   emit tabOutputted(tab_i, tabnames);
   emit booksOutputted(book_i, booknames);
   emit memoOutputted(stat, memo);
   return true;
 }
 
-/* functors: tabs */
-auto Core::tabIndexToConv::operator ()(T_cmd cmd, T_index index, T_tid tid,
-                                       const T_tabs* tabs) -> T_tab_i
+auto Core::UpdateTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg) -> bool
 {
-  return Utl::hasCmd()(cmd, CmdSig::TAB) ?
-        Utl::hasCmd()(cmd, CmdSig::ADD) ? tabs->count() - 1:
-                                          index:
-                                          tabs->indexOf(tid);
-}
-
-/* functors: books */
-auto Core::bookIndexToConv::operator ()(T_cmd cmd, T_index index,
-                                        T_tid tid, T_bid bid,
-                                       const T_books* books) -> T_book_i
-{
-  if (!(tid > 0 && books->contains(tid))) return -1;
-
-  switch (cmd) {
-  case CmdSig::BOOK_ADD: return books->count() - 1;
-  case CmdSig::BOOK_DELETE:
-  case CmdSig::BOOK_RENAME: return (*books)[tid].indexOf(bid);
-  case CmdSig::BOOK_MOVE: return index;
-  default: return -1;
-  }
-}
-
-/* operator: tabs */
-auto Core::TabsDataUpdator::operator ()(T_cmd cmd, T_tabs* tabs, T_paths* paths,
-                                        T_tab_i tab_i, T_arg arg) -> T_tid
-{
-  auto tid = tabIdToFetch()(tabs, tab_i, -1);
-  return tid > 0 ?
-        PathsOverrider()(cmd, paths,
-                         TabsOverrider()(cmd, tabs, tid, tab_i, arg),
-                         arg):
-        -1;
-}
-
-auto Core::TabsOverrider::operator ()(T_cmd cmd, T_tabs* tabs,
-                                      T_tid tid, T_tab_i tab_i, T_arg arg) -> T_tid
-{
-  if (Utl::hasCmd()(cmd, CmdSig::TAB_CHANGE)) return -1;
-
-  auto tabs_ = TabsUpdator()(cmd, tabs, tid, tab_i, arg);
-  if (tabs_.count() > 0) {
-    return TabsToOverride()(tabs, tabs_) ? tid: -1;
-  } else {
-    return -1;
-  }
-}
-
-auto Core::PathsOverrider::operator ()(T_cmd cmd, T_paths* paths,
-                                       T_tid tid, T_arg arg) -> T_tid
-{
-  if (tid < 0 ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_CHANGE) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_MOVE)) return tid;
-
-  auto paths_ = PathsUpdator()(cmd, paths, tid, arg);
-  if (paths_.count() > 0) {
-    return PathsToOverride()(paths, paths_) ? tid: tid;
-  } else {
-    return tid;
-  }
-}
-
-auto Core::TabsUpdator::operator ()(T_cmd cmd, T_tabs* tabs,
-                                    T_tid tid, T_tab_i tab_i, T_arg arg) -> T_tabs
-{
-  switch (cmd) {
-  case CmdSig::TAB_ADD: return tabsToAdd()(tabs, tid);
-  case CmdSig::TAB_DELETE: return tabsToRemove()(tabs, tid);
-  case CmdSig::TAB_MOVE: return tabsToMove()(tabs, tab_i, arg.toInt());
-  default: return T_tabs();
-  }
-}
-
-auto Core::PathsUpdator::operator ()(T_cmd cmd, T_paths* paths,
-                                     T_tid tid, T_arg arg) -> T_paths
-{
+  T_tid tid = m_tid_;
+  T_bid bid = m_bid_;
   switch (cmd) {
   case CmdSig::TAB_ADD:
-  case CmdSig::TAB_RENAME: return pathsToUpdate()(paths, tid, arg.toString());
-  case CmdSig::TAB_DELETE: return pathsToRemove()(paths, tid);
-  default: return T_paths();
+    tid = TabsToAdd()(m_tids_.data(), m_labels_.data(), arg.toString());
+    bid = -1;
+    break;
+  case CmdSig::TAB_DELETE:
+    tid = TabsToRemove()(m_tids_.data(), m_labels_.data(), m_books_.data(),
+                         tab_i);
+    bid = -1;
+    break;
+  case CmdSig::TAB_RENAME:
+    tid = TabsToRename()(m_tids_.data(), m_labels_.data(), tab_i, arg.toString());
+    break;
+  case CmdSig::TAB_MOVE:
+    tid = TabsToMove()(m_tids_.data(), tab_i, arg.toInt());
+    break;
+  case CmdSig::TAB_CHANGE:
+    tid = tabIdFetched()(m_tids_.data(), tab_i, -1);
+    bid = -1;
+    break;
+  default:
+    break;
   }
+  m_tid_ = tid;  // To merge
+  m_bid_ = bid;  // To merge
+  return true;
 }
 
-/* operator: books */
-auto Core::BooksDataUpdator::operator ()(T_cmd cmd, T_books* books, T_labels* labels,
-                                         T_tid tid, T_book_i book_i,
-                                         T_arg arg) -> T_bid
+auto Core::UpdateBookData(T_cmd cmd, T_book_i book_i, T_arg arg) -> bool
 {
-  if (tid < 0) return -1;
-  auto book = bookToFetch()(books, tid);
-  auto bid = bookIdToFetch()(&book, book_i, -1);
-  return LabelsOverrider()(cmd, labels,
-                           BooksOverrider()(cmd, books, tid, bid, book_i, arg),
-                           arg);
-}
-
-auto Core::BooksOverrider::operator ()(T_cmd cmd, T_books* books,
-                                       T_tid tid, T_bid bid,
-                                       T_book_i book_i, T_arg arg) -> T_bid
-{
-  if (Utl::hasCmd()(cmd, CmdSig::CHANGE) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_ADD) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_MOVE) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_RENAME)) return -1;
-
-  auto books_ = BooksUpdator()(cmd, books, tid, bid, book_i, arg);
-  if (books_.count() > 0) {
-    return BooksToOverride()(books, books_) ? bid: -1;
-  } else {
-    return -1;
-  }
-}
-
-auto Core::LabelsOverrider::operator ()(T_cmd cmd, T_labels* labels,
-                                        T_bid bid, T_arg arg) -> T_bid
-{
-  if (Utl::hasCmd()(cmd, CmdSig::CHANGE) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_ADD) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_MOVE) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_RENAME)) return -1;
-
-  if (Utl::hasCmd()(cmd, CmdSig::TAB_DELETE)) return bid;
-
-  auto labels_ = LabelsUpdator()(cmd, labels, bid, arg);
-  if (labels_.count() > 0) {
-    return LabelsToOverride()(labels, labels_) ? bid: -1;
-  } else {
-    return -1;
-  }
-}
-
-auto Core::BooksUpdator::operator ()(T_cmd cmd, T_books* books,
-                                     T_tid tid, T_bid bid,
-                                     T_book_i book_i, T_arg arg) -> T_books
-{
-  switch (cmd) {
-  case CmdSig::BOOK_ADD: return booksToAdd()(books, tid, bid);
-  case CmdSig::BOOK_DELETE: return booksToRemove()(books, tid, bid);
-  case CmdSig::BOOK_MOVE: return booksToMove()(books, tid, book_i, arg.toInt());
-  case CmdSig::TAB_DELETE: return booksToDelete()(books, tid);
-  default: return T_books();
-  }
-}
-
-auto Core::LabelsUpdator::operator ()(T_cmd cmd, T_labels* labels,
-                                      T_bid bid, T_arg arg) -> T_labels
-{
+  T_bid bid = m_bid_;
+  T_books books;
+  T_labels labels;
   switch (cmd) {
   case CmdSig::BOOK_ADD:
-  case CmdSig::BOOK_RENAME: return labelsToUpdate()(labels, bid, arg.toString());
-  case CmdSig::BOOK_DELETE: return labelsToRemove()(labels, bid);
-  default: return T_labels();
+    bid = BooksToAdd()(m_books_.data(), m_labels_.data(), m_memos_.data(),
+                       m_tid_, arg.toString(), T_text("new text"));
+    break;
+  case CmdSig::BOOK_DELETE:
+    bid = BooksToRemove()(m_books_.data(), m_labels_.data(), m_tid_, book_i);
+    break;
+  case CmdSig::BOOK_RENAME:
+    bid = BooksToRename()(m_books_.data(), m_labels_.data(), m_tid_,
+                          book_i, arg.toString());
+    break;
+  case CmdSig::BOOK_MOVE:
+    bid = BooksToMove()(m_books_.data(), m_tid_, book_i, arg.toInt());
+    break;
+  case CmdSig::BOOK_CHANGE:
+    bid = bookIdFetched()(m_books_.data(), m_tid_, book_i, -1);
+    break;
+  default:
+    break;
   }
+  m_bid_ = bid;  // To merge
+  return true;
 }
 
-/* operator: memos */
-auto Core::MemosDataUpdator::operator ()(T_cmd cmd, T_memos* memos,
-                                         T_bid bid, T_text text,
-                                         T_bid bid_w, T_arg arg) -> T_bid
+auto Core::UpdateMemoData(T_bid bid, T_text text) -> bool
 {
-  return MemosOverrider()(cmd, memos, bid, text, bid_w, arg);
-}
-
-auto Core::MemosOverrider::operator ()(T_cmd cmd, T_memos* memos,
-                                       T_bid bid, T_text text,
-                                       T_bid bid_w, T_arg arg) -> T_bid
-{
-  if (bid < 0 &&
-      (Utl::hasCmd()(cmd, CmdSig::BOOK_ADD) ||
-       Utl::hasCmd()(cmd, CmdSig::BOOK_DELETE))) return -1;
-
-  auto memos_ = MemosUpdator()(memos, bid, text, bid_w, arg);
-  if (memos_.count() > 0) {
-    return MemosToOverride()(memos, memos_) ? bid_w: -1;
-  } else {
-    return -1;
-  }
-}
-
-auto Core::MemosUpdator::operator ()(T_memos* memos, T_bid bid, T_text text,
-                                     T_bid bid_w, T_arg arg) -> T_memos
-{
-  auto memos_ = bid > 0 ? memosToUpdate()(memos, bid, text):
-                         T_memos(*memos);
-  if (bid_w > 0) memos_ = memosToUpdate()(&memos_, bid_w, arg.toString());
-  if ((bid > 0 || bid_w > 0) && memos_.count() > 0) {
-    return memos_;
-  } else {
-    return T_memos();
-  }
+  // TODO: define ToMerge
+  auto memos = memosUpdated()(m_memos_.data(), bid, text);
+  if (memos.count() > 0) MemosToMerge()(m_memos_.data(), memos);
+  return true;
 }
 
 /* slots */
 void Core::Update(T_cmd cmd, T_index index, const T_text& text, T_arg arg)
 {
-  auto idset = UpdateData(cmd, index, text, arg);
-  m_tid_ = idset.first;
-  m_bid_ = idset.second;
+  UpdateData(cmd, index, text, arg);
   if (m_tid_ > 0 && OutputData(m_tid_, m_bid_)) {
     // NOTE: notify to do output
-    qDebug() << "Core:: Output ok!";
+    T_text msg;
+    switch (cmd) {
+    case CmdSig::TAB_ADD: msg = "Added new Tab ...";
+      break;
+    default: msg = "Nothing any ...";
+      break;
+    }
+    emit statusUpdated(msg);
   }
   /*
   qDebug() << "Update Core:: starting ...";

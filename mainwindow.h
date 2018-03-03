@@ -34,6 +34,7 @@ struct Values {
   static const QString DESCRIPTION;
   static const QString LICENSE;
   static const QString COPYRIGHT;
+  static const QString DEFAULT_TAB_NAME;
 };
 
 }  // namespace APP
@@ -66,6 +67,8 @@ public slots:
   void outputToTab(T_tab_i, T_tabnames);
   void outputToBookList(T_book_i, T_booknames);
   void outputToEditor(T_stat, const T_memo&);
+  void updateStatus(const QString&);
+  void updateFile(const T_fname&);
   /* for tab */
   void AddTab();
   void DeleteTab(int);

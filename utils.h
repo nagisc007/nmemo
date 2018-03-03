@@ -24,154 +24,164 @@
 
 namespace Utl {
 
+/* values */
+extern T_id next_id;
+extern QStack<T_id> idpool;
+
 /* functors: ID */
-struct IdUnit
+struct idGenerated
 {
-  IdUnit();
-  ~IdUnit();
-  T_id operator ()();  // to Get
-  T_id operator ()(T_id);  // to Release
-  T_id next_id;
-  QScopedPointer<QStack<T_id>> pool;
+  T_id operator ()();
 };
 
-/* functors: bits */
+struct idReleased
+{
+  T_id operator ()(T_id);
+};
+
+/* functors: CmdSig */
 struct hasCmd
 {
   bool operator ()(T_cmd, T_cmd);
 };
 
 /* functors: QInputDialog */
-struct BookNameToGet
+struct bookNameToGet
 {
-  QString operator ()(QWidget*, const QString&);
+  T_name operator ()(QWidget*, const QString&);
 };
 
 /* functors: QList */
 template<typename T>
-struct listToAdd
+struct listAdded
 {
   QList<T> operator ()(const QList<T>*, T);
 };
 
 template<typename T>
-struct listToRemove
+struct listRemoved
 {
   QList<T> operator ()(const QList<T>*, T);
 };
 
 template<typename T>
-struct listToMove
+struct listMoved
 {
   QList<T> operator ()(const QList<T>*, int, int);
 };
 
 template<typename T>
-struct listValToFetch
+struct listValFetched
 {
   T operator ()(const QList<T>*, int, T);
 };
 
 template<typename T>
-struct listIndexToFetch
+struct listIndexFetched
 {
   int operator ()(const QList<T>*, T);
 };
 
 template<typename T>
-struct ListToOverride
+struct ListToMerge
 {
   bool operator ()(QList<T>*, QList<T>&);
 };
 
 /* functors: QMap(S, T) */
 template<typename S, typename T>
-struct listMapToAdd
+struct listMapAdded
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
 };
 
 template<typename S, typename T>
-struct listMapToUpdate
+struct listMapUpdated
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, T);
 };
 
 template<typename S, typename T>
-struct listMapToRemove
+struct listMapRemoved
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
 };
 
 template<typename S, typename T>
-struct listMapToRemoveByKey
+struct listMapRemovedKey
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S);
 };
 
 template<typename S, typename T>
-struct listMapToMove
+struct listMapMoved
 {
   QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, int);
 };
 
 template<typename S, typename T>
-struct listMapValToFetch
+struct listMapValFetched
 {
   T operator ()(const QMap<S, QList<T>>*, S, int, T);
 };
 
 template<typename S, typename T>
-struct listMapListToFetch
+struct listMapIndexFetched
+{
+  int operator ()(const QMap<S, QList<T>>*, S, T);
+};
+
+template<typename S, typename T>
+struct listMapListFetched
 {
   QList<T> operator ()(const QMap<S, QList<T>>*, S);
 };
 
 template<typename S, typename T>
-struct ListMapToOverride
+struct ListMapToMerge
 {
   bool operator ()(QMap<S, QList<T>>*, QMap<S, QList<T>>&);
 };
 
 /* functors: QMap(T, QString) */
 template<typename T>
-struct strMapToUpdate
+struct strMapUpdated
 {
   QMap<T, QString> operator ()(const QMap<T, QString>*, T, const QString&);
 };
 
 template<typename T>
-struct strMapToRemove
+struct strMapRemoved
 {
   QMap<T, QString> operator ()(const QMap<T, QString>*, T);
 };
 
 template<typename T>
-struct StrMapToOverride
+struct StrMapToMerge
 {
   bool operator ()(QMap<T, QString>*, QMap<T, QString>&);
 };
 
 template<typename T>
-struct strListFromMapToConv
+struct strListConvertedFromMap
 {
   QStringList operator ()(const QMap<T, QString>*, const QList<T>*);
 };
 
 template<typename T>
-struct strMapValToFetch
+struct strMapValFetched
 {
   QString operator ()(const QMap<T, QString>*, T);
 };
 
 /* functors: QListWidget */
-struct ListWidgetToOverride
+struct ListWidgetToMerge
 {
   bool operator ()(QListWidget*, const QStringList&);
 };
 
 /* functors: QTabBar */
-struct TabBarToOverride
+struct TabBarToMerge
 {
   bool operator ()(QTabBar*, const QStringList&);
 };

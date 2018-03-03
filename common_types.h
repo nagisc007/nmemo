@@ -44,9 +44,10 @@ using T_slist = QStringList;
 using T_arg = QVariant;
 using T_fname = QString;
 using T_text = QString;
+using T_name = QString;
 using T_ids = QList<T_id>;
-using T_strmap = QMap<T_id, QString>;
-using T_idmap = QMap<T_id, T_ids>;
+using T_smap = QMap<T_id, QString>;
+using T_lmap = QMap<T_id, QList<T_id>>;
 
 /* defines: specific types */
 using T_cmd = CmdSig;
@@ -58,12 +59,11 @@ using T_idset = QPair<T_tid, T_bid>;
 using T_stat = bool;  // editor state
 using T_tabnames = T_slist;
 using T_booknames = T_slist;
-using T_tabs = T_ids;
-using T_paths = T_strmap;
-using T_book = T_ids;
-using T_books = QMap<T_tid, T_book>;
-using T_labels = T_strmap;
+using T_tids = T_ids;
+using T_bids = T_ids;
+using T_books = T_lmap;
+using T_labels = T_smap;
 using T_memo = T_text;
-using T_memos = T_strmap;
+using T_memos = T_smap;
 
 #endif // COMMON_TYPES_H

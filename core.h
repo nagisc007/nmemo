@@ -14,6 +14,53 @@
 
 namespace Nmemo {
 
+/* functors: tabs */
+struct TabsToAdd
+{
+  T_tid operator ()(T_tids*, T_labels*, const T_name&);
+};
+
+struct TabsToRemove
+{
+  T_tid operator ()(T_tids*, T_labels*, T_books*, T_tab_i);
+};
+
+struct TabsToMove
+{
+  T_tid operator ()(T_tids*, T_tab_i, T_index);
+};
+
+struct TabsToRename
+{
+  T_tid operator ()(const T_tids*, T_labels*, T_tab_i, const T_name&);
+};
+
+/* functors: books */
+struct BooksToAdd
+{
+  T_bid operator ()(T_books*, T_labels*, T_memos*, T_tid, const T_name&, const T_text&);
+};
+
+struct BooksToRemove
+{
+  T_bid operator ()(T_books*, T_labels*, T_tid, T_book_i);
+};
+
+struct BooksToMove
+{
+  T_bid operator ()(T_books*, T_tid, T_book_i, T_index);
+};
+
+struct BooksToRename
+{
+  T_bid operator ()(const T_books*, T_labels*, T_tid, T_book_i, const T_name&);
+};
+
+struct BookIdsToRelease
+{
+  bool operator ()(const T_books*, T_tid);
+};
+
 /* class: Core */
 class Core: public QObject
 {
@@ -23,79 +70,19 @@ public:
   explicit Core(QObject* parent = nullptr);
   ~Core();
   /* methods: features */
-  T_idset UpdateData(T_cmd, T_index, const T_text&, T_arg);
+  bool UpdateData(T_cmd, T_index, const T_text&, T_arg);
   bool OutputData(T_tid, T_bid);
-  /* functors: tabs */
-  struct tabIndexToConv
-  {
-    T_tab_i operator ()(T_cmd, T_index, T_tid, const T_tabs*);
-  };
-  /* functors: books */
-  struct bookIndexToConv
-  {
-    T_book_i operator ()(T_cmd, T_index, T_tid, T_bid, const T_books*);
-  };
-  /* operator: tabs */
-  struct TabsDataUpdator
-  {
-    T_tid operator ()(T_cmd, T_tabs*, T_paths*, T_tab_i, T_arg);
-  };
-  struct TabsOverrider
-  {
-    T_tid operator ()(T_cmd, T_tabs*, T_tid, T_tab_i, T_arg);
-  };
-  struct PathsOverrider
-  {
-    T_tid operator ()(T_cmd, T_paths*, T_tid, T_arg);
-  };
-  struct TabsUpdator
-  {
-    T_tabs operator ()(T_cmd, T_tabs*, T_tid, T_tab_i, T_arg);
-  };
-  struct PathsUpdator
-  {
-    T_paths operator ()(T_cmd, T_paths*, T_tid, T_arg);
-  };
-  /* operator: books */
-  struct BooksDataUpdator
-  {
-    T_bid operator ()(T_cmd, T_books*, T_labels*, T_tid, T_book_i, T_arg);
-  };
-  struct BooksOverrider
-  {
-    T_bid operator ()(T_cmd, T_books*, T_tid, T_bid, T_book_i, T_arg);
-  };
-  struct LabelsOverrider
-  {
-    T_bid operator ()(T_cmd, T_labels*, T_bid, T_arg);
-  };
-  struct BooksUpdator
-  {
-    T_books operator ()(T_cmd, T_books*, T_tid, T_bid, T_book_i, T_arg);
-  };
-  struct LabelsUpdator
-  {
-    T_labels operator ()(T_cmd, T_labels*, T_bid, T_arg);
-  };
-  /* operator: memos */
-  struct MemosDataUpdator
-  {
-    T_bid operator ()(T_cmd, T_memos*, T_bid, T_text, T_bid, T_arg);
-  };
-  struct MemosOverrider
-  {
-    T_bid operator ()(T_cmd, T_memos*, T_bid, T_text, T_bid, T_arg);
-  };
-  struct MemosUpdator
-  {
-    T_memos operator ()(T_memos*, T_bid, T_text, T_bid, T_arg);
-  };
+  bool UpdateTabData(T_cmd, T_tab_i, T_arg);
+  bool UpdateBookData(T_cmd, T_book_i, T_arg);
+  bool UpdateMemoData(T_bid, T_text);
 
 signals:
   void tabOutputted(T_tab_i, T_tabnames);
   void booksOutputted(T_book_i, T_booknames);
   void memoOutputted(T_stat, T_memo);
   void filenameToSaveRequested();
+  void statusUpdated(T_text);
+  void fileUpdated(T_fname);
 
 public slots:
   void Update(T_cmd, T_index, const T_text&, T_arg);
@@ -105,43 +92,39 @@ public slots:
 private:
   int m_tid_;
   int m_bid_;
-  QScopedPointer<Utl::IdUnit> idu_;
-  QScopedPointer<T_idmap> m_books_;
-  QScopedPointer<T_strmap> m_labels_;
-  QScopedPointer<T_strmap> m_memos_;
-  QScopedPointer<T_strmap> m_paths_;
-  QScopedPointer<T_ids> m_tabs_;
+  QScopedPointer<T_lmap> m_books_;
+  QScopedPointer<T_smap> m_labels_;
+  QScopedPointer<T_smap> m_memos_;
+  QScopedPointer<T_ids> m_tids_;
 };
 
 /* defines */
-using tabsToAdd = Utl::listToAdd<T_tid>;
-using tabsToRemove = Utl::listToRemove<T_tid>;
-using tabsToMove = Utl::listToMove<T_tid>;
-using TabsToOverride = Utl::ListToOverride<T_tid>;
-using tabNamesToConv = Utl::strListFromMapToConv<T_tid>;
-using tabIdToFetch = Utl::listValToFetch<T_tid>;
-using tabIndexToFetch= Utl::listIndexToFetch<T_tid>;
+using tabIdFetched = Utl::listValFetched<T_tid>;
+using tabIndexFetched = Utl::listIndexFetched<T_tid>;
+using tidsAdded = Utl::listAdded<T_tid>;
+using tidsRemoved = Utl::listRemoved<T_tid>;
+using tidsMoved = Utl::listMoved<T_tid>;
+using TidsToMerge = Utl::ListToMerge<T_tid>;
 
-using pathsToUpdate = Utl::strMapToUpdate<T_tid>;
-using pathsToRemove = Utl::strMapToRemove<T_tid>;
-using PathsToOverride = Utl::StrMapToOverride<T_tid>;
+using bookIdFetched = Utl::listMapValFetched<T_tid, T_bid>;
+using bookIndexFetched = Utl::listMapIndexFetched<T_tid, T_bid>;
+using bidsFetched = Utl::listMapListFetched<T_tid, T_bid>;
+using booksAdded = Utl::listMapAdded<T_tid, T_bid>;
+using booksRemoved = Utl::listMapRemoved<T_tid, T_bid>;
+using booksMoved = Utl::listMapMoved<T_tid, T_bid>;
+using booksRemovedTid = Utl::listMapRemovedKey<T_tid, T_bid>;
+using BooksToMerge = Utl::ListMapToMerge<T_tid, T_bid>;
 
-using bookIdToFetch = Utl::listValToFetch<T_bid>;
-using booksToAdd = Utl::listMapToAdd<T_tid, T_bid>;
-using booksToRemove = Utl::listMapToRemove<T_tid, T_bid>;
-using booksToMove = Utl::listMapToMove<T_tid, T_bid>;
-using booksToDelete = Utl::listMapToRemoveByKey<T_tid, T_bid>;
-using BooksToOverride = Utl::ListMapToOverride<T_tid, T_bid>;
-using bookNamesToConv = Utl::strListFromMapToConv<T_bid>;
-using bookToFetch = Utl::listMapListToFetch<T_tid, T_bid>;
-using bookIndexToFetch = Utl::listIndexToFetch<T_bid>;
+using labelsUpdated = Utl::strMapUpdated<T_id>;
+using labelsRemoved = Utl::strMapRemoved<T_id>;
+using LabelsToMerge = Utl::StrMapToMerge<T_id>;
 
-using labelsToUpdate = Utl::strMapToUpdate<T_bid>;
-using labelsToRemove = Utl::strMapToRemove<T_bid>;
-using LabelsToOverride = Utl::StrMapToOverride<T_bid>;
-using memosToUpdate = Utl::strMapToUpdate<T_bid>;
-using MemosToOverride = Utl::StrMapToOverride<T_bid>;
-using memoToFetch = Utl::strMapValToFetch<T_bid>;
+using memoFetched = Utl::strMapValFetched<T_bid>;
+using memosUpdated = Utl::strMapUpdated<T_bid>;
+using MemosToMerge = Utl::StrMapToMerge<T_bid>;
+
+using tabNamesConverted = Utl::strListConvertedFromMap<T_tid>;
+using bookNamesConverted = Utl::strListConvertedFromMap<T_bid>;
 
 }  // namespace Nmemo
 

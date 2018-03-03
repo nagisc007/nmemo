@@ -9,39 +9,30 @@
 
 namespace Utl {
 
+/* values */
+T_id next_id = 0;
+QStack<T_id> idpool;
+
 /* functors: ID */
-IdUnit::IdUnit():
-  next_id(0),
-  pool(new QStack<T_id>())
-{}
-
-IdUnit::~IdUnit()
+auto idGenerated::operator ()() -> T_id
 {
-  if (pool) {
-    pool->clear();
-    pool.reset();
-  }
+  return idpool.isEmpty() ? ++next_id: idpool.pop();
 }
 
-auto IdUnit::operator ()() -> T_id
+auto idReleased::operator ()(T_id id) -> T_id
 {
-  return pool->isEmpty() ? ++next_id: pool->pop();
-}
-
-auto IdUnit::operator ()(T_id id) -> T_id
-{
-  pool->push(id);
+  idpool.push(id);
   return id;
 }
 
 /* functors: bits */
-auto hasCmd::operator ()(CmdSig a, CmdSig b) -> bool
+auto hasCmd::operator ()(T_cmd a, T_cmd b) -> bool
 {
   return (static_cast<int>(a) & static_cast<int>(b)) != 0;
 }
 
 /* functors: QInputDialog */
-auto BookNameToGet::operator ()(QWidget* parent, const QString& text) -> QString
+auto bookNameToGet::operator ()(QWidget* parent, const QString& text) -> T_name
 {
   return QInputDialog::getText(parent,
                                "Book name.",
@@ -51,13 +42,13 @@ auto BookNameToGet::operator ()(QWidget* parent, const QString& text) -> QString
 
 /* functors: QList */
 template<typename T>
-auto listToAdd<T>::operator ()(const QList<T>* list, T val) -> QList<T>
+auto listAdded<T>::operator ()(const QList<T>* list, T val) -> QList<T>
 {
   return (*list) + QList<T>{val};
 }
 
 template<typename T>
-auto listToRemove<T>::operator ()(const QList<T>* list, T val) -> QList<T>
+auto listRemoved<T>::operator ()(const QList<T>* list, T val) -> QList<T>
 {
   auto tmp = QList<T>(*list);
   tmp.removeAll(val);
@@ -65,7 +56,7 @@ auto listToRemove<T>::operator ()(const QList<T>* list, T val) -> QList<T>
 }
 
 template<typename T>
-auto listToMove<T>::operator ()(const QList<T>* list, int from, int to) -> QList<T>
+auto listMoved<T>::operator ()(const QList<T>* list, int from, int to) -> QList<T>
 {
   auto tmp = QList<T>(*list);
   tmp.move(from, to);
@@ -73,20 +64,20 @@ auto listToMove<T>::operator ()(const QList<T>* list, int from, int to) -> QList
 }
 
 template<typename T>
-auto listValToFetch<T>::operator ()(const QList<T>* list, int index, T defval) -> T
+auto listValFetched<T>::operator ()(const QList<T>* list, int index, T defval) -> T
 {
   return index >= 0 && list->count() > 0 && index < list->count() ?
         list->at(index): defval;
 }
 
 template<typename T>
-auto listIndexToFetch<T>::operator ()(const QList<T>* list, T val) -> int
+auto listIndexFetched<T>::operator ()(const QList<T>* list, T val) -> int
 {
   return list->contains(val) ? list->indexOf(val): -1;
 }
 
 template<typename T>
-auto ListToOverride<T>::operator ()(QList<T>* list, QList<T>& updated) -> bool
+auto ListToMerge<T>::operator ()(QList<T>* list, QList<T>& updated) -> bool
 {
   list->swap(updated);
   return true;
@@ -94,7 +85,7 @@ auto ListToOverride<T>::operator ()(QList<T>* list, QList<T>& updated) -> bool
 
 /* utils: QMap */
 template<typename S, typename T>
-QMap<S, QList<T>> listMapToAdd<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapAdded<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                   S key, T val)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -103,7 +94,7 @@ QMap<S, QList<T>> listMapToAdd<S, T>::operator ()(const QMap<S, QList<T>>* map,
 }
 
 template<typename S, typename T>
-QMap<S, QList<T>> listMapToUpdate<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapUpdated<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                     S key, int index, T val)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -116,7 +107,7 @@ QMap<S, QList<T>> listMapToUpdate<S, T>::operator ()(const QMap<S, QList<T>>* ma
 }
 
 template<typename S, typename T>
-QMap<S, QList<T>> listMapToRemove<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapRemoved<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                     S key, T val)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -125,7 +116,7 @@ QMap<S, QList<T>> listMapToRemove<S, T>::operator ()(const QMap<S, QList<T>>* ma
 }
 
 template<typename S, typename T>
-QMap<S, QList<T>> listMapToRemoveByKey<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapRemovedKey<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                         S key)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -134,7 +125,7 @@ QMap<S, QList<T>> listMapToRemoveByKey<S, T>::operator ()(const QMap<S, QList<T>
 }
 
 template<typename S, typename T>
-QMap<S, QList<T>> listMapToMove<S, T>::operator ()(const QMap<S, QList<T>>* map,
+QMap<S, QList<T>> listMapMoved<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                                   S key, int from, int to)
 {
   auto tmp = QMap<S, QList<T>>(*map);
@@ -143,7 +134,7 @@ QMap<S, QList<T>> listMapToMove<S, T>::operator ()(const QMap<S, QList<T>>* map,
 }
 
 template<typename S, typename T>
-auto listMapValToFetch<S, T>::operator ()(const QMap<S, QList<T>>* map,
+auto listMapValFetched<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                         S key, int index, T defval) -> T
 {
   return index >= 0 && map->count() > 0 && map->contains(key) &&
@@ -152,7 +143,15 @@ auto listMapValToFetch<S, T>::operator ()(const QMap<S, QList<T>>* map,
 }
 
 template<typename S, typename T>
-auto listMapListToFetch<S, T>::operator ()(const QMap<S, QList<T>>* map,
+auto listMapIndexFetched<S, T>::operator ()(const QMap<S, QList<T>>* map,
+                                        S key, T val) -> int
+{
+  return map->count() > 0 && map->contains(key) ?
+        map->value(key).indexOf(val): -1;
+}
+
+template<typename S, typename T>
+auto listMapListFetched<S, T>::operator ()(const QMap<S, QList<T>>* map,
                                         S key) -> QList<T>
 {
   return map->count() > 0 && map->contains(key) ?
@@ -160,7 +159,7 @@ auto listMapListToFetch<S, T>::operator ()(const QMap<S, QList<T>>* map,
 }
 
 template<typename S, typename T>
-auto ListMapToOverride<S, T>::operator ()(QMap<S, QList<T>>* map,
+auto ListMapToMerge<S, T>::operator ()(QMap<S, QList<T>>* map,
                                         QMap<S, QList<T>>& updated) ->  bool
 {
   map->swap(updated);
@@ -169,7 +168,7 @@ auto ListMapToOverride<S, T>::operator ()(QMap<S, QList<T>>* map,
 
 /* functors: QMap(T, QString) */
 template<typename T>
-auto strMapToUpdate<T>::operator ()(const QMap<T, QString>* map,
+auto strMapUpdated<T>::operator ()(const QMap<T, QString>* map,
                                  T key, const QString& val) -> QMap<T, QString>
 {
   auto tmp = QMap<T, QString>(*map);
@@ -178,7 +177,7 @@ auto strMapToUpdate<T>::operator ()(const QMap<T, QString>* map,
 }
 
 template<typename T>
-auto strMapToRemove<T>::operator ()(const QMap<T, QString>* map,
+auto strMapRemoved<T>::operator ()(const QMap<T, QString>* map,
                                    T key) -> QMap<T, QString>
 {
   auto tmp = QMap<T, QString>(*map);
@@ -187,7 +186,7 @@ auto strMapToRemove<T>::operator ()(const QMap<T, QString>* map,
 }
 
 template<typename T>
-auto StrMapToOverride<T>::operator ()(QMap<T, QString>* map,
+auto StrMapToMerge<T>::operator ()(QMap<T, QString>* map,
                                        QMap<T, QString>& updated) -> bool
 {
   map->swap(updated);
@@ -195,7 +194,7 @@ auto StrMapToOverride<T>::operator ()(QMap<T, QString>* map,
 }
 
 template<typename T>
-auto strListFromMapToConv<T>::operator ()(const QMap<T, QString>* labels,
+auto strListConvertedFromMap<T>::operator ()(const QMap<T, QString>* labels,
                                     const QList<T>* ids) -> QStringList
 {
   QStringList slist;
@@ -206,14 +205,14 @@ auto strListFromMapToConv<T>::operator ()(const QMap<T, QString>* labels,
 }
 
 template<typename T>
-auto strMapValToFetch<T>::operator ()(const QMap<T, QString>* map,
+auto strMapValFetched<T>::operator ()(const QMap<T, QString>* map,
                                     T key) -> QString
 {
   return map->value(key);
 }
 
 /* utils: QListWidget */
-auto ListWidgetToOverride::operator ()(QListWidget* list, const QStringList& slist) -> bool
+auto ListWidgetToMerge::operator ()(QListWidget* list, const QStringList& slist) -> bool
 {
   // NOTE:
   //  The ListWidget bug to remove and add.
@@ -224,7 +223,7 @@ auto ListWidgetToOverride::operator ()(QListWidget* list, const QStringList& sli
 }
 
 /* utils: QTabBar */
-auto TabBarToOverride::operator ()(QTabBar* tab, const QStringList& slist) -> bool
+auto TabBarToMerge::operator ()(QTabBar* tab, const QStringList& slist) -> bool
 {
   auto tab_size = tab->count();
   auto slist_size = slist.count();
@@ -245,25 +244,26 @@ auto TabBarToOverride::operator ()(QTabBar* tab, const QStringList& slist) -> bo
 }
 
 /* declare templates */
-template struct listToAdd<int>;
-template struct listToRemove<int>;
-template struct listToMove<int>;
-template struct listValToFetch<int>;
-template struct listIndexToFetch<int>;
-template struct ListToOverride<int>;
-template struct listMapToAdd<int, int>;
-template struct listMapToUpdate<int, int>;
-template struct listMapToRemove<int, int>;
-template struct listMapToRemoveByKey<int, int>;
-template struct listMapToMove<int, int>;
-template struct listMapValToFetch<int, int>;
-template struct listMapListToFetch<int, int>;
-template struct ListMapToOverride<int, int>;
-template struct strMapToUpdate<int>;
-template struct strMapToRemove<int>;
-template struct StrMapToOverride<int>;
-template struct strListFromMapToConv<int>;
-template struct strMapValToFetch<int>;
+template struct listAdded<int>;
+template struct listRemoved<int>;
+template struct listMoved<int>;
+template struct listValFetched<int>;
+template struct listIndexFetched<int>;
+template struct ListToMerge<int>;
+template struct listMapAdded<int, int>;
+template struct listMapUpdated<int, int>;
+template struct listMapRemoved<int, int>;
+template struct listMapRemovedKey<int, int>;
+template struct listMapMoved<int, int>;
+template struct listMapValFetched<int, int>;
+template struct listMapIndexFetched<int, int>;
+template struct listMapListFetched<int, int>;
+template struct ListMapToMerge<int, int>;
+template struct strMapUpdated<int>;
+template struct strMapRemoved<int>;
+template struct StrMapToMerge<int>;
+template struct strListConvertedFromMap<int>;
+template struct strMapValFetched<int>;
 
 }  // namespace Utl
 

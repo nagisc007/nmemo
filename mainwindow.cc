@@ -26,6 +26,7 @@ const QString APP::Values::DESCRIPTION = "Nmemo is a simple memo editor by Qt.";
 const QString APP::Values::LICENSE = "GNU GENERAL PUBLIC LICENSE Version 3";
 const QString APP::Values::COPYRIGHT = "Copyright (c) 2018";
 const int MainWindow::Values::STATUS_MESSAGE_TIME = 3000;
+const QString APP::Values::DEFAULT_TAB_NAME = "Undefined";
 
 /* class */
 MainWindow::MainWindow(QWidget *parent) :
@@ -106,6 +107,8 @@ auto MainWindow::InitActions() -> bool
   connect(core_.data(), &Nmemo::Core::memoOutputted, this, &MainWindow::outputToEditor);
   connect(core_.data(), &Nmemo::Core::filenameToSaveRequested,
           this, &MainWindow::on_actSaveAs_triggered);
+  connect(core_.data(), &Nmemo::Core::statusUpdated, this, &MainWindow::updateStatus);
+  connect(core_.data(), &Nmemo::Core::fileUpdated, this, &MainWindow::updateFile);
   return true;
 }
 
@@ -116,7 +119,7 @@ void MainWindow::outputToTab(T_tab_i index, T_tabnames slist)
 {
   mutex_.lock();
   is_tab_updating_ = true;
-  Utl::TabBarToOverride()(tab_.data(), slist);
+  Utl::TabBarToMerge()(tab_.data(), slist);
   tab_->setCurrentIndex(index);
   mutex_.unlock();
 
@@ -127,7 +130,7 @@ void MainWindow::outputToBookList(T_book_i index, T_booknames slist)
 {
   mutex_.lock();
   is_booklist_updating_ = true;
-  Utl::ListWidgetToOverride()(booklist_.data(), slist);
+  Utl::ListWidgetToMerge()(booklist_.data(), slist);
   booklist_->setCurrentRow(index);
   mutex_.unlock();
 
@@ -145,11 +148,22 @@ void MainWindow::outputToEditor(T_stat stat, const T_text& text)
   is_editor_updating_ = false;
 }
 
+void MainWindow::updateStatus(const QString& msg)
+{
+  statusBar()->showMessage(msg, Values::STATUS_MESSAGE_TIME);
+}
+
+void MainWindow::updateFile(const T_fname& fname)
+{
+  setWindowTitle(QString("Nmemo[%1]").arg(fname));
+}
+
 /* slots: tabs */
 void MainWindow::AddTab()
 {
   if (is_tab_updating_) return;
-  updated(CmdSig::TAB_ADD, -1, editor_->toPlainText(), QVariant(0));
+  updated(CmdSig::TAB_ADD, -1, editor_->toPlainText(),
+          QVariant(APP::Values::DEFAULT_TAB_NAME));
 }
 
 void MainWindow::DeleteTab(int index)
@@ -180,7 +194,7 @@ void MainWindow::AddBook()
 {
   if (is_booklist_updating_) return;
   if (tab_->count() > 0) {
-    auto name = Utl::BookNameToGet()(this, "New Book");
+    auto name = Utl::bookNameToGet()(this, "New Book");
     updated(CmdSig::BOOK_ADD, -1, editor_->toPlainText(),
             QVariant(name == "" ? "New Book": name));
   }
@@ -214,7 +228,7 @@ void MainWindow::DoubleClickBook(QListWidgetItem* item)
 {
   if (is_booklist_updating_) return;
   if (tab_->count() > 0 && booklist_->count() > 0) {
-    auto name = Utl::BookNameToGet()(this, item->text());
+    auto name = Utl::bookNameToGet()(this, item->text());
     updated(CmdSig::BOOK_RENAME, booklist_->currentRow(), editor_->toPlainText(),
             QVariant(name == "" ? item->text(): name));
   }
