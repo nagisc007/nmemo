@@ -9,12 +9,6 @@
 
 namespace Nmemo {
 
-/* values */
-const QString Core::Values::FILE_EXT = "memo";
-const QString Core::Values::DEFAULT_FILENAME = "Undefined";
-const QString Core::Values::SAVE_PREFIX = "__NMEMO_DATA__";
-const QString Core::Values::SAVE_VERSION = "1";
-
 /* functors: tabs */
 auto TabsToAdd::operator ()(T_tids* tids, T_labels* labels,
                             const T_name& name) -> T_tid
@@ -22,8 +16,8 @@ auto TabsToAdd::operator ()(T_tids* tids, T_labels* labels,
   auto tid = Utl::idGenerated()();
   auto tids_ = tidsAdded()(tids, tid);
   auto labels_ = labelsUpdated()(labels, tid, name);
-  if (tids_.count() > 0) TidsToMerge()(tids, tids_);
-  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  TidsToMerge()(tids, tids_);
+  LabelsToMerge()(labels, labels_);
   return tid;
 }
 
@@ -35,9 +29,9 @@ auto TabsToRemove::operator ()(T_tids* tids, T_labels* labels,
   auto labels_ = labelsRemoved()(labels, tid);
   BookIdsToRelease()(books, tid);
   auto books_ = booksRemovedTid()(books, tid);
-  if (tids_.count() > 0) TidsToMerge()(tids, tids_);
-  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
-  if (books_.count() > 0) BooksToMerge()(books, books_);
+  TidsToMerge()(tids, tids_);
+  LabelsToMerge()(labels, labels_);
+  BooksToMerge()(books, books_);
   Utl::idReleased()(tid);
   return tabIdFetched()(&tids_, tab_i - 1, -1);
 }
@@ -45,7 +39,7 @@ auto TabsToRemove::operator ()(T_tids* tids, T_labels* labels,
 auto TabsToMove::operator ()(T_tids* tids, T_tab_i tab_i, T_index to) -> T_tid
 {
   auto tids_ = tidsMoved()(tids, tab_i, to);
-  if (tids_.count() > 0) TidsToMerge()(tids, tids_);
+  TidsToMerge()(tids, tids_);
   return tabIdFetched()(&tids_, to, -1);
 }
 
@@ -54,7 +48,7 @@ auto TabsToRename::operator ()(const T_tids* tids, T_labels* labels,
 {
   auto tid = tabIdFetched()(tids, tab_i, -1);
   auto labels_ = labelsUpdated()(labels, tid, name);
-  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  LabelsToMerge()(labels, labels_);
   return tid;
 }
 
@@ -76,9 +70,9 @@ auto BooksToAdd::operator ()(T_books* books, T_labels* labels, T_memos* memos,
   auto books_ = booksAdded()(books, tid, bid);
   auto labels_ = labelsUpdated()(labels, bid, name);
   auto memos_ = memosUpdated()(memos, bid, text);
-  if (books_.count() > 0) BooksToMerge()(books, books_);
-  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
-  if (memos_.count() > 0) MemosToMerge()(memos, memos_);
+  BooksToMerge()(books, books_);
+  LabelsToMerge()(labels, labels_);
+  MemosToMerge()(memos, memos_);
   return bid;
 }
 
@@ -88,8 +82,8 @@ auto BooksToRemove::operator ()(T_books* books, T_labels* labels,
   auto bid = bookIdFetched()(books, tid, book_i, -1);
   auto books_ = booksRemoved()(books, tid, bid);
   auto labels_ = labelsRemoved()(labels, bid);
-  if (books_.count() > 0) BooksToMerge()(books, books_);
-  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  BooksToMerge()(books, books_);
+  LabelsToMerge()(labels, labels_);
   Utl::idReleased()(bid);
   return bookIdFetched()(&books_, tid, book_i - 1, -1);
 }
@@ -98,7 +92,7 @@ auto BooksToMove::operator ()(T_books* books, T_tid tid,
                               T_book_i book_i, T_index to) -> T_bid
 {
   auto books_ = booksMoved()(books, tid, book_i, to);
-  if (books_.count() > 0) BooksToMerge()(books, books_);
+  BooksToMerge()(books, books_);
   return bookIdFetched()(&books_, tid, book_i, -1);
 }
 
@@ -108,7 +102,7 @@ auto BooksToRename::operator ()(const T_books* books, T_labels* labels,
 {
   auto bid = bookIdFetched()(books, tid, book_i, -1);
   auto labels_ = labelsUpdated()(labels, bid, name);
-  if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
+  LabelsToMerge()(labels, labels_);
   return bid;
 }
 
@@ -299,7 +293,7 @@ auto Core::DecodeData(const T_slist* slist) -> QPair<T_slist, T_slist>
 void Core::Update(T_cmd cmd, T_index index, const T_text& text, T_arg arg)
 {
   UpdateData(cmd, index, text, arg);
-  if (m_tid_ > 0 && OutputData(m_tid_, m_bid_)) {
+  if (OutputData(m_tid_, m_bid_)) {
     // NOTE: notify to do output
     T_text msg;
     switch (cmd) {
@@ -323,6 +317,10 @@ void Core::Update(T_cmd cmd, T_index index, const T_text& text, T_arg arg)
       break;
     }
     emit statusUpdated(msg);
+    if (Utl::hasCmd()(cmd, CmdSig::TAB)) {
+      auto fname = labelFetched()(m_labels_.data(), m_tid_);
+      emit fileUpdated(fname);
+    }
   }
 }
 

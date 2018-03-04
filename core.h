@@ -9,6 +9,7 @@
 #define CORE_H
 
 #include "utils.h"
+#include "common_values.h"
 
 #include <QObject>
 
@@ -74,14 +75,6 @@ public:
   /* con[de]structor */
   explicit Core(QObject* parent = nullptr);
   ~Core();
-  /* values */
-  struct Values
-  {
-    static const QString FILE_EXT;
-    static const QString DEFAULT_FILENAME;
-    static const QString SAVE_PREFIX;
-    static const QString SAVE_VERSION;
-  };
   /* methods: features */
   T_index tabIndexExisted(const T_fname&);
   bool UpdateData(T_cmd, T_index, const T_text&, T_arg);

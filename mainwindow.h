@@ -19,25 +19,6 @@ namespace Ui {
 class MainWindow;
 }
 
-namespace APP {
-
-struct Version {
-  static const int MAJOR;
-  static const int MINOR;
-  static const int MICRO;
-};
-
-struct Values {
-  static const QString NAME;
-  static const QString VERSION;
-  static const QString AUTHORS;
-  static const QString DESCRIPTION;
-  static const QString LICENSE;
-  static const QString COPYRIGHT;
-};
-
-}  // namespace APP
-
 /* class: MainWindow */
 class MainWindow : public QMainWindow
 {
@@ -48,16 +29,6 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
   /* values */
-  struct Values {
-    static const int STATUS_MESSAGE_TIME;
-    static const QString DEFAULT_BOOK_NAME;
-    static const QString GET_BOOK_TITLE;
-    static const QString GET_BOOK_CAPTION;
-    static const QString LOAD_FILE_CAPTION;
-    static const QString SAVE_FILE_CAPTION;
-    static const QString FILE_FILTER;
-    static const QString DEFAULT_SELECTED_FILTER;
-  };
   /* methods: base */
   bool InitWidgets();
   bool InitActions();

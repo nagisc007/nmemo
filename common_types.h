@@ -14,6 +14,7 @@
 #include <QString>
 #include <QStringList>
 
+/* enums */
 enum class CmdSig {
   TAB = 0x01,
   BOOK = 0x02,

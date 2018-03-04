@@ -29,13 +29,15 @@ SOURCES += \
         main.cc \
         mainwindow.cc \
     utils.cc \
-    core.cc
+    core.cc \
+    common_values.cc
 
 HEADERS += \
         mainwindow.h \
     common_types.h \
     utils.h \
-    core.h
+    core.h \
+    common_values.h
 
 FORMS += \
         mainwindow.ui

@@ -11,29 +11,6 @@
 #include <QDebug>
 #include <QMessageBox>
 
-/* values */
-const int APP::Version::MAJOR = 1;
-const int APP::Version::MINOR = 1;
-const int APP::Version::MICRO = 0;
-
-const QString APP::Values::AUTHORS = "N.T.Works";
-const QString APP::Values::NAME = "Nmemo";
-const QString APP::Values::VERSION = QString("%1.%2.%3")
-    .arg(QString::number(APP::Version::MAJOR))
-    .arg(QString::number(APP::Version::MINOR))
-    .arg(QString::number(APP::Version::MICRO));
-const QString APP::Values::DESCRIPTION = "Nmemo is a simple memo editor by Qt.";
-const QString APP::Values::LICENSE = "GNU GENERAL PUBLIC LICENSE Version 3";
-const QString APP::Values::COPYRIGHT = "Copyright (c) 2018";
-const int MainWindow::Values::STATUS_MESSAGE_TIME = 3000;
-const QString MainWindow::Values::DEFAULT_BOOK_NAME = "New Book";
-const QString MainWindow::Values::GET_BOOK_TITLE = "Book Name";
-const QString MainWindow::Values::GET_BOOK_CAPTION = "Input a book name: ";
-const QString MainWindow::Values::LOAD_FILE_CAPTION = "Load file";
-const QString MainWindow::Values::SAVE_FILE_CAPTION = "Save file";
-const QString MainWindow::Values::FILE_FILTER = "Memo file (*.memo);;All Files (*)";
-const QString MainWindow::Values::DEFAULT_SELECTED_FILTER = "Memo file (*.memo)";
-
 /* class */
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -42,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
   is_editor_updating_(false),
   is_tab_updating_(false),
   filename_(""),
-  selected_(Values::DEFAULT_SELECTED_FILTER),
+  selected_(Nmemo::Values::DEFAULT_SELECTED_FILTER),
   booklist_(nullptr),
   editor_(nullptr),
   tab_(nullptr),
@@ -158,7 +135,7 @@ void MainWindow::outputToEditor(T_stat stat, const T_text& text)
 
 void MainWindow::updateStatus(const QString& msg)
 {
-  statusBar()->showMessage(msg, Values::STATUS_MESSAGE_TIME);
+  statusBar()->showMessage(msg, Nmemo::Values::STATUS_MESSAGE_TIME);
 }
 
 void MainWindow::updateFile(const T_fname& fname)
@@ -173,7 +150,7 @@ void MainWindow::AddTab()
 {
   if (is_tab_updating_) return;
   updated(CmdSig::TAB_ADD, -1, editor_->toPlainText(),
-          QVariant(Nmemo::Core::Values::DEFAULT_FILENAME));
+          QVariant(Nmemo::Values::DEFAULT_FILENAME));
 }
 
 void MainWindow::DeleteTab(int index)
@@ -204,11 +181,11 @@ void MainWindow::AddBook()
 {
   if (is_booklist_updating_) return;
   if (tab_->count() > 0) {
-    auto name = Utl::NameToGet()(this, Values::GET_BOOK_TITLE,
-                                 Values::GET_BOOK_CAPTION,
-                                 Values::DEFAULT_BOOK_NAME);
+    auto name = Utl::NameToGet()(this, Nmemo::Values::GET_BOOK_TITLE,
+                                 Nmemo::Values::GET_BOOK_CAPTION,
+                                 Nmemo::Values::DEFAULT_BOOK_NAME);
     updated(CmdSig::BOOK_ADD, -1, editor_->toPlainText(),
-            QVariant(name == "" ? Values::DEFAULT_BOOK_NAME: name));
+            QVariant(name == "" ? Nmemo::Values::DEFAULT_BOOK_NAME: name));
   }
 }
 
@@ -224,9 +201,10 @@ void MainWindow::ChangeBook(int index)
   updated(CmdSig::BOOK_CHANGE, index, editor_->toPlainText(), QVariant(0));
 }
 
-void MainWindow::MoveBook(int, int)
+void MainWindow::MoveBook(int from, int to)
 {
   if (is_booklist_updating_) return;
+  updated(CmdSig::BOOK_MOVE, from, editor_->toPlainText(), QVariant(to));
 }
 
 void MainWindow::RenameBook()
@@ -240,8 +218,8 @@ void MainWindow::DoubleClickBook(QListWidgetItem* item)
 {
   if (is_booklist_updating_) return;
   if (tab_->count() > 0 && booklist_->count() > 0) {
-    auto name = Utl::NameToGet()(this, Values::GET_BOOK_TITLE,
-                                 Values::GET_BOOK_CAPTION,
+    auto name = Utl::NameToGet()(this, Nmemo::Values::GET_BOOK_TITLE,
+                                 Nmemo::Values::GET_BOOK_CAPTION,
                                  item->text());
     updated(CmdSig::BOOK_RENAME, booklist_->currentRow(), editor_->toPlainText(),
             QVariant(name == "" ? item->text(): name));
@@ -258,8 +236,8 @@ void MainWindow::on_actOpen_triggered()
 {
   auto dir = QDir::currentPath();
   if (!filename_.isEmpty()) dir = QFileInfo(filename_).absoluteFilePath();
-  auto fname = Utl::LoadNameToGet()(this, Values::LOAD_FILE_CAPTION, dir,
-                                    Values::FILE_FILTER, &selected_);
+  auto fname = Utl::LoadNameToGet()(this, Nmemo::Values::LOAD_FILE_CAPTION, dir,
+                                    Nmemo::Values::FILE_FILTER, &selected_);
   if (fname.isEmpty()) return;
   emit loaded(fname, tab_->currentIndex(), editor_->toPlainText());
 }
@@ -276,9 +254,9 @@ void MainWindow::on_actSave_triggered()
 
 void MainWindow::on_actSaveAs_triggered()
 {
-  auto fname = Utl::SaveNameToGet()(this, Values::SAVE_FILE_CAPTION,
+  auto fname = Utl::SaveNameToGet()(this, Nmemo::Values::SAVE_FILE_CAPTION,
                                     filename_,
-                                    Values::FILE_FILTER, &selected_);
+                                    Nmemo::Values::FILE_FILTER, &selected_);
   if (fname.isEmpty()) return;
   emit saved(fname, tab_->currentIndex(), editor_->toPlainText());
 }
