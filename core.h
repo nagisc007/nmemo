@@ -83,6 +83,7 @@ public:
     static const QString SAVE_VERSION;
   };
   /* methods: features */
+  T_index tabIndexExisted(const T_fname&);
   bool UpdateData(T_cmd, T_index, const T_text&, T_arg);
   bool OutputData(T_tid, T_bid);
   bool UpdateTabData(T_cmd, T_tab_i, T_arg);

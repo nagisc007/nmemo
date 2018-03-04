@@ -155,6 +155,12 @@ Core::~Core()
 }
 
 /* methods: features */
+auto Core::tabIndexExisted(const T_fname& fname) -> T_index
+{
+  auto tabnames = tabNamesConverted()(m_labels_.data(), m_tids_.data());
+  return tabnames.indexOf(fname);
+}
+
 auto Core::UpdateData(T_cmd cmd, T_index index, const T_text& text, T_arg arg) -> bool
 {
   UpdateMemoData(m_bid_, text);
@@ -330,6 +336,15 @@ void Core::LoadData(const T_fname& fname, T_tab_i tab_i, const T_text& text)
     return;
   }
   fname_ = Utl::fileNameValidated()(fname_, Values::FILE_EXT);
+
+  // check already loaded
+  auto tab_i_ = tabIndexExisted(fname_);
+  if (tab_i_ >= 0) {
+    UpdateTabData(CmdSig::TAB_CHANGE, tab_i_, QVariant(0));
+    OutputData(m_tid_, m_bid_);
+    return;
+  }
+
   // load from file
   QFile file(fname_);
 
@@ -356,7 +371,7 @@ void Core::LoadData(const T_fname& fname, T_tab_i tab_i, const T_text& text)
   }
 
   // tab change
-  UpdateTabData(CmdSig::TAB_CHANGE, tab_i + 1, QVariant(0));
+  UpdateTabData(CmdSig::TAB_CHANGE, m_tids_->count() - 1, QVariant(0));
   OutputData(m_tid_, m_bid_);
 
   // notify
