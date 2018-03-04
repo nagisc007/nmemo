@@ -23,7 +23,7 @@ enum class CmdSig {
   CHANGE = 0x10,
   MOVE = 0x20,
   RENAME = 0x40,
-  SET = 0x80,
+  SORT = 0x80,
   TAB_ADD = TAB | ADD,
   TAB_DELETE = TAB | DELETE,
   TAB_CHANGE = TAB | CHANGE,
@@ -34,7 +34,7 @@ enum class CmdSig {
   BOOK_CHANGE = BOOK | CHANGE,
   BOOK_MOVE = BOOK | MOVE,
   BOOK_RENAME = BOOK | RENAME,
-  BOOK_SET = BOOK | SET | ADD,
+  BOOK_SORT = BOOK | SORT,
   // utils
   ADD_RENAME = ADD | RENAME,
 };
@@ -54,6 +54,7 @@ using T_filter = QString;
 using T_ids = QList<T_id>;
 using T_smap = QMap<T_id, QString>;
 using T_lmap = QMap<T_id, QList<T_id>>;
+using T_order = Qt::SortOrder;
 
 /* defines: specific types */
 using T_cmd = CmdSig;

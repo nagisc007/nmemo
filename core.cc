@@ -106,6 +106,30 @@ auto BooksToRename::operator ()(const T_books* books, T_labels* labels,
   return bid;
 }
 
+auto BooksToSort::operator ()(T_books* books, const T_labels* labels,
+                              T_tid tid, T_order order) -> T_bid
+{
+  auto bids = bidsFetched()(books, tid);
+  auto bnames = bookNamesConverted()(labels, &bids);
+  // combine
+  T_slist combined;
+  for (int i = 0, size = bids.count(); i < size; ++i) {
+    combined << bnames.at(i) + QString("///") + QString::number(bids.at(i));
+  }
+  if (order == Qt::AscendingOrder) {
+    std::sort(combined.begin(), combined.end());
+  } else {
+    std::sort(combined.begin(), combined.end(), std::greater<QString>());
+  }
+  T_ids ids;
+  for (int i = 0, size = combined.count(); i < size; ++i) {
+    ids << combined.at(i).section("///", 1, 1).toInt();
+  }
+  // merged
+  (*books)[tid].swap(ids);
+  return bookIdFetched()(books, tid, 0, -1);
+}
+
 auto BookIdsToRelease::operator ()(const T_books* books, T_tid tid) -> bool
 {
   auto bids = bidsFetched()(books, tid);
@@ -182,16 +206,13 @@ auto Core::OutputData(T_tid tid, T_bid bid) -> bool
 auto Core::UpdateTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg) -> bool
 {
   T_tid tid = m_tid_;
-  T_bid bid = m_bid_;
   switch (cmd) {
   case CmdSig::TAB_ADD:
     tid = TabsToAdd()(m_tids_.data(), m_labels_.data(), arg.toString());
-    bid = -1;
     break;
   case CmdSig::TAB_DELETE:
     tid = TabsToRemove()(m_tids_.data(), m_labels_.data(), m_books_.data(),
                          tab_i);
-    bid = -1;
     break;
   case CmdSig::TAB_RENAME:
     tid = TabsToRename()(m_tids_.data(), m_labels_.data(), tab_i, arg.toString());
@@ -201,13 +222,15 @@ auto Core::UpdateTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg) -> bool
     break;
   case CmdSig::TAB_CHANGE:
     tid = tabIdFetched()(m_tids_.data(), tab_i, -1);
-    bid = -1;
     break;
   default:
     break;
   }
-  m_tid_ = tid;  // To merge
-  m_bid_ = bid;  // To merge
+  // merge id
+  m_tid_ = tid;
+  m_bid_ = Utl::hasCmd()(cmd, CmdSig::TAB_ADD) ||
+      Utl::hasCmd()(cmd, CmdSig::TAB_DELETE) ||
+      Utl::hasCmd()(cmd, CmdSig::TAB_CHANGE) ? -1: m_bid_;
   return true;
 }
 
@@ -215,8 +238,6 @@ auto Core::UpdateBookData(T_cmd cmd, T_book_i book_i, T_arg arg,
                           const T_text& text) -> bool
 {
   T_bid bid = m_bid_;
-  T_books books;
-  T_labels labels;
   switch (cmd) {
   case CmdSig::BOOK_ADD:
     bid = BooksToAdd()(m_books_.data(), m_labels_.data(), m_memos_.data(),
@@ -235,6 +256,10 @@ auto Core::UpdateBookData(T_cmd cmd, T_book_i book_i, T_arg arg,
   case CmdSig::BOOK_CHANGE:
     bid = bookIdFetched()(m_books_.data(), m_tid_, book_i, -1);
     break;
+  case CmdSig::BOOK_SORT:
+    bid = BooksToSort()(m_books_.data(), m_labels_.data(), m_tid_,
+                        static_cast<Qt::SortOrder>(arg.toInt()));
+    break;
   default:
     break;
   }
@@ -246,7 +271,7 @@ auto Core::UpdateMemoData(T_bid bid, T_text text) -> bool
 {
   // TODO: define ToMerge
   auto memos = memosUpdated()(m_memos_.data(), bid, text);
-  if (memos.count() > 0) MemosToMerge()(m_memos_.data(), memos);
+  MemosToMerge()(m_memos_.data(), memos);
   return true;
 }
 
@@ -292,6 +317,8 @@ auto Core::DecodeData(const T_slist* slist) -> QPair<T_slist, T_slist>
 /* slots */
 void Core::Update(T_cmd cmd, T_index index, const T_text& text, T_arg arg)
 {
+  // TODO: data validated
+
   UpdateData(cmd, index, text, arg);
   if (OutputData(m_tid_, m_bid_)) {
     // NOTE: notify to do output

@@ -66,6 +66,7 @@ auto MainWindow::InitWidgets() -> bool
   tab_->setMovable(true);
   editor_->setReadOnly(true);
   editor_->setText("Welcome to Nmemo pad!");
+  booklist_->setMaximumWidth(Nmemo::Props::BOOKLIST_MAX_WIDTH);
   // set layout
   mainLayout->addWidget(tab_.data());
   subLayout->addWidget(editor_.data());
@@ -226,6 +227,15 @@ void MainWindow::DoubleClickBook(QListWidgetItem* item)
   }
 }
 
+void MainWindow::SortBook(T_order order)
+{
+  if (is_booklist_updating_) return;
+  if (tab_->count() > 0 && booklist_->count() > 0) {
+    updated(CmdSig::BOOK_SORT, booklist_->currentRow(), editor_->toPlainText(),
+            QVariant(order));
+  }
+}
+
 /* slots: menus - File */
 void MainWindow::on_actNew_triggered()
 {
@@ -340,6 +350,16 @@ void MainWindow::on_actMoveNext_triggered()
 void MainWindow::on_actMovePrevious_triggered()
 {
   MoveBook(booklist_->currentRow(), booklist_->currentRow() - 1);
+}
+
+void MainWindow::on_actSort_AtoZ_triggered()
+{
+  SortBook(Qt::AscendingOrder);
+}
+
+void MainWindow::on_actSort_ZtoA_triggered()
+{
+  SortBook(Qt::DescendingOrder);
 }
 
 /* slots: menus - View */

@@ -34,6 +34,11 @@ struct Values {
 namespace Nmemo {
 
 /* values */
+struct Props
+{
+  static const int BOOKLIST_MAX_WIDTH;
+};
+
 struct Values
 {
   static const int STATUS_MESSAGE_TIME;

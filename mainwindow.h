@@ -59,6 +59,7 @@ public slots:
   void MoveBook(int, int);
   void RenameBook();
   void DoubleClickBook(QListWidgetItem*);
+  void SortBook(T_order);
   /* for memo */
 
 private slots:
@@ -86,6 +87,8 @@ private slots:
   void on_actRenameBook_triggered();
   void on_actMoveNext_triggered();
   void on_actMovePrevious_triggered();
+  void on_actSort_AtoZ_triggered();
+  void on_actSort_ZtoA_triggered();
   /* menus: View */
   void on_actFullscreen_triggered();
   void on_actNextTab_triggered();

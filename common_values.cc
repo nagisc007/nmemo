@@ -29,6 +29,9 @@ const QString Values::COPYRIGHT = "Copyright (c) 2018";
 
 namespace Nmemo {
 
+/* props: booklist */
+const int Props::BOOKLIST_MAX_WIDTH = 120;
+
 /* save info */
 const QString Values::SAVE_PREFIX = "__NMEMO_DATA__";
 const QString Values::SAVE_VERSION = "1";

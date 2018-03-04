@@ -62,6 +62,11 @@ struct BooksToRename
   T_bid operator ()(const T_books*, T_labels*, T_tid, T_book_i, const T_name&);
 };
 
+struct BooksToSort
+{
+  T_bid operator ()(T_books*, const T_labels*, T_tid, T_order);
+};
+
 struct BookIdsToRelease
 {
   bool operator ()(const T_books*, T_tid);
