@@ -34,7 +34,6 @@ struct Values {
   static const QString DESCRIPTION;
   static const QString LICENSE;
   static const QString COPYRIGHT;
-  static const QString DEFAULT_TAB_NAME;
 };
 
 }  // namespace APP
@@ -51,6 +50,13 @@ public:
   /* values */
   struct Values {
     static const int STATUS_MESSAGE_TIME;
+    static const QString DEFAULT_BOOK_NAME;
+    static const QString GET_BOOK_TITLE;
+    static const QString GET_BOOK_CAPTION;
+    static const QString LOAD_FILE_CAPTION;
+    static const QString SAVE_FILE_CAPTION;
+    static const QString FILE_FILTER;
+    static const QString DEFAULT_SELECTED_FILTER;
   };
   /* methods: base */
   bool InitWidgets();
@@ -122,6 +128,8 @@ private:
   bool is_editor_updating_;
   bool is_tab_updating_;
   QMutex mutex_;
+  T_fname filename_;
+  T_filter selected_;
   QScopedPointer<QListWidget> booklist_;
   QScopedPointer<QTextEdit> editor_;
   QScopedPointer<QTabBar> tab_;

@@ -9,6 +9,12 @@
 
 namespace Nmemo {
 
+/* values */
+const QString Core::Values::FILE_EXT = "memo";
+const QString Core::Values::DEFAULT_FILENAME = "Undefined";
+const QString Core::Values::SAVE_PREFIX = "__NMEMO_DATA__";
+const QString Core::Values::SAVE_VERSION = "1";
+
 /* functors: tabs */
 auto TabsToAdd::operator ()(T_tids* tids, T_labels* labels,
                             const T_name& name) -> T_tid
@@ -50,6 +56,15 @@ auto TabsToRename::operator ()(const T_tids* tids, T_labels* labels,
   auto labels_ = labelsUpdated()(labels, tid, name);
   if (labels_.count() > 0) LabelsToMerge()(labels, labels_);
   return tid;
+}
+
+auto TabNamesToConvertFromPaths::operator ()(const T_slist* tabnames) -> T_slist
+{
+  T_slist slist;
+  for (int i = 0, size = tabnames->count(); i < size; ++i) {
+    slist << Utl::baseNameFetched()(tabnames->at(i));
+  }
+  return slist;
 }
 
 /* functors: books */
@@ -158,7 +173,7 @@ auto Core::OutputData(T_tid tid, T_bid bid) -> bool
   auto stat = bid > 0 && m_memos_->contains(bid) ? true: false;
   auto memo = stat ? memoFetched()(m_memos_.data(), bid):
                      QString("Please create new book, or choice a book!");
-  emit tabOutputted(tab_i, tabnames);
+  emit tabOutputted(tab_i, TabNamesToConvertFromPaths()(&tabnames));
   emit booksOutputted(book_i, booknames);
   emit memoOutputted(stat, memo);
   return true;
@@ -196,7 +211,8 @@ auto Core::UpdateTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg) -> bool
   return true;
 }
 
-auto Core::UpdateBookData(T_cmd cmd, T_book_i book_i, T_arg arg) -> bool
+auto Core::UpdateBookData(T_cmd cmd, T_book_i book_i, T_arg arg,
+                          const T_text& text) -> bool
 {
   T_bid bid = m_bid_;
   T_books books;
@@ -204,7 +220,7 @@ auto Core::UpdateBookData(T_cmd cmd, T_book_i book_i, T_arg arg) -> bool
   switch (cmd) {
   case CmdSig::BOOK_ADD:
     bid = BooksToAdd()(m_books_.data(), m_labels_.data(), m_memos_.data(),
-                       m_tid_, arg.toString(), T_text("new text"));
+                       m_tid_, arg.toString(), text);
     break;
   case CmdSig::BOOK_DELETE:
     bid = BooksToRemove()(m_books_.data(), m_labels_.data(), m_tid_, book_i);
@@ -234,6 +250,45 @@ auto Core::UpdateMemoData(T_bid bid, T_text text) -> bool
   return true;
 }
 
+auto Core::EncodeData(const T_slist* names, const T_slist* memos) -> T_slist
+{
+  T_slist slist;
+  slist << Values::SAVE_PREFIX
+        << Values::SAVE_VERSION;
+  for (int i = 0, size = names->count(); i < size; ++i) {
+    slist << names->at(i)
+          << memos->at(i);
+  }
+  return slist;
+}
+
+auto Core::DecodeData(const T_slist* slist) -> QPair<T_slist, T_slist>
+{
+  T_slist names;
+  T_slist memos;
+  bool is_old_type = false;
+  // data version check
+  if (slist->at(0) == Values::SAVE_PREFIX) {
+    auto version = slist->at(1).toInt();
+    is_old_type = version < 1;
+  } else {
+    is_old_type = true;
+  }
+  // data decode
+  QStringList::const_iterator it;
+  for (it = slist->constBegin(); it != slist->constEnd(); ++it) {
+    if (!is_old_type) {
+      ++it;
+      ++it;
+      is_old_type = true;
+    }
+    names << *it;
+    ++it;
+    memos << *it;
+  }
+  return qMakePair(names, memos);
+}
+
 /* slots */
 void Core::Update(T_cmd cmd, T_index index, const T_text& text, T_arg arg)
 {
@@ -244,53 +299,116 @@ void Core::Update(T_cmd cmd, T_index index, const T_text& text, T_arg arg)
     switch (cmd) {
     case CmdSig::TAB_ADD: msg = "Added new Tab ...";
       break;
-    default: msg = "Nothing any ...";
+    case CmdSig::TAB_DELETE: msg = "Deleted the tab ...";
+      break;
+    case CmdSig::TAB_MOVE: msg = "Moved the tab ...";
+      break;
+    case CmdSig::TAB_RENAME: msg = "Renamed the tab ...";
+      break;
+    case CmdSig::BOOK_ADD: msg = "Added new Book ...";
+      break;
+    case CmdSig::BOOK_DELETE: msg = "Deleted the book ...";
+      break;
+    case CmdSig::BOOK_MOVE: msg = "Moved the book ...";
+      break;
+    case CmdSig::BOOK_RENAME: msg = "Renamed the book ...";
+      break;
+    default: msg = "";
       break;
     }
     emit statusUpdated(msg);
   }
-  /*
-  qDebug() << "Update Core:: starting ...";
-  auto tid_r = Utl::GetTabIdToRead()(cmd, m_tabs_.data(), index, m_tid_);
-  auto tid_w = Utl::GetTabIdToWrite()(cmd, m_tabs_.data(), index, tid_r);
-  auto tname = Utl::GetTabNameToWrite()(cmd, arg);
-  if (tid_r < 0 && tid_w < 0) return;
-  qDebug() << "tid:" << tid_r << "|" << tid_w;
-  qDebug() << "tname:" << tname;
-  auto bid_r = Utl::GetBookIdToRead()(cmd, m_books_.data(), tid_r, index, m_book_i_);
-  auto bid_w = Utl::GetBookIdToWrite()(cmd, m_books_.data(), tid_r, index, bid_r);
-  auto bname = Utl::GetBookNameToWrite()(cmd, arg);
-  qDebug() << "bid:" << bid_r << "|" << bid_w;
-  qDebug() << "bname:" << bname;
-
-  auto tab_res = Utl::OperateTabData()(cmd, m_tabs_.data(), m_paths_.data(),
-                                       tid_r, tid_w, index, tname, arg);
-  auto book_res = Utl::OperateBookData()(cmd, m_books_.data(), m_labels_.data(),
-                                         tid_r, tid_w, bid_r, bid_w, index, bname, arg);
-  auto memo_res = Utl::OperateMemoData()(cmd, m_memos_.data(), bid_r, bid_w, m_bid_, m_text_);
-  m_tid_ = tid_r;
-  m_bid_ = bid_r;
-  m_book_i_ = book_res.at(0).toInt();
-  qDebug() << "tab:: tab_i: " << tab_res.at(0).toInt();
-  qDebug() << "tab:: tnames: " << tab_res.at(1).toStringList().count();
-  qDebug() << "book:: book_i: " << book_res.at(0).toInt();
-  qDebug() << "book:: bnames: " << book_res.at(1).toStringList().count();
-  qDebug() << "memo:: stat: " << memo_res.at(0).toBool();
-  qDebug() << "memo:: text: " << memo_res.at(1).toString();
-  emit tabOutputted(tab_res.at(0).toInt(), tab_res.at(1).toStringList());
-  emit booksOutputted(book_res.at(0).toInt(), book_res.at(1).toStringList());
-  emit editorOutputted(memo_res.at(0).toBool(), memo_res.at(1).toString());
-  */
 }
 
-void Core::LoadData(const T_fname &, T_tab_i, const T_text &)
+void Core::LoadData(const T_fname& fname, T_tab_i tab_i, const T_text& text)
 {
+  UpdateMemoData(m_bid_, text);
 
+  T_fname fname_ = fname;
+  if (fname_.isEmpty() || fname_ == "" || fname_ == Values::DEFAULT_FILENAME) {
+    // Nothing any
+    return;
+  }
+  fname_ = Utl::fileNameValidated()(fname_, Values::FILE_EXT);
+  // load from file
+  QFile file(fname_);
+
+  if (!file.open(QIODevice::ReadOnly)) {
+    emit statusUpdated("Cannot open file!");
+    return;
+  }
+  QDataStream in(&file);
+  T_slist data_loaded;
+  in.setVersion(QDataStream::Qt_5_10);
+  in >> data_loaded;
+  if (data_loaded.isEmpty()) {
+    emit statusUpdated("File data nothing!");
+    return;
+  }
+  auto data = DecodeData(&data_loaded);
+  T_slist names = data.first;
+  T_slist memos = data.second;
+
+  // generate tab
+  UpdateTabData(CmdSig::TAB_ADD, tab_i, QVariant(fname_));
+  for (int i = 0, size = names.count(); i < size; ++i) {
+    UpdateBookData(CmdSig::BOOK_ADD, -1, QVariant(names.at(i)), memos.at(i));
+  }
+
+  // tab change
+  UpdateTabData(CmdSig::TAB_CHANGE, tab_i + 1, QVariant(0));
+  OutputData(m_tid_, m_bid_);
+
+  // notify
+  emit fileUpdated(fname_);
+  emit statusUpdated("File loaded ...");
 }
 
-void Core::SaveData(const T_fname &, T_tab_i, const T_text &)
+void Core::SaveData(const T_fname& fname, T_tab_i tab_i, const T_text& text)
 {
+  T_fname fname_ = fname;
 
+  UpdateMemoData(m_bid_, text);
+
+  auto tid = tabIdFetched()(m_tids_.data(), tab_i, -1);
+  if (tid < 0) {
+    // NOTE: nothing any to do
+    return;
+  }
+
+  if (fname_.isEmpty() || fname_ == "" || fname_ == Values::DEFAULT_FILENAME) {
+    fname_ = labelFetched()(m_labels_.data(), tid);
+    if (fname_.isEmpty() || fname_ == "" || fname_ == Values::DEFAULT_FILENAME) {
+      emit filenameToSaveRequested();
+      return;
+    }
+  }
+  fname_ = Utl::fileNameValidated()(fname_, Values::FILE_EXT);
+
+  // save operation.
+  auto bids = bidsFetched()(m_books_.data(), tid);
+  auto booknames = bookNamesConverted()(m_labels_.data(), &bids);
+  auto memos = memosConverted()(m_memos_.data(), &bids);
+  auto data = EncodeData(&booknames, &memos);
+
+  // save to file
+  QFile file(fname_);
+  if (!file.open(QIODevice::WriteOnly)) {
+    emit statusUpdated("Cannot open file!");
+    return;
+  }
+
+  QDataStream out(&file);
+  out.setVersion(QDataStream::Qt_5_10);
+  out << data;
+
+  // rename tab
+  UpdateTabData(CmdSig::TAB_RENAME, tab_i, QVariant(fname_));
+  OutputData(m_tid_, m_bid_);
+
+  // notify
+  emit fileUpdated(fname_);
+  emit statusUpdated("File saved ...");
 }
 
 }  // namespace Nmemo

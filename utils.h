@@ -11,7 +11,12 @@
 #include "common_types.h"
 
 #include <QDebug>
+#include <QDataStream>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QInputDialog>
+#include <QIODevice>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
@@ -27,6 +32,12 @@ namespace Utl {
 /* values */
 extern T_id next_id;
 extern QStack<T_id> idpool;
+
+/* functors: QString */
+struct fileNameValidated
+{
+  T_fname operator ()(const T_fname&, const T_ext&);
+};
 
 /* functors: ID */
 struct idGenerated
@@ -45,13 +56,38 @@ struct hasCmd
   bool operator ()(T_cmd, T_cmd);
 };
 
-/* functors: QInputDialog */
-struct bookNameToGet
+/* functors: QFileInfo */
+struct baseNameFetched
 {
-  T_name operator ()(QWidget*, const QString&);
+  T_name operator ()(const T_fname&);
+};
+
+/* functors: QInputDialog */
+struct NameToGet
+{
+  T_name operator ()(QWidget*, const T_title&, const T_caption&, const T_text&);
+};
+
+/* functors: QFileDialog */
+struct LoadNameToGet
+{
+  T_fname operator ()(QWidget*, const T_caption&, const T_fname&,
+                      const T_filter&, T_filter*);
+};
+
+struct SaveNameToGet
+{
+  T_fname operator ()(QWidget*, const T_caption&, const T_fname&,
+                      const T_filter&, T_filter*);
 };
 
 /* functors: QList */
+template<typename T>
+struct listIndexValidated
+{
+  int operator ()(const QList<T>*, int, int);
+};
+
 template<typename T>
 struct listAdded
 {

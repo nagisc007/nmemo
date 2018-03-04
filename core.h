@@ -35,6 +35,11 @@ struct TabsToRename
   T_tid operator ()(const T_tids*, T_labels*, T_tab_i, const T_name&);
 };
 
+struct TabNamesToConvertFromPaths
+{
+  T_slist operator ()(const T_slist*);
+};
+
 /* functors: books */
 struct BooksToAdd
 {
@@ -69,12 +74,23 @@ public:
   /* con[de]structor */
   explicit Core(QObject* parent = nullptr);
   ~Core();
+  /* values */
+  struct Values
+  {
+    static const QString FILE_EXT;
+    static const QString DEFAULT_FILENAME;
+    static const QString SAVE_PREFIX;
+    static const QString SAVE_VERSION;
+  };
   /* methods: features */
   bool UpdateData(T_cmd, T_index, const T_text&, T_arg);
   bool OutputData(T_tid, T_bid);
   bool UpdateTabData(T_cmd, T_tab_i, T_arg);
-  bool UpdateBookData(T_cmd, T_book_i, T_arg);
+  bool UpdateBookData(T_cmd, T_book_i, T_arg,
+                      const T_text& = "new text");
   bool UpdateMemoData(T_bid, T_text);
+  T_slist EncodeData(const T_slist*, const T_slist*);
+  QPair<T_slist, T_slist> DecodeData(const T_slist*);
 
 signals:
   void tabOutputted(T_tab_i, T_tabnames);
@@ -115,6 +131,7 @@ using booksMoved = Utl::listMapMoved<T_tid, T_bid>;
 using booksRemovedTid = Utl::listMapRemovedKey<T_tid, T_bid>;
 using BooksToMerge = Utl::ListMapToMerge<T_tid, T_bid>;
 
+using labelFetched = Utl::strMapValFetched<T_id>;
 using labelsUpdated = Utl::strMapUpdated<T_id>;
 using labelsRemoved = Utl::strMapRemoved<T_id>;
 using LabelsToMerge = Utl::StrMapToMerge<T_id>;
@@ -125,6 +142,7 @@ using MemosToMerge = Utl::StrMapToMerge<T_bid>;
 
 using tabNamesConverted = Utl::strListConvertedFromMap<T_tid>;
 using bookNamesConverted = Utl::strListConvertedFromMap<T_bid>;
+using memosConverted = Utl::strListConvertedFromMap<T_bid>;
 
 }  // namespace Nmemo
 

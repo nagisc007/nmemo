@@ -13,6 +13,13 @@ namespace Utl {
 T_id next_id = 0;
 QStack<T_id> idpool;
 
+/* functors: QString */
+auto fileNameValidated::operator ()(const T_fname& fname, const T_ext& ext) -> T_fname
+{
+  return QFileInfo(fname).suffix() == ext ?
+        fname: QString("%1.%2").arg(fname).arg(ext);
+}
+
 /* functors: ID */
 auto idGenerated::operator ()() -> T_id
 {
@@ -31,16 +38,48 @@ auto hasCmd::operator ()(T_cmd a, T_cmd b) -> bool
   return (static_cast<int>(a) & static_cast<int>(b)) != 0;
 }
 
-/* functors: QInputDialog */
-auto bookNameToGet::operator ()(QWidget* parent, const QString& text) -> T_name
+/* functors: QFileInfo */
+auto baseNameFetched::operator ()(const T_fname& fname) -> T_name
 {
-  return QInputDialog::getText(parent,
-                               "Book name.",
-                               "Input a book name:",
-                               QLineEdit::Normal, text);
+  return QFileInfo(fname).baseName();
+}
+
+/* functors: QInputDialog */
+auto NameToGet::operator ()(QWidget* parent,
+                            const T_title& title, const T_caption& caption,
+                            const T_text& text) -> T_name
+{
+  return QInputDialog::getText(parent, title, caption, QLineEdit::Normal, text);
+}
+
+/* functors: QFileDialog */
+auto LoadNameToGet::operator ()(QWidget* parent,
+                                const T_caption& caption,
+                                const T_fname& fname,
+                                const T_filter& filter,
+                                T_filter* selected) -> T_fname
+{
+  return QFileDialog::getOpenFileName(parent, caption, fname, filter, selected);
+}
+
+auto SaveNameToGet::operator ()(QWidget* parent,
+                                const T_caption& caption,
+                                const T_fname& fname,
+                                const T_filter& filter,
+                                T_filter* selected) ->T_fname
+{
+  return QFileDialog::getSaveFileName(parent, caption, fname, filter, selected);
 }
 
 /* functors: QList */
+template<typename T>
+auto listIndexValidated<T>::operator ()(const QList<T>* list,
+                                        int index, int def_index) -> int
+{
+  return index >= 0 && list->count() > 0 && index < list->count() ?
+        index: def_index;
+}
+
 template<typename T>
 auto listAdded<T>::operator ()(const QList<T>* list, T val) -> QList<T>
 {
@@ -58,8 +97,11 @@ auto listRemoved<T>::operator ()(const QList<T>* list, T val) -> QList<T>
 template<typename T>
 auto listMoved<T>::operator ()(const QList<T>* list, int from, int to) -> QList<T>
 {
+  // NOTE: out of range error. must be from and to is in range.
+  //   before to use validated.
+  //   currently except -1.
   auto tmp = QList<T>(*list);
-  tmp.move(from, to);
+  if (from >= 0 && to >= 0) tmp.move(from, to);
   return tmp;
 }
 
@@ -244,6 +286,7 @@ auto TabBarToMerge::operator ()(QTabBar* tab, const QStringList& slist) -> bool
 }
 
 /* declare templates */
+template struct listIndexValidated<int>;
 template struct listAdded<int>;
 template struct listRemoved<int>;
 template struct listMoved<int>;

@@ -11,6 +11,7 @@
 #include <QtGlobal>
 #include <QPair>
 #include <QVariant>
+#include <QString>
 #include <QStringList>
 
 enum class CmdSig {
@@ -43,8 +44,12 @@ using T_index = int;
 using T_slist = QStringList;
 using T_arg = QVariant;
 using T_fname = QString;
+using T_ext = QString;
 using T_text = QString;
 using T_name = QString;
+using T_title = QString;
+using T_caption = QString;
+using T_filter = QString;
 using T_ids = QList<T_id>;
 using T_smap = QMap<T_id, QString>;
 using T_lmap = QMap<T_id, QList<T_id>>;
