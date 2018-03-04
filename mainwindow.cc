@@ -64,9 +64,10 @@ auto MainWindow::InitWidgets() -> bool
   // set props
   tab_->setTabsClosable(true);
   tab_->setMovable(true);
+  booklist_->setMaximumWidth(Nmemo::Props::BOOKLIST_MAX_WIDTH);
+  editor_->setTabStopDistance(Nmemo::Props::EDIT_TAB_DISTANCE);
   editor_->setReadOnly(true);
   editor_->setText("Welcome to Nmemo pad!");
-  booklist_->setMaximumWidth(Nmemo::Props::BOOKLIST_MAX_WIDTH);
   // set layout
   mainLayout->addWidget(tab_.data());
   subLayout->addWidget(editor_.data());

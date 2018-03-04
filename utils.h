@@ -15,6 +15,8 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFont>
+#include <QFontMetrics>
 #include <QInputDialog>
 #include <QIODevice>
 #include <QLineEdit>

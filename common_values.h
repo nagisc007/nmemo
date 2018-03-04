@@ -37,6 +37,7 @@ namespace Nmemo {
 struct Props
 {
   static const int BOOKLIST_MAX_WIDTH;
+  static const qreal EDIT_TAB_DISTANCE;
 };
 
 struct Values

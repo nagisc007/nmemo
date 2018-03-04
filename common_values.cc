@@ -31,6 +31,7 @@ namespace Nmemo {
 
 /* props: booklist */
 const int Props::BOOKLIST_MAX_WIDTH = 120;
+const qreal Props::EDIT_TAB_DISTANCE = 40;  // pixels
 
 /* save info */
 const QString Values::SAVE_PREFIX = "__NMEMO_DATA__";
