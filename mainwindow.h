@@ -11,79 +11,105 @@
 #include "core.h"
 
 #include <QMainWindow>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QWidget>
 
 namespace Ui {
 class MainWindow;
 }
 
-namespace APP {
-
-struct Version {
-  static const int MAJOR;
-  static const int MINOR;
-  static const int MICRO;
-};
-
-struct Values {
-  static const QString NAME;
-  static const QString VERSION;
-  static const QString AUTHORS;
-  static const QString DESCRIPTION;
-  static const QString LICENSE;
-  static const QString COPYRIGHT;
-};
-
-}  // namespace APP
-
+/* class: MainWindow */
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
 
 public:
+  /* con[de]structor */
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
-  // values
-  struct Values {
-    static const QString APP_NAME;
-    static const QString APP_VERSION;
-    static const QString APP_AUTHORS;
-    static const int STATUS_MESSAGE_TIME;
-  };
-  // methods: base
-  bool InitActions();
+  /* values */
+  /* methods: base */
   bool InitWidgets();
-  // methods: features
+  bool InitActions();
+  /* methods: features */
 
 signals:
-  void fileOpenQueue(QWidget*);
-  void itemAddQueue();
-  void itemDeleteQueue();
-  void itemInsertQueue();
-  void itemSortQueue(NMEMO::SortStyle);
-  void resetQueue();
-  void saveFileQueue(QWidget*, bool);
+  void updated(T_cmd, T_index, T_text, T_arg);
+  void edited();
+  void loaded(T_fname, T_tab_i, T_text);
+  void saved(T_fname, T_tab_i, T_text);
 
 public slots:
-  void OnChangeFilename(const QString&, bool is_modified = false);
-  void OnStatusMessage(const QString&);
+  /* for output */
+  void outputToTab(T_tab_i, T_tabnames);
+  void outputToBookList(T_book_i, T_booknames);
+  void outputToEditor(T_stat, const T_memo&);
+  void updateStatus(const QString&);
+  void updateFile(const T_fname&, T_isUpdated);
+  /* for tab */
+  void AddTab();
+  void DeleteTab(int);
+  void ChangeTab(int);
+  void MoveTab(int, int);
+  void RenameTab();
+  /* for book */
+  void AddBook();
+  void DeleteBook(int);
+  void ChangeBook(int);
+  void MoveBook(int, int);
+  void RenameBook();
+  void DoubleClickBook(QListWidgetItem*);
+  void SortBook(T_order);
+  /* for memo */
+  void ChangeTextInMemo();
 
 private slots:
-  void on_actionOpen_triggered();
-  void on_actionClose_triggered();
-  void on_actionSave_triggered();
-  void on_actionSave_As_triggered();
-  void on_actionQuit_triggered();
-  void on_actionAbout_Qt_triggered();
-  void on_actionAbout_Nmemo_triggered();
-  void on_action_Add_triggered();
-  void on_action_Insert_triggered();
-  void on_action_Delete_triggered();
-  void on_actionSort_A_Z_triggered();
-  void on_actionSort_Z_A_triggered();
+  /* menus: File */
+  void on_actNew_triggered();
+  void on_actOpen_triggered();
+  void on_actClose_triggered();
+  void on_actSave_triggered();
+  void on_actSaveAs_triggered();
+  void on_actQuit_triggered();
+  /* menus: Help */
+  void on_actAboutQt_triggered();
+  void on_actAboutApp_triggered();
+  /* menus: Edit */
+  void on_actUndo_triggered();
+  void on_actRedo_triggered();
+  void on_actCut_triggered();
+  void on_actCopy_triggered();
+  void on_actPaste_triggered();
+  void on_actErase_triggered();
+  void on_actSelectAll_triggered();
+  /* menus: Book */
+  void on_actAddBook_triggered();
+  void on_actDeleteBook_triggered();
+  void on_actRenameBook_triggered();
+  void on_actMoveNext_triggered();
+  void on_actMovePrevious_triggered();
+  void on_actSort_AtoZ_triggered();
+  void on_actSort_ZtoA_triggered();
+  /* menus: View */
+  void on_actFullscreen_triggered();
+  void on_actNextTab_triggered();
+  void on_actPreviousTab_triggered();
+  void on_actNextBook_triggered();
+  void on_actPreviousBook_triggered();
 
 private:
   Ui::MainWindow *ui;
-  QScopedPointer<NMEMO::Core> core_;
+  bool is_booklist_updating_;
+  bool is_editor_updating_;
+  bool is_tab_updating_;
+  QMutex mutex_;
+  T_fname filename_;
+  T_filter selected_;
+  QScopedPointer<QListWidget> booklist_;
+  QScopedPointer<QTextEdit> editor_;
+  QScopedPointer<QTabBar> tab_;
+  QScopedPointer<Nmemo::Core> core_;
 };
 
 #endif // MAINWINDOW_H
