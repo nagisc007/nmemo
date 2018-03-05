@@ -97,10 +97,11 @@ signals:
   void memoOutputted(T_stat, T_memo);
   void filenameToSaveRequested();
   void statusUpdated(T_text);
-  void fileUpdated(T_fname);
+  void fileUpdated(T_fname, T_isUpdated);
 
 public slots:
   void Update(T_cmd, T_index, const T_text&, T_arg);
+  void ModifyMemo();
   void LoadData(const T_fname&, T_tab_i, const T_text&);
   void SaveData(const T_fname&, T_tab_i, const T_text&);
 
@@ -110,6 +111,7 @@ private:
   QScopedPointer<T_lmap> m_books_;
   QScopedPointer<T_smap> m_labels_;
   QScopedPointer<T_smap> m_memos_;
+  QScopedPointer<T_stmap> m_stats_;
   QScopedPointer<T_ids> m_tids_;
 };
 

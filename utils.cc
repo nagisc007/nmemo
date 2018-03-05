@@ -38,6 +38,12 @@ auto hasCmd::operator ()(T_cmd a, T_cmd b) -> bool
   return (static_cast<int>(a) & static_cast<int>(b)) != 0;
 }
 
+auto haveCmds::operator ()(T_cmd base, T_cmd a, T_cmd b) -> bool
+{
+  return ((static_cast<int>(base) & static_cast<int>(a)) != 0) &&
+      ((static_cast<int>(base) & static_cast<int>(b)) != 0);
+}
+
 /* functors: QFileInfo */
 auto baseNameFetched::operator ()(const T_fname& fname) -> T_name
 {

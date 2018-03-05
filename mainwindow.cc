@@ -86,9 +86,11 @@ auto MainWindow::InitActions() -> bool
   connect(tab_.data(), &QTabBar::tabMoved, this, &MainWindow::MoveTab);
   connect(booklist_.data(), &QListWidget::currentRowChanged, this, &MainWindow::ChangeBook);
   connect(booklist_.data(), &QListWidget::itemDoubleClicked, this, &MainWindow::DoubleClickBook);
+  connect(editor_.data(), &QTextEdit::textChanged, this, &MainWindow::ChangeTextInMemo);
   connect(this, &MainWindow::updated, core_.data(), &Nmemo::Core::Update);
   connect(this, &MainWindow::loaded, core_.data(), &Nmemo::Core::LoadData);
   connect(this, &MainWindow::saved, core_.data(), &Nmemo::Core::SaveData);
+  connect(this, &MainWindow::edited, core_.data(), &Nmemo::Core::ModifyMemo);
   connect(core_.data(), &Nmemo::Core::tabOutputted, this, &MainWindow::outputToTab);
   connect(core_.data(), &Nmemo::Core::booksOutputted, this, &MainWindow::outputToBookList);
   connect(core_.data(), &Nmemo::Core::memoOutputted, this, &MainWindow::outputToEditor);
@@ -140,10 +142,10 @@ void MainWindow::updateStatus(const QString& msg)
   statusBar()->showMessage(msg, Nmemo::Values::STATUS_MESSAGE_TIME);
 }
 
-void MainWindow::updateFile(const T_fname& fname)
+void MainWindow::updateFile(const T_fname& fname, T_isUpdated is_updated)
 {
   filename_ = fname;
-  setWindowTitle(QString("%1Nmemo[%2]").arg("")
+  setWindowTitle(QString("%1Nmemo[%2]").arg(is_updated ? "": "*")
                  .arg(Utl::baseNameFetched()(fname)));
 }
 
@@ -235,6 +237,13 @@ void MainWindow::SortBook(T_order order)
     updated(CmdSig::BOOK_SORT, booklist_->currentRow(), editor_->toPlainText(),
             QVariant(order));
   }
+}
+
+/* slots: memos */
+void MainWindow::ChangeTextInMemo()
+{
+  if (is_editor_updating_) return;
+  emit edited();
 }
 
 /* slots: menus - File */
@@ -398,10 +407,19 @@ void MainWindow::on_actPreviousBook_triggered()
 /* slots: menus - Help */
 void MainWindow::on_actAboutQt_triggered()
 {
-  QMessageBox::aboutQt(this, "About Qt");
+  QMessageBox::aboutQt(this);
 }
 
 void MainWindow::on_actAboutApp_triggered()
 {
-  QMessageBox::about(this, "About Nmemo", "Nmemo is a simple memo pad.");
+  auto title = QString("About %1")
+      .arg(APP::Values::NAME);
+  auto msg = QString("<h3>About %1 %2</h3><p>%3<br>Licensed by %4.<br>%5</p><p>%6</p>")
+      .arg(APP::Values::NAME)
+      .arg(APP::Values::VERSION)
+      .arg(APP::Values::DESCRIPTION)
+      .arg(APP::Values::LICENSE)
+      .arg(APP::Values::COPYRIGHT)
+      .arg(APP::Values::AUTHORS);
+  QMessageBox::about(this, title, msg);
 }

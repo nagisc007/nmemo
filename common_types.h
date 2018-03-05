@@ -57,13 +57,15 @@ using T_lmap = QMap<T_id, QList<T_id>>;
 using T_order = Qt::SortOrder;
 
 /* defines: specific types */
+using T_isUpdated = bool;
 using T_cmd = CmdSig;
 using T_tab_i = T_index;
 using T_book_i = T_index;
 using T_tid = T_id;
 using T_bid = T_id;
 using T_idset = QPair<T_tid, T_bid>;
-using T_stat = bool;  // editor state
+using T_stat = bool;  // editor state(read only)
+using T_stmap = QMap<T_id, T_stat>;
 using T_tabnames = T_slist;
 using T_booknames = T_slist;
 using T_tids = T_ids;

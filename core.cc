@@ -146,6 +146,7 @@ Core::Core(QObject* parent): QObject(parent),
   m_books_(new T_lmap()),
   m_labels_(new T_smap()),
   m_memos_(new T_smap()),
+  m_stats_(new T_stmap()),
   m_tids_(new T_ids())
 {
   qDebug() << "Core: constructed";
@@ -164,6 +165,10 @@ Core::~Core()
   if (m_memos_) {
     m_memos_->clear();
     m_memos_.reset();
+  }
+  if (m_stats_) {
+    m_stats_->clear();
+    m_stats_.reset();
   }
   if (m_tids_) {
     m_tids_->clear();
@@ -209,10 +214,12 @@ auto Core::UpdateTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg) -> bool
   switch (cmd) {
   case CmdSig::TAB_ADD:
     tid = TabsToAdd()(m_tids_.data(), m_labels_.data(), arg.toString());
+    (*m_stats_)[tid] = true;
     break;
   case CmdSig::TAB_DELETE:
     tid = TabsToRemove()(m_tids_.data(), m_labels_.data(), m_books_.data(),
                          tab_i);
+    m_stats_->remove(tid);
     break;
   case CmdSig::TAB_RENAME:
     tid = TabsToRename()(m_tids_.data(), m_labels_.data(), tab_i, arg.toString());
@@ -228,9 +235,9 @@ auto Core::UpdateTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg) -> bool
   }
   // merge id
   m_tid_ = tid;
-  m_bid_ = Utl::hasCmd()(cmd, CmdSig::TAB_ADD) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_DELETE) ||
-      Utl::hasCmd()(cmd, CmdSig::TAB_CHANGE) ? -1: m_bid_;
+  m_bid_ = Utl::haveCmds()(cmd, CmdSig::TAB, CmdSig::ADD) ||
+      Utl::haveCmds()(cmd, CmdSig::TAB, CmdSig::DELETE) ||
+      Utl::haveCmds()(cmd, CmdSig::TAB, CmdSig::CHANGE) ? -1: m_bid_;
   return true;
 }
 
@@ -242,16 +249,20 @@ auto Core::UpdateBookData(T_cmd cmd, T_book_i book_i, T_arg arg,
   case CmdSig::BOOK_ADD:
     bid = BooksToAdd()(m_books_.data(), m_labels_.data(), m_memos_.data(),
                        m_tid_, arg.toString(), text);
+    (*m_stats_)[m_tid_] = false;
     break;
   case CmdSig::BOOK_DELETE:
     bid = BooksToRemove()(m_books_.data(), m_labels_.data(), m_tid_, book_i);
+    (*m_stats_)[m_tid_] = false;
     break;
   case CmdSig::BOOK_RENAME:
     bid = BooksToRename()(m_books_.data(), m_labels_.data(), m_tid_,
                           book_i, arg.toString());
+    (*m_stats_)[m_tid_] = false;
     break;
   case CmdSig::BOOK_MOVE:
     bid = BooksToMove()(m_books_.data(), m_tid_, book_i, arg.toInt());
+    (*m_stats_)[m_tid_] = false;
     break;
   case CmdSig::BOOK_CHANGE:
     bid = bookIdFetched()(m_books_.data(), m_tid_, book_i, -1);
@@ -259,6 +270,7 @@ auto Core::UpdateBookData(T_cmd cmd, T_book_i book_i, T_arg arg,
   case CmdSig::BOOK_SORT:
     bid = BooksToSort()(m_books_.data(), m_labels_.data(), m_tid_,
                         static_cast<Qt::SortOrder>(arg.toInt()));
+    (*m_stats_)[m_tid_] = false;
     break;
   default:
     break;
@@ -344,11 +356,16 @@ void Core::Update(T_cmd cmd, T_index index, const T_text& text, T_arg arg)
       break;
     }
     emit statusUpdated(msg);
-    if (Utl::hasCmd()(cmd, CmdSig::TAB)) {
-      auto fname = labelFetched()(m_labels_.data(), m_tid_);
-      emit fileUpdated(fname);
-    }
+    emit fileUpdated(m_labels_->value(m_tid_), m_stats_->value(m_tid_));
   }
+}
+
+void Core::ModifyMemo()
+{
+  if (m_tid_ < 0) return;
+
+  (*m_stats_)[m_tid_] = false;
+  emit fileUpdated(m_labels_->value(m_tid_), m_stats_->value(m_tid_));
 }
 
 void Core::LoadData(const T_fname& fname, T_tab_i tab_i, const T_text& text)
@@ -398,9 +415,10 @@ void Core::LoadData(const T_fname& fname, T_tab_i tab_i, const T_text& text)
   // tab change
   UpdateTabData(CmdSig::TAB_CHANGE, m_tids_->count() - 1, QVariant(0));
   OutputData(m_tid_, m_bid_);
+  (*m_stats_)[m_tid_] = true;
 
   // notify
-  emit fileUpdated(fname_);
+  emit fileUpdated(fname_, m_stats_->value(m_tid_));
   emit statusUpdated("File loaded ...");
 }
 
@@ -445,9 +463,10 @@ void Core::SaveData(const T_fname& fname, T_tab_i tab_i, const T_text& text)
   // rename tab
   UpdateTabData(CmdSig::TAB_RENAME, tab_i, QVariant(fname_));
   OutputData(m_tid_, m_bid_);
+  (*m_stats_)[m_tid_] = true;
 
   // notify
-  emit fileUpdated(fname_);
+  emit fileUpdated(fname_, m_stats_->value(m_tid_));
   emit statusUpdated("File saved ...");
 }
 

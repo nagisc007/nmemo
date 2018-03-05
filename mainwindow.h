@@ -36,6 +36,7 @@ public:
 
 signals:
   void updated(T_cmd, T_index, T_text, T_arg);
+  void edited();
   void loaded(T_fname, T_tab_i, T_text);
   void saved(T_fname, T_tab_i, T_text);
 
@@ -45,7 +46,7 @@ public slots:
   void outputToBookList(T_book_i, T_booknames);
   void outputToEditor(T_stat, const T_memo&);
   void updateStatus(const QString&);
-  void updateFile(const T_fname&);
+  void updateFile(const T_fname&, T_isUpdated);
   /* for tab */
   void AddTab();
   void DeleteTab(int);
@@ -61,6 +62,7 @@ public slots:
   void DoubleClickBook(QListWidgetItem*);
   void SortBook(T_order);
   /* for memo */
+  void ChangeTextInMemo();
 
 private slots:
   /* menus: File */

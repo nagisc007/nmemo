@@ -58,6 +58,11 @@ struct hasCmd
   bool operator ()(T_cmd, T_cmd);
 };
 
+struct haveCmds
+{
+  bool operator ()(T_cmd, T_cmd, T_cmd);
+};
+
 /* functors: QFileInfo */
 struct baseNameFetched
 {
