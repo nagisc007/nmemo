@@ -11,7 +11,7 @@ namespace APP {
 
 /* version */
 const int Version::MAJOR = 1;
-const int Version::MINOR = 1;
+const int Version::MINOR = 2;
 const int Version::MICRO = 0;
 
 /* application info */
