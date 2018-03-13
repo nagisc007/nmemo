@@ -9,11 +9,9 @@
 #define MAINWINDOW_H
 
 #include "core.h"
+#include "memowidget.h"
 
 #include <QMainWindow>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QWidget>
 
 namespace Ui {
 class MainWindow;
@@ -35,34 +33,31 @@ public:
   /* methods: features */
 
 signals:
-  void updated(T_cmd, T_index, T_text, T_arg);
-  void edited();
-  void loaded(T_fname, T_tab_i, T_text);
-  void saved(T_fname, T_tab_i, T_text);
+  void asTabData(T_cmd, T_tab_i, T_arg);
+  void asBookData(T_cmd, T_book_i, T_arg);
+  void asMemoData(T_text, T_stat);
+  void asFileData(T_cmd, T_path);
 
 public slots:
   /* for output */
-  void outputToTab(T_tab_i, T_tabnames);
-  void outputToBookList(T_book_i, T_booknames);
-  void outputToEditor(T_stat, const T_memo&);
-  void updateStatus(const QString&);
-  void updateFile(const T_fname&, T_isUpdated);
+  void ToTabBar(T_cmd, T_tab_i, T_tabnames, T_statset);
+  void ToBookList(T_cmd, T_book_i, T_booknames);
+  void ToEditor(T_cmd, T_stat, const T_text&);
+  void ToTitleBar(const T_title&);
+  void ToStatusBar(const T_msg&);
   /* for tab */
-  void AddTab();
-  void DeleteTab(int);
-  void ChangeTab(int);
-  void MoveTab(int, int);
-  void RenameTab();
+  void OnAddTab();
+  void OnDeleteTab(int);
+  void OnChangeTab(int);
+  void OnMoveTab(int, int);
   /* for book */
-  void AddBook();
-  void DeleteBook(int);
-  void ChangeBook(int);
-  void MoveBook(int, int);
-  void RenameBook();
-  void DoubleClickBook(QListWidgetItem*);
-  void SortBook(T_order);
+  void OnAddBook();
+  void OnDeleteBook(int);
+  void OnChangeBook(int);
+  void OnMoveBook(int, int);
+  void OnRenameBook(T_item*);
+  void OnSortBook(T_order);
   /* for memo */
-  void ChangeTextInMemo();
 
 private slots:
   /* menus: File */
@@ -72,9 +67,6 @@ private slots:
   void on_actSave_triggered();
   void on_actSaveAs_triggered();
   void on_actQuit_triggered();
-  /* menus: Help */
-  void on_actAboutQt_triggered();
-  void on_actAboutApp_triggered();
   /* menus: Edit */
   void on_actUndo_triggered();
   void on_actRedo_triggered();
@@ -97,18 +89,18 @@ private slots:
   void on_actPreviousTab_triggered();
   void on_actNextBook_triggered();
   void on_actPreviousBook_triggered();
+  /* menus: Help */
+  void on_actAboutQt_triggered();
+  void on_actAboutApp_triggered();
 
 private:
   Ui::MainWindow *ui;
-  bool is_booklist_updating_;
-  bool is_editor_updating_;
-  bool is_tab_updating_;
+  bool m_tab_updated;
+  bool m_booklist_updated;
+  bool m_memo_updated;
+  T_filter m_selected;
   QMutex mutex_;
-  T_fname filename_;
-  T_filter selected_;
-  QScopedPointer<QListWidget> booklist_;
-  QScopedPointer<QTextEdit> editor_;
-  QScopedPointer<QTabBar> tab_;
+  QScopedPointer<Nmemo::MemoWidget> memo_;
   QScopedPointer<Nmemo::Core> core_;
 };
 
