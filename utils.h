@@ -9,6 +9,7 @@
 #define UTILS_H
 
 #include "common_types.h"
+#include "common_values.h"
 
 #include <QColor>
 #include <QDebug>
@@ -38,6 +39,13 @@ namespace Cmd {
 bool Exists(const T_cmd, const T_cmd);
 
 }  // ns Utl::Cmd
+/* process: id */
+namespace ID {
+
+T_id Allocate(QStack<T_id>*, T_id*);
+bool Release(QStack<T_id>*, const T_id);
+
+}  // ns Utl::ID
 namespace Path {
 namespace Load {
 
@@ -57,11 +65,60 @@ T_name Input(QWidget*,
 
 }  // ns Utl::Name
 
+/* process: list */
+namespace List {
+
+template<typename T>
+int Valid(const QList<T>*, const int);
+
+template<typename T>
+T Fetch(const QList<T>*, const int, const T);
+
+template<typename T>
+QList<T> Add(const QList<T>*, const T);
+
+template<typename T>
+QList<T> Delete(const QList<T>*, const T);
+
+template<typename T>
+QList<T> Move(const QList<T>*, const int, const int);
+
+template<typename T>
+bool Merge(QList<T>*, QList<T>&);
+
+namespace Index {
+
+template<typename T>
+int Fetch(const QList<T>*, const T);
+
+}  // ns Utl::List::Index
+}  // ns Utl::List
+
+/* process: Map */
+namespace Map {
+
+template<typename S, typename T>
+QList<T> Filter(const QMap<S, T>*, const QList<S>*);
+
+template<typename S, typename T>
+QMap<S, T> Add(const QMap<S, T>*, const S, const T);
+
+template<typename S, typename T>
+QMap<S, T> Delete(const QMap<S, T>*, const S);
+
+template<typename S, typename T>
+QMap<S, T> Edit(const QMap<S, T>*, const S, const T);
+
+template<typename S, typename T>
+bool Merge(QMap<S, T>*, QMap<S, T>&);
+
+}  // ns Utl::Map
+
 namespace Widget {
 namespace Names {
 
 template<typename T>
-T_strs Merge(T*, T_strs);
+bool Merge(T*, const T_strs*);
 
 }  // ns Utl::Widget::Names
 }  // ns Utl::Widget

@@ -47,7 +47,7 @@ T_stat New(const Core*);
 }  // ns Tabs::Stat
 namespace Ids {
 
-T_tids Fetch(const Core*);
+T_tids* Fetch(const Core*);
 T_tids Add(const Core*, const T_tid);
 T_tids Delete(Core*, const T_tid);
 T_tids Move(const Core*, const T_index, const T_index);
@@ -57,10 +57,10 @@ bool Merge(Core*, T_tids);
 namespace Names {
 
 T_tabnames Fetch(const Core*);
-T_tabnames Add(const Core*, const T_tid, const T_path&);
-T_tabnames Delete(const Core*, const T_tid);
-T_tabnames Edit(const Core*, const T_tid, const T_path&);
-bool Merge(Core*, T_tabnames);
+T_strset Add(const Core*, const T_tid, const T_path&);
+T_strset Delete(const Core*, const T_tid);
+T_strset Edit(const Core*, const T_tid, const T_path&);
+bool Merge(Core*, T_strset);
 
 }  // ns Tabs::Names
 namespace Stats {

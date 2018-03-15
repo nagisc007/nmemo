@@ -55,25 +55,25 @@ auto MainWindow::InitWidgets() -> bool
 
 auto MainWindow::InitActions() -> bool
 {
-  /*connect(memo->tabbar.data(), &QTabBar::currentChanged, this, &MainWindow::OnChangeTab);
-  connect(memo->tabbar.data(), &QTabBar::tabCloseRequested, this, &MainWindow::OnDeleteTab);
-  connect(memo->tabbar.data(), &QTabBar::tabMoved, this, &MainWindow::OnMoveTab);
-  connect(memo->booklist.data(), &QListWidget::currentRowChanged,
-          this, &MainWindow::OnChangeBook);
-  connect(memo->booklist.data(), &QListWidget::itemDoubleClicked,
-          this, &MainWindow::OnRenameBook);
+  //connect(memo->tabbar.data(), &QTabBar::currentChanged, this, &MainWindow::OnChangeTab);
+  //connect(memo->tabbar.data(), &QTabBar::tabCloseRequested, this, &MainWindow::OnDeleteTab);
+  //connect(memo->tabbar.data(), &QTabBar::tabMoved, this, &MainWindow::OnMoveTab);
+  //connect(memo->booklist.data(), &QListWidget::currentRowChanged,
+  //        this, &MainWindow::OnChangeBook);
+  //connect(memo->booklist.data(), &QListWidget::itemDoubleClicked,
+  //        this, &MainWindow::OnRenameBook);
   //connect(memo->editor.data(), &QTextEdit::textChanged, this, &MainWindow::ChangeTextInMemo);
   connect(this, &MainWindow::asTabData, core.data(), &Nmemo::Core::ToTabData);
-  connect(this, &MainWindow::asBookData, core.data(), &Nmemo::Core::ToBookData);
-  connect(this, &MainWindow::asMemoData, core.data(), &Nmemo::Core::ToMemoData);
-  connect(this, &MainWindow::asFileData, core.data(), &Nmemo::Core::ToFileData);
+  //connect(this, &MainWindow::asBookData, core.data(), &Nmemo::Core::ToBookData);
+  //connect(this, &MainWindow::asMemoData, core.data(), &Nmemo::Core::ToMemoData);
+  //connect(this, &MainWindow::asFileData, core.data(), &Nmemo::Core::ToFileData);
   connect(core.data(), &Nmemo::Core::asTabBarData, this, &MainWindow::ToTabBar);
-  connect(core.data(), &Nmemo::Core::asBookListData, this, &MainWindow::ToBookList);
-  connect(core.data(), &Nmemo::Core::asEditorData, this, &MainWindow::ToEditor);
-  connect(core.data(), &Nmemo::Core::asFileData,
-          this, &MainWindow::on_actSaveAs_triggered);
-  connect(core.data(), &Nmemo::Core::asStatusData, this, &MainWindow::ToStatusBar);
-  connect(core.data(), &Nmemo::Core::asTitleData, this, &MainWindow::ToTitleBar);*/
+  //connect(core.data(), &Nmemo::Core::asBookListData, this, &MainWindow::ToBookList);
+  //connect(core.data(), &Nmemo::Core::asEditorData, this, &MainWindow::ToEditor);
+  //connect(core.data(), &Nmemo::Core::asFileData,
+  //        this, &MainWindow::on_actSaveAs_triggered);
+  //connect(core.data(), &Nmemo::Core::asStatusData, this, &MainWindow::ToStatusBar);
+  //connect(core.data(), &Nmemo::Core::asTitleData, this, &MainWindow::ToTitleBar);
   return true;
 }
 
@@ -83,9 +83,11 @@ auto MainWindow::InitActions() -> bool
 void MainWindow::ToTabBar(T_cmd cmd, T_tab_i tab_i, T_tabnames tabnames,
                           T_stats stats)
 {
+  qDebug() << "catch tab";
   mutex.lock();
   m_tab_updated = false;
   if (Utl::Cmd::Exists(cmd, Cmd::NAMES)) {
+    qDebug() << "update names" << tab_i;
     Nmemo::TabBar::Names::Merge(memo.data(), tabnames);
     Nmemo::TabBar::State::Merge(memo.data(), stats);
   }

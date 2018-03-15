@@ -59,11 +59,32 @@ Core::~Core()
   qDebug() << "Core: destructed";
 }
 
+/* process: output */
+void Core::OutputTabBar()
+{
+  qDebug() << "emit tab";
+  emit asTabBarData(Cmd::INDEX_NAMES,
+                    Tabs::Index::Fetch(this, m_tid),
+                    Tabs::Names::Fetch(this),
+                    Tabs::Stats::Fetch(this));
+}
+
+void Core::OutputBookList()
+{
+
+}
+
+void Core::OutputEditor()
+{
+
+}
+
 /* slots */
 void Core::ToTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg)
 {
   if (Tabs::Data::Update(this, cmd, tab_i, arg) &&
       Tabs::Status::Update(this, cmd, tab_i, arg)) {
+    OutputTabBar();
     qDebug() << "Tab updated";
   }
 }

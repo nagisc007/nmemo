@@ -6,7 +6,7 @@
  *                                                                         *
  ***************************************************************************/
 #include "tabs.h"
-
+#include "core.h"
 namespace Nmemo {
 /* process: tabs */
 namespace Tabs {
@@ -14,17 +14,17 @@ namespace Id {
 
 auto Fetch(const Core* c, const T_tab_i tab_i) -> T_tid
 {
-  return -1;
+  return Utl::List::Fetch<T_tid>(c->m_tids.data(), tab_i, -1);
 }
 
 auto Last(const Core* c) -> T_tid
 {
-  return -1;
+  return Utl::List::Fetch<T_tid>(c->m_tids.data(), c->m_tids->count() - 1, -1);
 }
 
 auto New(Core* c) -> T_tid
 {
-  return -1;
+  return Utl::ID::Allocate(c->m_idpool.data(), &c->m_next_id);
 }
 
 }  // ns Tabs::Id
@@ -32,11 +32,12 @@ namespace CurrentId {
 
 auto Fetch(const Core* c) -> T_tid
 {
-  return -1;
+  return c->m_tid;
 }
 
 auto Merge(Core* c, const T_tid tid) -> bool
 {
+  c->m_tid = tid;
   return true;
 }
 
@@ -45,7 +46,7 @@ namespace Index {
 
 auto Fetch(const Core* c, const T_tid tid) -> T_tab_i
 {
-  return -1;
+  return Utl::List::Index::Fetch<T_tid>(c->m_tids.data(), tid);
 }
 
 }  // ns Tabs::Index
@@ -53,7 +54,8 @@ namespace Name {
 
 auto New(const Core* c) -> T_path
 {
-  return T_path();
+  Q_UNUSED(c);
+  return T_path(VALUE::DEFAULT_FILENAME);
 }
 
 }  // ns Tabs::Name
@@ -61,36 +63,38 @@ namespace Stat {
 
 auto New(const Core* c) -> T_stat
 {
-  return true;
+  Q_UNUSED(c);
+
+  return false;
 }
 
 }  // ns Tabs::Stat
 namespace Ids {
 
-auto Fetch(const Core* c) -> T_tids
+auto Fetch(const Core* c) -> T_tids*
 {
-  return T_tids();
+  return c->m_tids.data();
 }
 
 auto Add(const Core* c, const T_tid tid) -> T_tids
 {
-  return T_tids();
+  return Utl::List::Add<T_tid>(c->m_tids.data(), tid);
 }
 
 auto Delete(Core* c, const T_tid tid) -> T_tids
 {
-  return T_tids();
+  Utl::ID::Release(c->m_idpool.data(), tid);
+  return Utl::List::Delete<T_tid>(c->m_tids.data(), tid);
 }
 
 auto Move(const Core* c, const T_index from, const T_index to) -> T_tids
 {
-  return T_tids();
+  return Utl::List::Move<T_tid>(c->m_tids.data(), from, to);
 }
 
 auto Merge(Core* c, T_tids tids) -> bool
 {
-  // merge tids
-  return true;
+  return Utl::List::Merge<T_tid>(c->m_tids.data(), tids);
 }
 
 }  // ns Tabs::Ids
@@ -98,27 +102,27 @@ namespace Names {
 
 auto Fetch(const Core* c) -> T_tabnames
 {
-  return T_tabnames();
+  return Utl::Map::Filter<T_tid, T_path>(c->m_labels.data(), c->m_tids.data());
 }
 
-auto Add(const Core* c, const T_tid tid, const T_path& path) -> T_tabnames
+auto Add(const Core* c, const T_tid tid, const T_path& path) -> T_strset
 {
-  return T_tabnames();
+  return Utl::Map::Add<T_tid, T_path>(c->m_labels.data(), tid, path);
 }
 
-auto Delete(const Core* c, const T_tid tid) -> T_tabnames
+auto Delete(const Core* c, const T_tid tid) -> T_strset
 {
-  return T_tabnames();
+  return Utl::Map::Delete<T_tid, T_path>(c->m_labels.data(), tid);
 }
 
-auto Edit(const Core* c, const T_tid tid, const T_path& path) -> T_tabnames
+auto Edit(const Core* c, const T_tid tid, const T_path& path) -> T_strset
 {
-  return T_tabnames();
+  return Utl::Map::Edit<T_tid, T_path>(c->m_labels.data(), tid, path);
 }
 
-auto Merge(Core* c, T_tabnames tabnames) -> bool
+auto Merge(Core* c, T_strset strset) -> bool
 {
-  return true;
+  return Utl::Map::Merge<T_tid, T_path>(c->m_labels.data(), strset);
 }
 
 }  // ns Tabs::Names
@@ -126,27 +130,27 @@ namespace Stats {
 
 auto Fetch(const Core* c) -> T_stats
 {
-  return T_stats();
+  return Utl::Map::Filter<T_tid, T_stat>(c->m_statset.data(), c->m_tids.data());
 }
 
 auto Add(const Core* c, T_tid tid, T_stat stat) -> T_statset
 {
-  return T_statset();
+  return Utl::Map::Add<T_tid, T_stat>(c->m_statset.data(), tid, stat);
 }
 
 auto Delete(const Core* c, T_tid tid) -> T_statset
 {
-  return T_statset();
+  return Utl::Map::Delete<T_tid, T_stat>(c->m_statset.data(), tid);
 }
 
 auto Edit(const Core* c, const T_tid tid, const T_stat stat) -> T_statset
 {
-  return T_statset();
+  return Utl::Map::Edit<T_tid, T_stat>(c->m_statset.data(), tid, stat);
 }
 
 auto Merge(Core* c, T_statset statset) -> bool
 {
-  return true;
+  return Utl::Map::Merge<T_tid, T_stat>(c->m_statset.data(), statset);
 }
 
 }  // ns Tabs::Stats

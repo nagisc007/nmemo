@@ -37,6 +37,10 @@ public:
   T_stat m_editor_enabled;
   T_id m_next_id;
   QScopedPointer<QStack<T_id>> m_idpool;
+  /* process: output */
+  void OutputTabBar();
+  void OutputBookList();
+  void OutputEditor();
 
 signals:
   void asTabBarData(T_cmd, T_tab_i, T_tabnames, T_stats);
