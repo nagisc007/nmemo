@@ -55,9 +55,9 @@ auto MainWindow::InitWidgets() -> bool
 
 auto MainWindow::InitActions() -> bool
 {
-  //connect(memo->tabbar.data(), &QTabBar::currentChanged, this, &MainWindow::OnChangeTab);
-  //connect(memo->tabbar.data(), &QTabBar::tabCloseRequested, this, &MainWindow::OnDeleteTab);
-  //connect(memo->tabbar.data(), &QTabBar::tabMoved, this, &MainWindow::OnMoveTab);
+  connect(memo->tabbar.data(), &QTabBar::currentChanged, this, &MainWindow::OnChangeTab);
+  connect(memo->tabbar.data(), &QTabBar::tabCloseRequested, this, &MainWindow::OnDeleteTab);
+  connect(memo->tabbar.data(), &QTabBar::tabMoved, this, &MainWindow::OnMoveTab);
   //connect(memo->booklist.data(), &QListWidget::currentRowChanged,
   //        this, &MainWindow::OnChangeBook);
   //connect(memo->booklist.data(), &QListWidget::itemDoubleClicked,
