@@ -26,11 +26,22 @@ public:
   /* con[de]structor */
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
-  /* values */
+  /* members */
+  Ui::MainWindow *ui;
+  bool m_tab_updated;
+  bool m_booklist_updated;
+  bool m_memo_updated;
+  bool m_status_updated;
+  bool m_title_updated;
+  T_filter m_selected;
+  T_dirname m_dirname;
+  T_msgtime m_time;
+  QMutex mutex;
+  QScopedPointer<Nmemo::MemoWidget> memo;
+  QScopedPointer<Nmemo::Core> core;
   /* methods: base */
   bool InitWidgets();
   bool InitActions();
-  /* methods: features */
 
 signals:
   void asTabData(T_cmd, T_tab_i, T_arg);
@@ -40,7 +51,7 @@ signals:
 
 public slots:
   /* for output */
-  void ToTabBar(T_cmd, T_tab_i, T_tabnames, T_statset);
+  void ToTabBar(T_cmd, T_tab_i, T_tabnames, T_stats);
   void ToBookList(T_cmd, T_book_i, T_booknames);
   void ToEditor(T_cmd, T_stat, const T_text&);
   void ToTitleBar(const T_title&);
@@ -55,7 +66,7 @@ public slots:
   void OnDeleteBook(int);
   void OnChangeBook(int);
   void OnMoveBook(int, int);
-  void OnRenameBook(T_item*);
+  void OnRenameBook(const T_item*);
   void OnSortBook(T_order);
   /* for memo */
 
@@ -92,16 +103,31 @@ private slots:
   /* menus: Help */
   void on_actAboutQt_triggered();
   void on_actAboutApp_triggered();
-
-private:
-  Ui::MainWindow *ui;
-  bool m_tab_updated;
-  bool m_booklist_updated;
-  bool m_memo_updated;
-  T_filter m_selected;
-  QMutex mutex_;
-  QScopedPointer<Nmemo::MemoWidget> memo_;
-  QScopedPointer<Nmemo::Core> core_;
 };
+
+/* process: titlebar */
+namespace TitleBar {
+
+T_title Fetch(const MainWindow*);
+bool Merge(MainWindow*, const T_title&);
+
+}  // ns TitleBar
+
+/* process: statusbar */
+namespace StatusBar {
+namespace Message {
+
+T_msg Fetch(const MainWindow*);
+bool Merge(MainWindow*, const T_msg&);
+
+}  // ns StatusBar::Message
+
+namespace Time {
+
+T_msgtime Fetch(const MainWindow*);
+bool Merge(MainWindow*, const T_msgtime);
+
+}  // ns StatusBar::Time
+}  // ns StatusBar
 
 #endif // MAINWINDOW_H

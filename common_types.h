@@ -57,6 +57,8 @@ enum class Cmd {
   FILE_LOAD = FILE | LOAD,
   FILE_SAVE = FILE | SAVE,
   FILE_SAVEAS = FILE | SAVEAS,
+  INDEX_ONLY = INDEX,
+  INDEX_NAMES = INDEX | NAMES,
 };
 
 /* defines: common (base) */
@@ -72,7 +74,9 @@ using T_ext = T_text;
 using T_filter = T_text;
 using T_item = QListWidgetItem;
 using T_msg = T_text;
+using T_msgtime = int;
 using T_name = T_text;
+using T_dirname = T_text;
 using T_order = Qt::SortOrder;
 using T_path = T_text;  // =filename
 using T_title = T_text;
@@ -90,6 +94,7 @@ using T_book_i = T_index;
 using T_tid = T_id;
 using T_bid = T_id;
 using T_idset = QPair<T_tid, T_bid>;
+using T_stats = QList<T_stat>;
 using T_statset = QMap<T_id, T_stat>;
 using T_tabnames = T_strs;
 using T_booknames = T_strs;

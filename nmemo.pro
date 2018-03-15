@@ -32,7 +32,10 @@ SOURCES += \
     core.cc \
     common_values.cc \
     memowidget.cc \
-    core_utils.cc
+    tabs.cc \
+    books.cc \
+    memos.cc \
+    files.cc
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +44,10 @@ HEADERS += \
     core.h \
     common_values.h \
     memowidget.h \
-    core_utils.h
+    tabs.h \
+    books.h \
+    memos.h \
+    files.h
 
 FORMS += \
         mainwindow.ui

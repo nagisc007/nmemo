@@ -30,14 +30,82 @@ public:
   QScopedPointer<QListWidget> booklist;
   QScopedPointer<QTextEdit> editor;
   QScopedPointer<QTabBar> tabbar;
-  /* processes: tabbar */
-  T_tab_i TabBar_Fetch();
-  using TabBar::Fetch = TabBar_Fetch;
 
 signals:
 
 public slots:
 };
+
+/* process */
+namespace TabBar {
+
+bool Exists(MemoWidget*);
+
+namespace Index {
+
+T_tab_i Fetch(MemoWidget*);
+T_tab_i Merge(MemoWidget*, T_tab_i);
+
+}  // ns TabBar::Index
+namespace Names {
+
+T_tabnames Fetch(MemoWidget*);
+bool Merge(MemoWidget*, T_tabnames);
+
+}  // ns TabBar::Names
+namespace State {
+
+bool Merge(MemoWidget*, T_stats);
+
+}  // ns TabBar::State
+
+}  // ns TabBar
+
+namespace BookList {
+namespace Index {
+
+T_book_i Fetch(MemoWidget*);
+T_book_i Merge(MemoWidget*, T_book_i);
+
+}  // ns BookList::Index
+namespace Names {
+
+T_booknames Fetch(MemoWidget*);
+bool Merge(MemoWidget*, T_booknames);
+
+}  // ns BookList::Names
+namespace Item {
+
+T_item* Fetch(const MemoWidget*);
+
+}  // ns BookList::Item
+}  // ns BookList
+
+namespace Editor {
+namespace Act {
+
+void Redo(MemoWidget*);
+void Undo(MemoWidget*);
+void Cut(MemoWidget*);
+void Copy(MemoWidget*);
+void Paste(MemoWidget*);
+void Erase(MemoWidget*);
+void SelectAll(MemoWidget*);
+
+}  // ns Editor::Act
+namespace State {
+
+T_stat Fetch(MemoWidget*);
+T_stat Merge(MemoWidget*, T_stat);
+
+}  // ns Editor::State
+namespace Text {
+
+T_text Fetch(MemoWidget*);
+T_text Merge(MemoWidget*, const T_text&);
+
+}  // ns Editor::Text
+}  // ns Editor
 
 }  // namespace Nmemo
 
