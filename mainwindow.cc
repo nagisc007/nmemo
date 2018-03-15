@@ -20,9 +20,9 @@ MainWindow::MainWindow(QWidget *parent) :
   m_memo_updated(true),
   m_status_updated(true),
   m_title_updated(true),
-  m_selected(Nmemo::Values::DEFAULT_SELECTED_FILTER),
+  m_selected(Nmemo::VALUE::DEFAULT_SELECTED_FILTER),
   m_dirname(QDir::currentPath()),
-  m_time(Nmemo::Values::STATUS_MESSAGE_TIME),
+  m_time(Nmemo::VALUE::STATUS_MESSAGE_TIME),
   memo(new Nmemo::MemoWidget()),
   core(new Nmemo::Core())
 {
@@ -149,7 +149,7 @@ void MainWindow::ToTitleBar(const T_title& title)
 void MainWindow::OnAddTab()
 {
   if (!m_tab_updated) return;
-  emit asTabData(Cmd::TAB_ADD, -1, QVariant(Nmemo::Values::DEFAULT_FILENAME));
+  emit asTabData(Cmd::TAB_ADD, -1, QVariant(Nmemo::VALUE::DEFAULT_FILENAME));
 }
 
 void MainWindow::OnDeleteTab(int index)
@@ -174,11 +174,11 @@ void MainWindow::OnMoveTab(int from, int to)
 void MainWindow::OnAddBook()
 {
   if (!m_booklist_updated || !Nmemo::TabBar::Exists(memo.data())) return;
-  auto name = Utl::Name::Input(this, Nmemo::Values::GET_BOOK_TITLE,
-                                 Nmemo::Values::GET_BOOK_CAPTION,
-                                 Nmemo::Values::DEFAULT_BOOK_NAME);
+  auto name = Utl::Name::Input(this, Nmemo::VALUE::GET_BOOK_TITLE,
+                                 Nmemo::VALUE::GET_BOOK_CAPTION,
+                                 Nmemo::VALUE::DEFAULT_BOOK_NAME);
   emit asBookData(Cmd::BOOK_ADD, -1,
-                  QVariant(name == "" ? Nmemo::Values::DEFAULT_BOOK_NAME: name));
+                  QVariant(name == "" ? Nmemo::VALUE::DEFAULT_BOOK_NAME: name));
 }
 
 void MainWindow::OnDeleteBook(int index)
@@ -203,8 +203,8 @@ void MainWindow::OnRenameBook(const QListWidgetItem* item)
 {
   if (!m_booklist_updated || !Nmemo::TabBar::Exists(memo.data())) return;
   if (!item) return;
-  auto name = Utl::Name::Input(this, Nmemo::Values::GET_BOOK_TITLE,
-                                 Nmemo::Values::GET_BOOK_CAPTION,
+  auto name = Utl::Name::Input(this, Nmemo::VALUE::GET_BOOK_TITLE,
+                                 Nmemo::VALUE::GET_BOOK_CAPTION,
                                  item->text());
   emit asBookData(Cmd::BOOK_RENAME, Nmemo::BookList::Index::Fetch(memo.data()),
                   QVariant(name == "" ? item->text(): name));
@@ -229,8 +229,8 @@ void MainWindow::on_actNew_triggered()
 void MainWindow::on_actOpen_triggered()
 {
   auto dir = QDir::currentPath();
-  auto path = Utl::Path::Load::Input(this, Nmemo::Values::LOAD_FILE_CAPTION, m_dirname,
-                                    Nmemo::Values::FILE_FILTER, &m_selected);
+  auto path = Utl::Path::Load::Input(this, Nmemo::VALUE::LOAD_FILE_CAPTION, m_dirname,
+                                    Nmemo::VALUE::FILE_FILTER, &m_selected);
   if (path.isEmpty()) return;
   m_dirname = QDir::currentPath();
   emit asFileData(Cmd::FILE_LOAD, path);
@@ -248,9 +248,9 @@ void MainWindow::on_actSave_triggered()
 
 void MainWindow::on_actSaveAs_triggered()
 {
-  auto path = Utl::Path::Save::Input(this, Nmemo::Values::SAVE_FILE_CAPTION,
+  auto path = Utl::Path::Save::Input(this, Nmemo::VALUE::SAVE_FILE_CAPTION,
                                     m_dirname,
-                                    Nmemo::Values::FILE_FILTER, &m_selected);
+                                    Nmemo::VALUE::FILE_FILTER, &m_selected);
   if (path.isEmpty()) return;
   emit asFileData(Cmd::FILE_SAVEAS, path);
 }
@@ -389,14 +389,14 @@ void MainWindow::on_actAboutQt_triggered()
 void MainWindow::on_actAboutApp_triggered()
 {
   auto title = QString("About %1")
-      .arg(APP::Values::NAME);
+      .arg(APP::VALUE::NAME);
   auto msg = QString("<h3>About %1 %2</h3><p>%3<br>Licensed by %4.<br>%5</p><p>%6</p>")
-      .arg(APP::Values::NAME)
-      .arg(APP::Values::VERSION)
-      .arg(APP::Values::DESCRIPTION)
-      .arg(APP::Values::LICENSE)
-      .arg(APP::Values::COPYRIGHT)
-      .arg(APP::Values::AUTHORS);
+      .arg(APP::VALUE::NAME)
+      .arg(APP::VALUE::VERSION)
+      .arg(APP::VALUE::DESCRIPTION)
+      .arg(APP::VALUE::LICENSE)
+      .arg(APP::VALUE::COPYRIGHT)
+      .arg(APP::VALUE::AUTHORS);
   QMessageBox::about(this, title, msg);
 }
 

@@ -18,17 +18,17 @@ MemoWidget::MemoWidget(QWidget *parent) : QWidget(parent),
   // props
   tabbar->setMovable(true);
   tabbar->setTabsClosable(true);
-  booklist->setMaximumWidth(Props::BOOKLIST_MAX_WIDTH);
+  booklist->setMaximumWidth(PROP::BOOKLIST_MAX_WIDTH);
   editor->setReadOnly(true);
-  editor->setTabStopDistance(Props::EDIT_TAB_DISTANCE);
+  editor->setTabStopDistance(PROP::EDIT_TAB_DISTANCE);
   // layout
-  auto mainLayout = new QVBoxLayout(this);
-  auto subLayout = new QHBoxLayout(this);
-  setLayout(mainLayout);
-  mainLayout->addWidget(tabbar.data());
-  mainLayout->addLayout(subLayout);
+  auto mainLayout = new QVBoxLayout();
+  auto subLayout = new QHBoxLayout();
   subLayout->addWidget(editor.data());
   subLayout->addWidget(booklist.data());
+  mainLayout->addWidget(tabbar.data());
+  mainLayout->addLayout(subLayout);
+  setLayout(mainLayout);
   qDebug() << "MemoWidget: constructed";
 }
 

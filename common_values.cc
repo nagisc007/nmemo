@@ -9,49 +9,60 @@
 
 namespace APP {
 
-/* version */
-const int Version::MAJOR = 1;
-const int Version::MINOR = 2;
-const int Version::MICRO = 0;
+namespace VERSION {
 
-/* application info */
-const QString Values::AUTHORS = "N.T.Works";
-const QString Values::NAME = "Nmemo";
-const QString Values::VERSION = QString("%1.%2.%3")
-    .arg(QString::number(Version::MAJOR))
-    .arg(QString::number(Version::MINOR))
-    .arg(QString::number(Version::MICRO));
-const QString Values::DESCRIPTION = "Nmemo is a simple memo editor by Qt.";
-const QString Values::LICENSE = "GNU GENERAL PUBLIC LICENSE Version 3";
-const QString Values::COPYRIGHT = "Copyright (c) 2018";
+const int MAJOR = 1;
+const int MINOR = 2;
+const int MICRO = 0;
 
-}  // namespace APP
+}  // ns APP::VERSION
+
+namespace VALUE {
+
+const QString AUTHORS = "N.T.Works";
+const QString NAME = "Nmemo";
+const QString VERSION = QString("%1.%2.%3")
+    .arg(QString::number(VERSION::MAJOR))
+    .arg(QString::number(VERSION::MINOR))
+    .arg(QString::number(VERSION::MICRO));
+const QString DESCRIPTION = "Nmemo is a simple memo editor by Qt.";
+const QString LICENSE = "GNU GENERAL PUBLIC LICENSE Version 3";
+const QString COPYRIGHT = "Copyright (c) 2018";
+
+}  // ns APP::VALUE
+
+}  // ns APP
 
 namespace Nmemo {
 
-/* props: booklist */
-const int Props::BOOKLIST_MAX_WIDTH = 120;
-const qreal Props::EDIT_TAB_DISTANCE = 40;  // pixels
+namespace PROP {
+
+const int BOOKLIST_MAX_WIDTH = 120;
+const qreal EDIT_TAB_DISTANCE = 40;  // pixels
+
+}  // ns Nmemo::PROP
+
+namespace VALUE {
 
 /* save info */
-const QString Values::SAVE_PREFIX = "__NMEMO_DATA__";
-const QString Values::SAVE_VERSION = "1";
+const QString SAVE_PREFIX = "__NMEMO_DATA__";
+const QString SAVE_VERSION = "1";
 
 /* for files */
-const QString Values::FILE_EXT = "memo";
-const QString Values::DEFAULT_FILENAME = "Undefined";
-const QString Values::LOAD_FILE_CAPTION = "Load file";
-const QString Values::SAVE_FILE_CAPTION = "Save file";
-const QString Values::FILE_FILTER = "Memo file (*.memo);;All Files (*)";
-const QString Values::DEFAULT_SELECTED_FILTER = "Memo file (*.memo)";
+const QString FILE_EXT = "memo";
+const QString DEFAULT_FILENAME = "Undefined";
+const QString LOAD_FILE_CAPTION = "Load file";
+const QString SAVE_FILE_CAPTION = "Save file";
+const QString FILE_FILTER = "Memo file (*.memo);;All Files (*)";
+const QString DEFAULT_SELECTED_FILTER = "Memo file (*.memo)";
 
 /* for books */
-const QString Values::DEFAULT_BOOK_NAME = "New Book";
-const QString Values::GET_BOOK_TITLE = "Book Name";
-const QString Values::GET_BOOK_CAPTION = "Input a book name: ";
+const QString DEFAULT_BOOK_NAME = "New Book";
+const QString GET_BOOK_TITLE = "Book Name";
+const QString GET_BOOK_CAPTION = "Input a book name: ";
 
 /* statusbar */
-const int Values::STATUS_MESSAGE_TIME = 3000;
+const int STATUS_MESSAGE_TIME = 3000;
+}  // ns Nmemo::VALUE
 
-
-}  // namespace Nmemo
+}  // ns Nmemo

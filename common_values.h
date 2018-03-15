@@ -10,52 +10,57 @@
 
 #include <QString>
 
-// for application
+/* values: Application */
 namespace APP {
 
-struct Version {
-  static const int MAJOR;
-  static const int MINOR;
-  static const int MICRO;
-};
+namespace VERSION {
 
-struct Values {
-  static const QString NAME;
-  static const QString VERSION;
-  static const QString AUTHORS;
-  static const QString DESCRIPTION;
-  static const QString LICENSE;
-  static const QString COPYRIGHT;
-};
+extern const int MAJOR;
+extern const int MINOR;
+extern const int MICRO;
 
-}  // namespace APP
+}  // ns APP::VERSION
 
-// for common
+namespace VALUE {
+
+extern const QString NAME;
+extern const QString VERSION;
+extern const QString AUTHORS;
+extern const QString DESCRIPTION;
+extern const QString LICENSE;
+extern const QString COPYRIGHT;
+
+}  // ns APP::VALUE
+
+}  // ns APP
+
+/* values: Common */
 namespace Nmemo {
 
-/* values */
-struct Props
-{
-  static const int BOOKLIST_MAX_WIDTH;
-  static const qreal EDIT_TAB_DISTANCE;
-};
+namespace PROP {
 
-struct Values
-{
-  static const int STATUS_MESSAGE_TIME;
-  static const QString DEFAULT_BOOK_NAME;
-  static const QString DEFAULT_FILENAME;
-  static const QString FILE_EXT;
-  static const QString GET_BOOK_TITLE;
-  static const QString GET_BOOK_CAPTION;
-  static const QString LOAD_FILE_CAPTION;
-  static const QString SAVE_FILE_CAPTION;
-  static const QString FILE_FILTER;
-  static const QString DEFAULT_SELECTED_FILTER;
-  static const QString SAVE_PREFIX;
-  static const QString SAVE_VERSION;
-};
+extern const int BOOKLIST_MAX_WIDTH;
+extern const qreal EDIT_TAB_DISTANCE;
 
-}  // namespace Nmemo
+}  // ns Nmemo::PROP
+
+namespace VALUE {
+
+extern const int STATUS_MESSAGE_TIME;
+extern const QString DEFAULT_BOOK_NAME;
+extern const QString DEFAULT_FILENAME;
+extern const QString FILE_EXT;
+extern const QString GET_BOOK_TITLE;
+extern const QString GET_BOOK_CAPTION;
+extern const QString LOAD_FILE_CAPTION;
+extern const QString SAVE_FILE_CAPTION;
+extern const QString FILE_FILTER;
+extern const QString DEFAULT_SELECTED_FILTER;
+extern const QString SAVE_PREFIX;
+extern const QString SAVE_VERSION;
+
+}  // ns Nmemo::VALUE
+
+}  // ns Nmemo
 
 #endif // COMMON_VALUES_H
