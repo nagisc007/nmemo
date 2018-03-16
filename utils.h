@@ -154,7 +154,7 @@ namespace Widget {
 namespace Names {
 
 template<typename T>
-bool Merge(T*, const T_strs*);
+bool Merge(T*, const T_strs&);
 
 }  // ns Utl::Widget::Names
 }  // ns Utl::Widget

@@ -54,6 +54,11 @@ T_bidset Edit(const Core*, const T_tid, const T_bid);
 bool Merge(Core*, T_bidset);
 
 }  // ns Books::CurrentIds
+namespace CurrentIndex {
+
+T_book_i Fetch(const Core*);
+
+}  // ns Books::CurrentIndex
 namespace Names {
 
 T_booknames Fetch(const Core*, const T_tid);

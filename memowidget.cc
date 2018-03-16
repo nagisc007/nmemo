@@ -79,7 +79,7 @@ auto Fetch(MemoWidget* m) -> T_tabnames
 auto Merge(MemoWidget* m, T_tabnames tabnames) -> bool
 {
   if (m->tabbar->count() <= 0 && tabnames.count() <= 0) return false;
-  Utl::Widget::Names::Merge<QTabBar>(m->tabbar.data(), &tabnames);
+  Utl::Widget::Names::Merge<QTabBar>(m->tabbar.data(), tabnames);
   return true;
 }
 
@@ -129,7 +129,7 @@ auto Fetch(MemoWidget* m) -> T_booknames
 auto Merge(MemoWidget* m, T_booknames booknames) -> bool
 {
   if (m->booklist->count() <= 0 && booknames.count() <= 0) return false;
-  Utl::Widget::Names::Merge<QListWidget>(m->booklist.data(), &booknames);
+  Utl::Widget::Names::Merge<QListWidget>(m->booklist.data(), booknames);
   return true;
 }
 

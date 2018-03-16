@@ -40,8 +40,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-  if (memo) memo.reset();
+  disconnect(memo->booklist.data(), &QListWidget::currentRowChanged,
+             this, &MainWindow::OnChangeBook);
   if (core) core.reset();
+  if (memo) memo.reset();
   delete ui;
   qDebug() << "MainWindow: destruct";
 }
@@ -58,10 +60,10 @@ auto MainWindow::InitActions() -> bool
   connect(memo->tabbar.data(), &QTabBar::currentChanged, this, &MainWindow::OnChangeTab);
   connect(memo->tabbar.data(), &QTabBar::tabCloseRequested, this, &MainWindow::OnDeleteTab);
   connect(memo->tabbar.data(), &QTabBar::tabMoved, this, &MainWindow::OnMoveTab);
-  //connect(memo->booklist.data(), &QListWidget::currentRowChanged,
-  //        this, &MainWindow::OnChangeBook);
-  //connect(memo->booklist.data(), &QListWidget::itemDoubleClicked,
-  //        this, &MainWindow::OnRenameBook);
+  connect(memo->booklist.data(), &QListWidget::currentRowChanged,
+          this, &MainWindow::OnChangeBook);
+  connect(memo->booklist.data(), &QListWidget::itemDoubleClicked,
+          this, &MainWindow::OnRenameBook);
   //connect(memo->editor.data(), &QTextEdit::textChanged, this, &MainWindow::ChangeTextInMemo);
   connect(this, &MainWindow::asTabData, core.data(), &Nmemo::Core::ToTabData);
   connect(this, &MainWindow::asBookData, core.data(), &Nmemo::Core::ToBookData);
@@ -99,7 +101,6 @@ void MainWindow::ToTabBar(T_cmd cmd, T_tab_i tab_i, T_tabnames tabnames,
 
 void MainWindow::ToBookList(T_cmd cmd, T_book_i book_i, T_booknames booknames)
 {
-  qDebug() << "catch book";
   mutex.lock();
   m_booklist_updated = false;
   if (Utl::Cmd::Exists(cmd, Cmd::NAMES)) {
@@ -110,6 +111,7 @@ void MainWindow::ToBookList(T_cmd cmd, T_book_i book_i, T_booknames booknames)
     Nmemo::BookList::Index::Merge(memo.data(), book_i);
   }
   mutex.unlock();
+  qDebug() << "booklist updated";
 
   m_booklist_updated = true;
 }

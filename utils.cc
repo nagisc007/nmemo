@@ -290,13 +290,13 @@ namespace Widget {
 namespace Names {
 
 template<>
-auto Merge<QTabBar>(QTabBar* tabbar, const T_strs* strs) -> bool
+auto Merge<QTabBar>(QTabBar* tabbar, const T_strs& strs) -> bool
 {
   int tab_size = tabbar->count();
-  int str_size = strs->count();
+  int str_size = strs.count();
   int i = 0;
   for (int size = qMin(tab_size, str_size); i < size; ++i) {
-    tabbar->setTabText(i, strs->at(i));
+    tabbar->setTabText(i, strs.at(i));
   }
   if (tab_size > str_size) {
     for (; i < tab_size; ++i) {
@@ -304,24 +304,24 @@ auto Merge<QTabBar>(QTabBar* tabbar, const T_strs* strs) -> bool
     }
   } else {
     for (; i < str_size; ++i) {
-      tabbar->addTab(strs->at(i));
+      tabbar->addTab(strs.at(i));
     }
   }
   return true;
 }
-template bool Merge<QTabBar>(QTabBar*, const T_strs* strs);
+template bool Merge<QTabBar>(QTabBar*, const T_strs& strs);
 
 template<>
-auto Merge<QListWidget>(QListWidget* w, const T_strs* strs) -> bool
+auto Merge<QListWidget>(QListWidget* w, const T_strs& strs) -> bool
 {
   // NOTE:
   //  The ListWidget bug to remove and add.
   //  If the reason is found, fix it.
   w->clear();
-  w->addItems(*strs);
+  w->addItems(strs);
   return true;
 }
-template bool Merge<QListWidget>(QListWidget*, const T_strs* strs);
+template bool Merge<QListWidget>(QListWidget*, const T_strs& strs);
 
 }  // ns Utl::Widget::Names
 

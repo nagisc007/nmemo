@@ -34,7 +34,6 @@ auto Fetch(const Core* c, const T_tid tid, const T_book_i book_i) -> T_bid
 
 auto Last(const Core* c, const T_tid tid) -> T_bid
 {
-  return Utl::List::Fetch<T_tid>(c->m_tids.data(), c->m_tids->count() - 1, -1);
   return Utl::Map::List::Value::Fetch<T_tid, T_bid>(c->m_bidsset.data(),
                                              tid,
                                              c->m_bidsset->value(tid).count() - 1, -1);
@@ -60,7 +59,6 @@ namespace Ids {
 
 auto Fetch(const Core* c, const T_tid tid) -> T_bids
 {
-  qDebug() << "ids::::"<<c->m_bidsset->contains(tid);
   return Utl::Map::List::Fetch<T_tid, T_bid>(c->m_bidsset.data(),
                                              tid);
 }
@@ -141,12 +139,21 @@ auto Merge(Core* c, T_bidset bidset) -> bool
 
 }  // ns Books::CurrentIds
 
+namespace CurrentIndex {
+
+auto Fetch(const Core* c) -> T_book_i
+{
+  return Books::Index::Fetch(c, TabCurrentId(c),
+                             Books::CurrentId::Fetch(c, TabCurrentId(c)));
+}
+
+}  // ns Books::CurrentIndex
+
 namespace Names {
 
 auto Fetch(const Core* c, const T_tid tid) -> T_booknames
 {
   auto tmp = Books::Ids::Fetch(c, tid);
-  qDebug() << "fetch bname:" << tmp.count();
   return Utl::Map::Filter<T_bid, T_name>(c->m_labels.data(),
                                          &tmp);
 }
@@ -186,8 +193,6 @@ auto Update(Core* c, const T_cmd cmd, const T_book_i book_i, const T_arg arg) ->
     bid_ = Id::New(c);
     Ids::Merge(c, tid_, Ids::Add(c, tid_, bid_));
     Names::Merge(c, Names::Add(c, bid_, arg.toString()));
-    qDebug() << "bids add:::"<<c->m_bidsset->value(tid_).count();
-    qDebug() << "ids::::"<<c->m_bidsset->contains(tid_);
     break;
   case Cmd::BOOK_DELETE:
     bid_ = Id::Fetch(c, tid_, book_i);

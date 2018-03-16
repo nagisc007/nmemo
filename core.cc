@@ -99,14 +99,18 @@ void Core::ToTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg)
     Tabs::Data::Update(this, cmd, tab_i, arg);
     Tabs::Status::Update(this, cmd, tab_i, arg);
     Books::Status::Update(this, Cmd::BOOK_CHANGE,
-                          -1,
+                          Books::CurrentIndex::Fetch(this),
                           QVariant(0));
     OutputTabBar();
     OutputBookList();
     break;
   case Cmd::TAB_CHANGE:
     Tabs::Status::Update(this, cmd, tab_i, arg);
+    Books::Status::Update(this, Cmd::BOOK_CHANGE,
+                          Books::CurrentIndex::Fetch(this),
+                          QVariant(0));
     OutputTabBar();
+    OutputBookList();
     break;
   case Cmd::TAB_MOVE:
     Tabs::Data::Update(this, cmd, tab_i, arg);
