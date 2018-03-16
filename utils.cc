@@ -149,6 +149,13 @@ template QList<QString> Filter<int, QString>(const QMap<int, QString>*, const QL
 template QList<bool> Filter<int, bool>(const QMap<int, bool>*, const QList<int>*);
 
 template<typename S, typename T>
+auto Fetch(const QMap<S, T>* map, const S key, const T def_val) -> T
+{
+  return map->value(key, def_val);
+}
+template int Fetch<int, int>(const QMap<int, int>*, const int, const int);
+
+template<typename S, typename T>
 auto Add(const QMap<S, T>* map, const S key, const T val) -> QMap<S, T>
 {
   auto tmp = QMap<S, T>(*map);
@@ -194,6 +201,86 @@ auto Merge(QMap<S, T>* base, QMap<S, T>& updated) -> bool
 template bool Merge<int, int>(QMap<int, int>*, QMap<int, int>&);
 template bool Merge<int, bool>(QMap<int, bool>*, QMap<int, bool>&);
 template bool Merge<int, QString>(QMap<int, QString>*, QMap<int, QString>&);
+
+namespace List {
+
+template<typename S, typename T>
+auto Fetch(const QMap<S, QList<T>>* map, const S key) -> QList<T>
+{
+  qDebug() << "... map data:" << key << map->contains(key);
+  if (map->contains(key)) qDebug() << "... map values:";
+  return map->contains(key) ? map->value(key): QList<T>();
+}
+template QList<int> Fetch<int, int>(const QMap<int, QList<int>>*, const int);
+
+template<typename S, typename T>
+auto Add(const QMap<S, QList<T>>* map, const S key, const T val) -> QList<T>
+{
+  auto tmp = map->contains(key) ? QList<T>(map->value(key)): QList<T>();
+  return tmp + QList<T>{val};
+}
+template QList<int> Add<int, int>(const QMap<int, QList<int>>*, const int, const int);
+
+template<typename S, typename T>
+auto Delete(const QMap<S, QList<T>>* map, const S key, const T val) -> QList<T>
+{
+  auto tmp = map->contains(key) ? QList<T>(map->value(key)): QList<T>();
+  tmp.removeAll(val);
+  return tmp;
+}
+template QList<int> Delete<int, int>(const QMap<int, QList<int>>*, const int, const int);
+
+template<typename S, typename T>
+auto Move(const QMap<S, QList<T>>* map, const S key,
+          const int from, const int to) -> QList<T>
+{
+  auto tmp = map->contains(key) ? QList<T>(map->value(key)): QList<T>();
+  tmp.move(from, to);
+  return tmp;
+}
+template QList<int> Move<int, int>(const QMap<int, QList<int>>*, const int,
+                                   const int, const int);
+
+template<typename S, typename T>
+auto Merge(QMap<S, QList<T>>* map, const S key, QList<T>& updated) -> bool
+{
+  if (map->contains(key)) {
+    (*map)[key].swap(updated);
+  } else {
+    map->insert(key, updated);
+  }
+  return true;
+}
+template bool Merge<int, int>(QMap<int, QList<int>>*, const int, QList<int>&);
+
+namespace Index {
+
+template<typename S, typename T>
+auto Fetch(const QMap<S, QList<T>>* map, const S key, const T val) -> int
+{
+  if (!map->contains(key)) return -1;
+  auto tmp = map->value(key);
+  return tmp.indexOf(val);
+}
+template int Fetch<int, int>(const QMap<int, QList<int>>*, const int, const int);
+
+}  // ns Utl::Map::List::Index
+
+namespace Value {
+
+template<typename S, typename T>
+auto Fetch(const QMap<S, QList<T>>* map, const S key, const int index, const T def_val) -> T
+{
+  if (!map->contains(key)) return def_val;
+  auto tmp = map->value(key);
+  return (index >= 0 && tmp.count() > 0 && index < tmp.count()) ?
+        tmp.at(index): def_val;
+}
+template int Fetch<int, int>(const QMap<int, QList<int>>*, const int, const int, const int);
+
+}  // ns Utl::Map::List::Value
+
+}  // ns Utl::Map::List
 
 }  // ns Utl::Map
 

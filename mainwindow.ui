@@ -250,13 +250,16 @@
    <property name="text">
     <string>Rename(&amp;R)</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
+   </property>
   </action>
   <action name="actMoveNext">
    <property name="text">
     <string>MoveNext(&amp;N)</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+Down</string>
+    <string>Ctrl+Down</string>
    </property>
   </action>
   <action name="actMovePrevious">
@@ -264,7 +267,7 @@
     <string>MovePrevious(&amp;P)</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+Up</string>
+    <string>Ctrl+Up</string>
    </property>
   </action>
   <action name="actNextTab">
@@ -272,7 +275,7 @@
     <string>NextTab</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Right</string>
+    <string>Alt+Right</string>
    </property>
   </action>
   <action name="actPreviousTab">
@@ -280,7 +283,7 @@
     <string>PreviousTab</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Left</string>
+    <string>Alt+Left</string>
    </property>
   </action>
   <action name="actNextBook">
@@ -288,7 +291,7 @@
     <string>NextBook</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Down</string>
+    <string>Alt+Down</string>
    </property>
   </action>
   <action name="actPreviousBook">
@@ -296,7 +299,7 @@
     <string>PreviousBook</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Up</string>
+    <string>Alt+Up</string>
    </property>
   </action>
   <action name="actSort_AtoZ">

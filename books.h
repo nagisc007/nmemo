@@ -22,6 +22,8 @@ namespace Books {
 namespace Id {
 
 T_bid Fetch(const Core*, const T_tid, const T_book_i);
+T_bid Last(const Core*, const T_tid);
+T_bid New(Core*);
 
 }  // ns Books::Id
 namespace Index {
@@ -35,6 +37,7 @@ T_bids Fetch(const Core*, const T_tid);
 T_bids Add(const Core*, const T_tid, const T_bid);
 T_bids Delete(Core*, const T_tid, const T_bid);
 T_bids Move(const Core*, const T_tid, const T_index, const T_index);
+T_bids Sort(const Core*, const T_tid, const T_order);
 bool Merge(Core*, const T_tid, T_bids);
 
 }  // ns Books::Ids
@@ -54,10 +57,10 @@ bool Merge(Core*, T_bidset);
 namespace Names {
 
 T_booknames Fetch(const Core*, const T_tid);
-T_booknames Add(const Core*, const T_bid, const T_name&);
-T_booknames Delete(Core*, const T_bid);
-T_booknames Edit(const Core*, const T_bid, const T_name&);
-bool Merge(Core*, T_booknames);
+T_strset Add(const Core*, const T_bid, const T_name&);
+T_strset Delete(Core*, const T_bid);
+T_strset Edit(const Core*, const T_bid, const T_name&);
+bool Merge(Core*, T_strset);
 
 }  // ns Books::Names
 namespace Data {

@@ -7,7 +7,20 @@
  ***************************************************************************/
 #include "tabs.h"
 #include "core.h"
+
 namespace Nmemo {
+
+/* utils */
+static bool BookIdsReleaseWith(Core* c, const T_tid tid)
+{
+  if (!c->m_bidsset->contains(tid)) return false;
+  auto bids = c->m_bidsset->value(tid);
+  for (int i = 0, size = bids.count(); i < size; ++i) {
+    Utl::ID::Release(c->m_idpool.data(), bids.at(i));
+  }
+  return true;
+}
+
 /* process: tabs */
 namespace Tabs {
 namespace Id {
@@ -84,6 +97,7 @@ auto Add(const Core* c, const T_tid tid) -> T_tids
 auto Delete(Core* c, const T_tid tid) -> T_tids
 {
   Utl::ID::Release(c->m_idpool.data(), tid);
+  BookIdsReleaseWith(c, tid);
   return Utl::List::Delete<T_tid>(c->m_tids.data(), tid);
 }
 

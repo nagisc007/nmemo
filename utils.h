@@ -101,6 +101,9 @@ template<typename S, typename T>
 QList<T> Filter(const QMap<S, T>*, const QList<S>*);
 
 template<typename S, typename T>
+T Fetch(const QMap<S, T>*, const S, const T);
+
+template<typename S, typename T>
 QMap<S, T> Add(const QMap<S, T>*, const S, const T);
 
 template<typename S, typename T>
@@ -111,6 +114,39 @@ QMap<S, T> Edit(const QMap<S, T>*, const S, const T);
 
 template<typename S, typename T>
 bool Merge(QMap<S, T>*, QMap<S, T>&);
+
+namespace List {
+
+template<typename S, typename T>
+QList<T> Fetch(const QMap<S, QList<T>>*, const S);
+
+template<typename S, typename T>
+QList<T> Add(const QMap<S, QList<T>>*, const S, const T);
+
+template<typename S, typename T>
+QList<T> Delete(const QMap<S, QList<T>>*, const S, const T);
+
+template<typename S, typename T>
+QList<T> Move(const QMap<S, QList<T>>*, const S, const int, const int);
+
+template<typename S, typename T>
+bool Merge(QMap<S, QList<T>>*, const S, QList<T>&);
+
+namespace Index {
+
+template<typename S, typename T>
+int Fetch(const QMap<S, QList<T>>*, const S, const T);
+
+}  // ns Utl::Map::List::Index
+
+namespace Value {
+
+template<typename S, typename T>
+T Fetch(const QMap<S, QList<T>>*, const S, const int, const T);
+
+}  // ns Utl::Map::List::Value
+
+}  // ns Utl::Map::List
 
 }  // ns Utl::Map
 
