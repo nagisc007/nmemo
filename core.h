@@ -57,6 +57,13 @@ public slots:
   void ToFileData(T_cmd, T_arg);
 };
 
+namespace CoreUtl {
+
+bool TabVerify(const Core*);
+bool BookVerify(const Core*);
+
+}  // ns CoreUtl
+
 }  // namespace Nmemo
 
 #endif // CORE_H

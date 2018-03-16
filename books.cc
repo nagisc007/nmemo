@@ -11,11 +11,6 @@
 namespace Nmemo {
 
 /* utils */
-static bool TabVerify(const Core* c)
-{
-  return c->m_tid > 0;
-}
-
 static T_tid TabCurrentId(const Core* c)
 {
   return c->m_tid;
@@ -190,7 +185,7 @@ namespace Data {
 
 auto Update(Core* c, const T_cmd cmd, const T_book_i book_i, const T_arg arg) -> bool
 {
-  if (!TabVerify(c)) return false;
+  if (!CoreUtl::TabVerify(c)) return false;
 
   T_tid tid_ = TabCurrentId(c);
   T_bid bid_ = -1;
@@ -234,7 +229,7 @@ namespace Status {
 auto Update(Core* c, const T_cmd cmd, const T_book_i book_i, const T_arg arg) -> bool
 {
   Q_UNUSED(arg);
-  if (!TabVerify(c)) return false;
+  if (!CoreUtl::TabVerify(c)) return false;
 
   T_tid tid_ = TabCurrentId(c);
   T_bid bid_ = -1;

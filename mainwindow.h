@@ -46,7 +46,7 @@ public:
 signals:
   void asTabData(T_cmd, T_tab_i, T_arg);
   void asBookData(T_cmd, T_book_i, T_arg);
-  void asMemoData(T_text, T_stat);
+  void asMemoData(T_cmd, T_text, T_stat);
   void asFileData(T_cmd, T_path);
 
 public slots:

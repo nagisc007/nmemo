@@ -49,6 +49,7 @@ namespace VALUE {
 extern const int STATUS_MESSAGE_TIME;
 extern const QString DEFAULT_BOOK_NAME;
 extern const QString DEFAULT_FILENAME;
+extern const QString DEFAULT_MEMO_TEXT;
 extern const QString FILE_EXT;
 extern const QString GET_BOOK_TITLE;
 extern const QString GET_BOOK_CAPTION;

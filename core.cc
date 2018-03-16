@@ -79,12 +79,14 @@ void Core::OutputBookList()
 
 void Core::OutputEditor()
 {
-
+  auto bid_ = Books::CurrentId::Fetch(this, m_tid);
+  emit asEditorData(Cmd::MEMO, false, Memos::Memo::Fetch(this, bid_));
 }
 
 /* slots */
 void Core::ToTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg)
 {
+  Memos::Data::Update(this, Cmd::MEMO_EDIT, m_text);
   switch (cmd) {
   case Cmd::TAB_ADD:
     Tabs::Data::Update(this, cmd, tab_i, arg);
@@ -94,6 +96,7 @@ void Core::ToTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg)
                           QVariant(0));
     OutputTabBar();
     OutputBookList();
+    OutputEditor();
     break;
   case Cmd::TAB_DELETE:
     Tabs::Data::Update(this, cmd, tab_i, arg);
@@ -103,6 +106,7 @@ void Core::ToTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg)
                           QVariant(0));
     OutputTabBar();
     OutputBookList();
+    OutputEditor();
     break;
   case Cmd::TAB_CHANGE:
     Tabs::Status::Update(this, cmd, tab_i, arg);
@@ -111,6 +115,7 @@ void Core::ToTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg)
                           QVariant(0));
     OutputTabBar();
     OutputBookList();
+    OutputEditor();
     break;
   case Cmd::TAB_MOVE:
     Tabs::Data::Update(this, cmd, tab_i, arg);
@@ -127,20 +132,26 @@ void Core::ToTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg)
 
 void Core::ToBookData(T_cmd cmd, T_book_i book_i, T_arg arg)
 {
+  Memos::Data::Update(this, Cmd::MEMO_EDIT, m_text);
   switch (cmd) {
   case Cmd::BOOK_ADD:
     Books::Data::Update(this, cmd, book_i, arg);
     Books::Status::Update(this, cmd, book_i, arg);
+    Memos::Data::Update(this, Cmd::MEMO_ADD, VALUE::DEFAULT_MEMO_TEXT);
     OutputBookList();
+    OutputEditor();
     break;
   case Cmd::BOOK_DELETE:
     Books::Data::Update(this, cmd, book_i, arg);
     Books::Status::Update(this, cmd, book_i, arg);
+    Memos::Data::Update(this, Cmd::MEMO_DELETE, "");
     OutputBookList();
+    OutputEditor();
     break;
   case Cmd::BOOK_CHANGE:
     Books::Status::Update(this, cmd, book_i, arg);
     OutputBookList();
+    OutputEditor();
     break;
   case Cmd::BOOK_MOVE:
     Books::Data::Update(this, cmd, book_i, arg);
@@ -159,13 +170,35 @@ void Core::ToBookData(T_cmd cmd, T_book_i book_i, T_arg arg)
   }
 }
 
-void Core::ToMemoData(T_cmd, const T_text& text, T_stat)
+void Core::ToMemoData(T_cmd cmd, const T_text& text, T_stat stat)
 {
+  Q_UNUSED(cmd);
+  Q_UNUSED(stat);
+
+  if (!CoreUtl::BookVerify(this)) return;
+
+  Memos::Cache::Merge(this, text);
 }
 
 void Core::ToFileData(T_cmd, T_arg)
 {
   Files::Data::Update(this);
 }
+
+/* process: utils */
+namespace CoreUtl {
+
+auto TabVerify(const Core* c) -> bool
+{
+  return c->m_tid > 0;
+}
+
+auto BookVerify(const Core* c) -> bool
+{
+  auto cur_tid = c->m_tid;
+  return cur_tid > 0 && c->m_bidset->contains(cur_tid) && c->m_bidset->value(cur_tid) > 0;
+}
+
+}  // ns CoreUtl
 
 }  // namespace Nmemo

@@ -61,6 +61,9 @@ const QString DEFAULT_BOOK_NAME = "New Book";
 const QString GET_BOOK_TITLE = "Book Name";
 const QString GET_BOOK_CAPTION = "Input a book name: ";
 
+/* for memos */
+const QString DEFAULT_MEMO_TEXT = "new memo";
+
 /* statusbar */
 const int STATUS_MESSAGE_TIME = 3000;
 }  // ns Nmemo::VALUE

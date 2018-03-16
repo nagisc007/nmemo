@@ -41,14 +41,21 @@ bool Merge(Core*, const T_stat);
 
 }  // ns Memos::Enabled
 
+namespace Cache {
+
+T_memo Fetch(const Core*);
+bool Merge(Core*, const T_memo&);
+
+}  // ns Memos::Cache
+
 namespace Data {
 
-bool Update(Core*);
+bool Update(Core*, const T_cmd, const T_memo&);
 
 }  // ns Memos::Data
 namespace Status {
 
-bool Update(Core*);
+bool Update(Core*, const T_cmd);
 
 }  // ns Memos::Status
 

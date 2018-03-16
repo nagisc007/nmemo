@@ -154,6 +154,7 @@ auto Fetch(const QMap<S, T>* map, const S key, const T def_val) -> T
   return map->value(key, def_val);
 }
 template int Fetch<int, int>(const QMap<int, int>*, const int, const int);
+template QString Fetch<int, QString>(const QMap<int, QString>*, const int, const QString);
 
 template<typename S, typename T>
 auto Add(const QMap<S, T>* map, const S key, const T val) -> QMap<S, T>
@@ -207,8 +208,6 @@ namespace List {
 template<typename S, typename T>
 auto Fetch(const QMap<S, QList<T>>* map, const S key) -> QList<T>
 {
-  qDebug() << "... map data:" << key << map->contains(key);
-  if (map->contains(key)) qDebug() << "... map values:";
   return map->contains(key) ? map->value(key): QList<T>();
 }
 template QList<int> Fetch<int, int>(const QMap<int, QList<int>>*, const int);
