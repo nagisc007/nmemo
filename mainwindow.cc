@@ -104,14 +104,12 @@ void MainWindow::ToBookList(T_cmd cmd, T_book_i book_i, T_booknames booknames)
   mutex.lock();
   m_booklist_updated = false;
   if (Utl::Cmd::Exists(cmd, Cmd::NAMES)) {
-    qDebug() << "update names" << book_i << "|" << booknames.count();
     Nmemo::BookList::Names::Merge(memo.data(), booknames);
   }
   if (Utl::Cmd::Exists(cmd, Cmd::INDEX)) {
     Nmemo::BookList::Index::Merge(memo.data(), book_i);
   }
   mutex.unlock();
-  qDebug() << "booklist updated";
 
   m_booklist_updated = true;
 }
@@ -200,7 +198,7 @@ void MainWindow::OnChangeBook(int index)
 void MainWindow::OnMoveBook(int from, int to)
 {
   if (!m_booklist_updated || !Nmemo::TabBar::Exists(memo.data())) return;
-  emit asBookData(Cmd::BOOK_MOVE, from ,QVariant(0));
+  emit asBookData(Cmd::BOOK_MOVE, from ,QVariant(to));
 }
 
 void MainWindow::OnRenameBook(const QListWidgetItem* item)

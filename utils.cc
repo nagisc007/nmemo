@@ -256,6 +256,15 @@ template bool Merge<int, int>(QMap<int, QList<int>>*, const int, QList<int>&);
 namespace Index {
 
 template<typename S, typename T>
+auto Valid(const QMap<S, QList<T>>* map, const S key, const int index) -> int
+{
+  if (!map->contains(key)) return -1;
+  return index >= 0 && map->value(key).count() > 0 && index < map->value(key).count() ?
+        index: -1;
+}
+template int Valid<int, int>(const QMap<int, QList<int>>*, const int, const int);
+
+template<typename S, typename T>
 auto Fetch(const QMap<S, QList<T>>* map, const S key, const T val) -> int
 {
   if (!map->contains(key)) return -1;

@@ -48,9 +48,15 @@ auto New(Core* c) -> T_bid
 
 namespace Index {
 
+auto Valid(const Core* c, const T_tid tid, const T_book_i book_i) -> T_book_i
+{
+  return Utl::Map::List::Index::Valid<T_tid, T_bid>(c->m_bidsset.data(),
+                                                    tid, book_i);
+}
+
 auto Fetch(const Core* c, const T_tid tid, const T_bid bid) -> T_book_i
 {
-  return Utl::Map::List::Index::Fetch(c->m_bidsset.data(), tid, bid);
+  return Utl::Map::List::Index::Fetch<T_tid, T_bid>(c->m_bidsset.data(), tid, bid);
 }
 
 }  // ns Books::Index
@@ -201,9 +207,13 @@ auto Update(Core* c, const T_cmd cmd, const T_book_i book_i, const T_arg arg) ->
     break;
   case Cmd::BOOK_CHANGE:
     break;
-  case Cmd::BOOK_MOVE:
-    Ids::Merge(c, tid_, Ids::Move(c, tid_, book_i, arg.toInt()));
-    break;
+  case Cmd::BOOK_MOVE:{
+    auto from = Index::Valid(c, tid_, book_i);
+    auto to = Index::Valid(c, tid_, arg.toInt());
+    if (from >= 0 && to >= 0) {
+      Ids::Merge(c, tid_, Ids::Move(c, tid_, from, to));
+    }
+    break;}
   case Cmd::BOOK_RENAME:
     bid_ = Id::Fetch(c, tid_, book_i);
     Names::Merge(c, Names::Edit(c, bid_, arg.toString()));

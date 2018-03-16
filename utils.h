@@ -135,6 +135,9 @@ bool Merge(QMap<S, QList<T>>*, const S, QList<T>&);
 namespace Index {
 
 template<typename S, typename T>
+int Valid(const QMap<S, QList<T>>*, const S, const int);
+
+template<typename S, typename T>
 int Fetch(const QMap<S, QList<T>>*, const S, const T);
 
 }  // ns Utl::Map::List::Index

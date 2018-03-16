@@ -28,6 +28,7 @@ T_bid New(Core*);
 }  // ns Books::Id
 namespace Index {
 
+T_book_i Valid(const Core*, const T_tid, const T_book_i);
 T_book_i Fetch(const Core*, const T_tid, const T_bid);
 
 }  // ns Books::Index
