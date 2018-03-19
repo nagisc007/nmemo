@@ -37,7 +37,7 @@ namespace Nmemo {
 
 namespace PROP {
 
-const int BOOKLIST_MAX_WIDTH = 120;
+const int LISTVIEW_MAX_WIDTH = 120;
 const qreal EDIT_TAB_DISTANCE = 40;  // pixels
 
 }  // ns Nmemo::PROP

@@ -39,7 +39,7 @@ namespace Nmemo {
 
 namespace PROP {
 
-extern const int BOOKLIST_MAX_WIDTH;
+extern const int LISTVIEW_MAX_WIDTH;
 extern const qreal EDIT_TAB_DISTANCE;
 
 }  // ns Nmemo::PROP

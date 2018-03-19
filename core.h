@@ -8,62 +8,72 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include "books.h"
-#include "files.h"
-#include "memos.h"
-#include "tabs.h"
+#include "utils.h"
 
 #include <QObject>
 #include <QStack>
 
-namespace Nmemo {
+namespace Core {
 
-/* class: Core */
-class Core: public QObject
+/* class: System */
+class System: public QObject
 {
   Q_OBJECT
 public:
-  explicit Core(QObject* parent = nullptr);
-  ~Core();
-  /* members */
-  QScopedPointer<T_ids> m_tids;
-  QScopedPointer<T_statset> m_statset;
-  QScopedPointer<T_bidsset> m_bidsset;
-  QScopedPointer<T_strset> m_labels;
-  QScopedPointer<T_memos> m_memos;
-  T_tid m_tid;
-  T_text m_text;
-  QScopedPointer<T_bidset> m_bidset;
-  T_stat m_editor_enabled;
-  T_id m_next_id;
-  QScopedPointer<QStack<T_id>> m_idpool;
+  explicit System(QObject* parent = nullptr);
+  ~System();
+  /* members: memory */
+  QScopedPointer<T_ids> m_bids;
+  QScopedPointer<T_strset> m_pathset;
+  QScopedPointer<T_pidsset> m_pidsset;
+  QScopedPointer<T_strset> m_nameset;
+  QScopedPointer<T_strset> m_noteset;
+  /* members: register */
+  T_bid r_bid;
+  T_note r_note;
+  QScopedPointer<T_pidset> r_pidset;
+  /* members: utils */
+  T_id u_nextid;
+  QScopedPointer<QStack<T_id>> u_idpool;
   /* process: output */
-  void OutputTabBar();
-  void OutputBookList();
-  void OutputEditor();
+  void OutToTabBar();
+  void OutToPageList();
+  void OutToEditor();
+  void OutToTitleBar();
+  void OutToStatusBar();
 
 signals:
-  void asTabBarData(T_cmd, T_tab_i, T_tabnames, T_stats);
-  void asBookListData(T_cmd, T_book_i, T_booknames);
-  void asEditorData(T_cmd, T_stat, T_text);
-  void asTitleData(T_cmd, T_title);
-  void asStatusData(T_cmd, T_msg);
-  void asFileData();  // currently saveas to request
+  void asTabBarData(T_cmd, T_arg, T_arg, T_arg);
+  void asPageListData(T_cmd, T_arg, T_arg);
+  void asEditorData(T_cmd, T_arg, T_arg);
+  void asTitleBarData(T_cmd, T_arg);
+  void asStatusBarData(T_cmd, T_arg, T_arg);
+  void asFileNameRequest();
 
 public slots:
-  void ToTabData(T_cmd, T_tab_i, T_arg);
-  void ToBookData(T_cmd, T_book_i, T_arg);
-  void ToMemoData(T_cmd, const T_text&, T_stat);
-  void ToFileData(T_cmd, T_arg);
+  void ToSystemData(T_cmd, T_arg, T_arg, T_arg);
 };
 
-namespace CoreUtl {
+/* process: Core Process */
+namespace CP {
 
-bool TabVerify(const Core*);
-bool BookVerify(const Core*);
+/* CP: Book */
+namespace Book {
 
-}  // ns CoreUtl
+}  // ns CP::Book
 
-}  // namespace Nmemo
+/* CP: Page */
+namespace Page {
+
+}  // ns CP::Page
+
+/* CP: Note */
+namespace Note {
+
+}  // ns CP::Note
+
+}  // ns CP
+
+}  // ns Core
 
 #endif // CORE_H

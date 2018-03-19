@@ -7,198 +7,117 @@
  ***************************************************************************/
 #include "core.h"
 
-namespace Nmemo {
+namespace Core {
 
-/* class: Core */
-Core::Core(QObject* parent): QObject(parent),
-  m_tids(new T_ids()),
-  m_statset(new T_statset()),
-  m_bidsset(new T_bidsset()),
-  m_labels(new T_strset()),
-  m_memos(new T_memos()),
-  m_tid(-1),
-  m_text(""),
-  m_bidset(new T_bidset()),
-  m_editor_enabled(false),
-  m_next_id(0),
-  m_idpool(new QStack<T_id>())
+/* class: System */
+System::System(QObject* parent): QObject(parent),
+  // memory
+  m_bids(new T_ids()),
+  m_pathset(new T_strset()),
+  m_pidsset(new T_pidsset()),
+  m_nameset(new T_strset()),
+  m_noteset(new T_strset()),
+  // register
+  r_bid(-1),
+  r_note(""),
+  r_pidset(new T_pidset()),
+  // utils
+  u_nextid(0),
+  u_idpool(new QStack<T_id>())
 {
-  qDebug() << "Core: constructed";
+  qDebug() << "System: constructed";
 }
 
-Core::~Core()
+System::~System()
 {
-  if (m_tids) {
-    m_tids->clear();
-    m_tids.reset();
+  if (m_bids) {
+    m_bids->clear();
+    m_bids.reset();
   }
-  if (m_statset) {
-    m_statset->clear();
-    m_statset.reset();
+  if (m_pathset) {
+    m_pathset->clear();
+    m_pathset.reset();
   }
-  if (m_bidsset) {
-    m_bidsset->clear();
-    m_bidsset.reset();
+  if (m_pidsset) {
+    m_pidsset->clear();
+    m_pidsset.reset();
   }
-  if (m_labels) {
-    m_labels->clear();
-    m_labels.reset();
+  if (m_nameset) {
+    m_nameset->clear();
+    m_nameset.reset();
   }
-  if (m_memos) {
-    m_memos->clear();
-    m_memos.reset();
+  if (m_noteset) {
+    m_noteset->clear();
+    m_noteset.reset();
   }
-  if (m_bidset) {
-    m_bidset->clear();
-    m_bidset.reset();
+  if (r_pidset) {
+    r_pidset->clear();
+    r_pidset.reset();
   }
-  if (m_idpool) {
-    m_idpool->clear();
-    m_idpool.reset();
+  if (u_idpool) {
+    u_idpool->clear();
+    u_idpool.reset();
   }
-  qDebug() << "Core: destructed";
+  qDebug() << "System: destructed";
 }
 
 /* process: output */
-void Core::OutputTabBar()
+void System::OutToTabBar()
 {
-  emit asTabBarData(Cmd::INDEX_NAMES,
-                    Tabs::Index::Fetch(this, m_tid),
-                    Tabs::Names::Fetch(this),
-                    Tabs::Stats::Fetch(this));
+  emit asTabBarData(Cmd::TAB_ALL,
+                    QVariant(0),
+                    QVariant(0),
+                    QVariant(0));
 }
 
-void Core::OutputBookList()
+void System::OutToPageList()
 {
-  auto tmp = Books::Names::Fetch(this, m_tid);
-  emit asBookListData(Cmd::INDEX_NAMES,
-                      Books::Index::Fetch(this, m_tid,
-                                          Books::CurrentId::Fetch(this, m_tid)),
-                      Books::Names::Fetch(this, m_tid));
+  emit asPageListData(Cmd::LIST_ALL,
+                      QVariant(0),
+                      QVariant(0));
 }
 
-void Core::OutputEditor()
+void System::OutToEditor()
 {
-  auto bid_ = Books::CurrentId::Fetch(this, m_tid);
-  emit asEditorData(Cmd::MEMO, false, Memos::Memo::Fetch(this, bid_));
+  emit asEditorData(Cmd::EDITOR_TEXT, QVariant(0), QVariant(0));
+}
+
+void System::OutToStatusBar()
+{
+
+}
+
+void System::OutToTitleBar()
+{
+
 }
 
 /* slots */
-void Core::ToTabData(T_cmd cmd, T_tab_i tab_i, T_arg arg)
-{
-  Memos::Data::Update(this, Cmd::MEMO_EDIT, m_text);
-  switch (cmd) {
-  case Cmd::TAB_ADD:
-    Tabs::Data::Update(this, cmd, tab_i, arg);
-    Tabs::Status::Update(this, cmd, tab_i, arg);
-    Books::Status::Update(this, Cmd::BOOK_CHANGE,
-                          -1,
-                          QVariant(0));
-    OutputTabBar();
-    OutputBookList();
-    OutputEditor();
-    break;
-  case Cmd::TAB_DELETE:
-    Tabs::Data::Update(this, cmd, tab_i, arg);
-    Tabs::Status::Update(this, cmd, tab_i, arg);
-    Books::Status::Update(this, Cmd::BOOK_CHANGE,
-                          Books::CurrentIndex::Fetch(this),
-                          QVariant(0));
-    OutputTabBar();
-    OutputBookList();
-    OutputEditor();
-    break;
-  case Cmd::TAB_CHANGE:
-    Tabs::Status::Update(this, cmd, tab_i, arg);
-    Books::Status::Update(this, Cmd::BOOK_CHANGE,
-                          Books::CurrentIndex::Fetch(this),
-                          QVariant(0));
-    OutputTabBar();
-    OutputBookList();
-    OutputEditor();
-    break;
-  case Cmd::TAB_MOVE:
-    Tabs::Data::Update(this, cmd, tab_i, arg);
-    OutputTabBar();
-    break;
-  case Cmd::TAB_RENAME:
-    Tabs::Data::Update(this, cmd, tab_i, arg);
-    OutputTabBar();
-    break;
-  default:
-    break;
-  }
-}
-
-void Core::ToBookData(T_cmd cmd, T_book_i book_i, T_arg arg)
-{
-  Memos::Data::Update(this, Cmd::MEMO_EDIT, m_text);
-  switch (cmd) {
-  case Cmd::BOOK_ADD:
-    Books::Data::Update(this, cmd, book_i, arg);
-    Books::Status::Update(this, cmd, book_i, arg);
-    Memos::Data::Update(this, Cmd::MEMO_ADD, VALUE::DEFAULT_MEMO_TEXT);
-    OutputBookList();
-    OutputEditor();
-    break;
-  case Cmd::BOOK_DELETE:
-    Books::Data::Update(this, cmd, book_i, arg);
-    Books::Status::Update(this, cmd, book_i, arg);
-    Memos::Data::Update(this, Cmd::MEMO_DELETE, "");
-    OutputBookList();
-    OutputEditor();
-    break;
-  case Cmd::BOOK_CHANGE:
-    Books::Status::Update(this, cmd, book_i, arg);
-    OutputBookList();
-    OutputEditor();
-    break;
-  case Cmd::BOOK_MOVE:
-    Books::Data::Update(this, cmd, book_i, arg);
-    OutputBookList();
-    break;
-  case Cmd::BOOK_RENAME:
-    Books::Data::Update(this, cmd, book_i, arg);
-    OutputBookList();
-    break;
-  case Cmd::BOOK_SORT:
-    Books::Data::Update(this, cmd, book_i, arg);
-    OutputBookList();
-    break;
-  default:
-    break;
-  }
-}
-
-void Core::ToMemoData(T_cmd cmd, const T_text& text, T_stat stat)
+void System::ToSystemData(T_cmd cmd, T_arg arg0, T_arg arg1, T_arg arg2)
 {
   Q_UNUSED(cmd);
-  Q_UNUSED(stat);
-
-  if (!CoreUtl::BookVerify(this)) return;
-
-  Memos::Cache::Merge(this, text);
+  Q_UNUSED(arg0);
+  Q_UNUSED(arg1);
+  Q_UNUSED(arg2);
 }
 
-void Core::ToFileData(T_cmd, T_arg)
-{
-  Files::Data::Update(this);
-}
+/* process: Core Process */
+namespace CP {
 
-/* process: utils */
-namespace CoreUtl {
+/* CP: Book */
+namespace Book {
 
-auto TabVerify(const Core* c) -> bool
-{
-  return c->m_tid > 0;
-}
+}  // ns CP::Book
 
-auto BookVerify(const Core* c) -> bool
-{
-  auto cur_tid = c->m_tid;
-  return cur_tid > 0 && c->m_bidset->contains(cur_tid) && c->m_bidset->value(cur_tid) > 0;
-}
+/* CP: Page */
+namespace Page {
 
-}  // ns CoreUtl
+}  // ns CP::Page
+
+/* CP: Note */
+namespace Note {
+
+}  // ns CP::Note
+}  // ns CP
 
 }  // namespace Nmemo

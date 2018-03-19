@@ -81,17 +81,17 @@
     <addaction name="actNextTab"/>
     <addaction name="actPreviousTab"/>
     <addaction name="separator"/>
-    <addaction name="actNextBook"/>
-    <addaction name="actPreviousBook"/>
+    <addaction name="actNextItem"/>
+    <addaction name="actPreviousItem"/>
    </widget>
    <widget class="QMenu" name="menuBook">
     <property name="title">
      <string>Book(&amp;B)</string>
     </property>
-    <addaction name="actAddBook"/>
-    <addaction name="actDeleteBook"/>
+    <addaction name="actAddItem"/>
+    <addaction name="actDeleteItem"/>
     <addaction name="separator"/>
-    <addaction name="actRenameBook"/>
+    <addaction name="actRenameItem"/>
     <addaction name="separator"/>
     <addaction name="actMoveNext"/>
     <addaction name="actMovePrevious"/>
@@ -113,8 +113,8 @@
     <bool>false</bool>
    </attribute>
    <addaction name="separator"/>
-   <addaction name="actAddBook"/>
-   <addaction name="actDeleteBook"/>
+   <addaction name="actAddItem"/>
+   <addaction name="actDeleteItem"/>
    <addaction name="separator"/>
    <addaction name="actSort_AtoZ"/>
    <addaction name="actSort_ZtoA"/>
@@ -225,7 +225,7 @@
     <string>Ctrl+A</string>
    </property>
   </action>
-  <action name="actAddBook">
+  <action name="actAddItem">
    <property name="text">
     <string>Add(&amp;A)</string>
    </property>
@@ -233,7 +233,7 @@
     <string>Ctrl+Shift+N</string>
    </property>
   </action>
-  <action name="actDeleteBook">
+  <action name="actDeleteItem">
    <property name="text">
     <string>Delete(&amp;D)</string>
    </property>
@@ -246,7 +246,7 @@
     <string>Fullscreen(&amp;F)</string>
    </property>
   </action>
-  <action name="actRenameBook">
+  <action name="actRenameItem">
    <property name="text">
     <string>Rename(&amp;R)</string>
    </property>
@@ -286,17 +286,23 @@
     <string>Alt+Left</string>
    </property>
   </action>
-  <action name="actNextBook">
+  <action name="actNextItem">
    <property name="text">
-    <string>NextBook</string>
+    <string>NextItem</string>
+   </property>
+   <property name="toolTip">
+    <string>NextItem</string>
    </property>
    <property name="shortcut">
     <string>Alt+Down</string>
    </property>
   </action>
-  <action name="actPreviousBook">
+  <action name="actPreviousItem">
    <property name="text">
-    <string>PreviousBook</string>
+    <string>PreviousItem</string>
+   </property>
+   <property name="toolTip">
+    <string>PreviousItem</string>
    </property>
    <property name="shortcut">
     <string>Alt+Up</string>

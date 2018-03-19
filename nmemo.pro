@@ -30,24 +30,14 @@ SOURCES += \
         mainwindow.cc \
     utils.cc \
     core.cc \
-    common_values.cc \
-    memowidget.cc \
-    tabs.cc \
-    books.cc \
-    memos.cc \
-    files.cc
+    common_values.cc
 
 HEADERS += \
         mainwindow.h \
     common_types.h \
     utils.h \
     core.h \
-    common_values.h \
-    memowidget.h \
-    tabs.h \
-    books.h \
-    memos.h \
-    files.h
+    common_values.h
 
 FORMS += \
         mainwindow.ui
