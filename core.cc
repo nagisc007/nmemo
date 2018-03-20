@@ -294,7 +294,7 @@ auto System::FileToLoad(const T_path& path) -> T_cmd
   for (int i = 0, size = names.count(); i < size; ++i) {
     PageToAdd(new_bid, names.at(i), notes.at(i));
   }
-  BookToChange(0);
+  PageToChange(new_bid, 0);
   FileToUpdate(new_bid, true);
 
   return Utl::Cmd::Combine(Cmd::TITLE,
