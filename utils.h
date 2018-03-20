@@ -36,6 +36,7 @@ namespace Utl {
 /* process: command */
 namespace Cmd {
 
+T_cmd Combine(const T_cmd, const T_cmd);
 bool Exists(const T_cmd, const T_cmd);
 
 }  // ns Utl::Cmd
@@ -60,16 +61,14 @@ T_path Input(QWidget*,const T_caption&, const T_path&,
 }  // ns Utl::Path
 namespace Name {
 
-T_name Input(QWidget*,
-                          const T_title&, const T_caption&, const T_text&);
+T_name Input(QWidget*, const T_title&, const T_caption&, const T_text&);
+T_name Filter(const T_path&);
+T_dirname FilterDirname(const T_path&);
 
 }  // ns Utl::Name
 
 /* process: list */
 namespace List {
-
-template<typename T>
-int Valid(const QList<T>*, const int);
 
 template<typename T>
 T Fetch(const QList<T>*, const int, const T);
@@ -87,6 +86,9 @@ template<typename T>
 bool Merge(QList<T>*, QList<T>&);
 
 namespace Index {
+
+template<typename T>
+int Valid(const QList<T>*, const int);
 
 template<typename T>
 int Fetch(const QList<T>*, const T);
@@ -131,6 +133,12 @@ QList<T> Move(const QMap<S, QList<T>>*, const S, const int, const int);
 
 template<typename S, typename T>
 bool Merge(QMap<S, QList<T>>*, const S, QList<T>&);
+
+template<typename S, typename T>
+QMap<S, QList<T>> DeleteAll(const QMap<S, QList<T>>*, const S);
+
+template<typename S, typename T>
+bool MergeAll(QMap<S, QList<T>>*, QMap<S, QList<T>>&);
 
 namespace Index {
 

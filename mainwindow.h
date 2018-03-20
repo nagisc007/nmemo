@@ -16,6 +16,7 @@
 #include <QTabBar>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <QWidget>
 
 namespace Ui {
 class MainWindow;
@@ -120,7 +121,7 @@ bool ToUpdate(const T_cmd, MainWindow*, const T_arg);
 
 namespace StatusBar {
 
-bool ToUpdate(const T_cmd, QStatusBar*, const T_arg, const T_arg);
+bool ToUpdate(const T_cmd, QStatusBar*, const T_arg, const T_arg, T_msgtime*);
 
 }  // ns UIP:StatusBar
 
@@ -155,6 +156,12 @@ bool ToUpdate(const T_cmd, QListWidget*, const T_arg, const T_arg);
 }  // ns UIP:PageList
 
 namespace Editor {
+
+namespace Text {
+
+T_text Fetch(const QTextEdit*);
+
+}  // ns UIP::Editor::Text
 
 namespace Act {
 

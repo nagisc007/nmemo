@@ -12,6 +12,11 @@ namespace Utl {
 /* process: command */
 namespace Cmd {
 
+auto Combine(const T_cmd a, const T_cmd b) -> T_cmd
+{
+  return static_cast<T_cmd>((static_cast<int>(a) | static_cast<int>(b)));
+}
+
 auto Exists(const T_cmd a, const T_cmd b) -> bool
 {
   return (static_cast<int>(a) & static_cast<int>(b)) == static_cast<int>(b);
@@ -66,22 +71,25 @@ auto Input(QWidget* parent, const T_title& title, const T_caption& caption,
   return QInputDialog::getText(parent, title, caption, QLineEdit::Normal, text);
 }
 
+auto Filter(const T_path& path) -> T_name
+{
+  return QFileInfo(path).baseName();
+}
+
+auto FilterDirname(const T_path& path) -> T_dirname
+{
+  return QFileInfo(path).absoluteDir().dirName();
+}
+
 }  // ns Utl::Name
 
 /* process: List */
 namespace List {
 
 template<typename T>
-auto Valid(const QList<T>* li, const int index) -> int
-{
-  return index >= 0 && li->count() > 0 && index < li->count() ? index: -1;
-}
-template int Valid<int>(const QList<int>*, const int);
-
-template<typename T>
 auto Fetch(const QList<T>* li, const int index, const T def_val) -> T
 {
-  auto va_index = Valid<T>(li, index);
+  auto va_index = Index::Valid<T>(li, index);
   return va_index >= 0 ? li->at(va_index): def_val;
 }
 template int Fetch<int>(const QList<int>*, const int, const int);
@@ -120,6 +128,13 @@ auto Merge(QList<T>* base, QList<T>& updated) -> bool
 template bool Merge<int>(QList<int>*, QList<int>&);
 
 namespace Index {
+
+template<typename T>
+auto Valid(const QList<T>* li, const int index) -> int
+{
+  return index >= 0 && li->count() > 0 && index < li->count() ? index: -1;
+}
+template int Valid<int>(const QList<int>*, const int);
 
 template<typename T>
 auto Fetch(const QList<T>* li, const T val) -> int
@@ -251,6 +266,25 @@ auto Merge(QMap<S, QList<T>>* map, const S key, QList<T>& updated) -> bool
   return true;
 }
 template bool Merge<int, int>(QMap<int, QList<int>>*, const int, QList<int>&);
+
+template<typename S, typename T>
+QMap<S, QList<T>> DeleteAll(const QMap<S, QList<T>>* map, const S key)
+{
+  auto tmp = QMap<S, QList<T>>(*map);
+  if (tmp.contains(key)) {
+    tmp.remove(key);
+  }
+  return tmp;
+}
+template QMap<int, QList<int>> DeleteAll(const QMap<int, QList<int>>*, const int);
+
+template<typename S, typename T>
+auto MergeAll(QMap<S, QList<T>>* map, QMap<S, QList<T>>& updated) -> bool
+{
+  map->swap(updated);
+  return true;
+}
+template bool MergeAll<int, int>(QMap<int, QList<int>>*, QMap<int, QList<int>>&);
 
 namespace Index {
 

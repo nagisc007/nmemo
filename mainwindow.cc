@@ -58,15 +58,18 @@ auto MainWindow::InitWidgets() -> bool
   tabbar->setMovable(true);
   pagelist->setMaximumWidth(Nmemo::PROP::LISTVIEW_MAX_WIDTH);
   editor->setTabStopDistance(Nmemo::PROP::EDIT_TAB_DISTANCE);
+  editor->setReadOnly(true);
 
   // layout
   auto mainLayout = new QVBoxLayout();
   auto subLayout = new QHBoxLayout();
+  auto mainWidget = new QWidget(this);
   subLayout->addWidget(editor.data());
   subLayout->addWidget(pagelist.data());
   mainLayout->addWidget(tabbar.data());
   mainLayout->addLayout(subLayout);
-  setLayout(mainLayout);
+  mainWidget->setLayout(mainLayout);
+  setCentralWidget(mainWidget);
 
   return true;
 }
@@ -95,12 +98,15 @@ auto MainWindow::InitActions() -> bool
 /* methods: features */
 auto MainWindow::CheckUnsaved() -> bool
 {
-  return true;
+  return false;
 }
 
 auto MainWindow::UpdateNote() -> void
 {
+  if (!r_editor_updated || editor->isReadOnly()) return;
 
+  emit asSystemData(Cmd::NOTE_EDIT, QVariant(UIP::Editor::Text::Fetch(editor.data())),
+                    QVariant(0), QVariant(0));
 }
 
 /* slots: Devices */
@@ -139,7 +145,7 @@ void MainWindow::ToStatusBar(const T_cmd cmd, const T_arg arg0, const T_arg arg1
 {
   u_mutex.lock();
   r_statusbar_updated = false;
-  UIP::StatusBar::ToUpdate(cmd, this->statusBar(), arg0, arg1);
+  UIP::StatusBar::ToUpdate(cmd, this->statusBar(), arg0, arg1, &r_statusshow_time);
   u_mutex.unlock();
 
   r_statusbar_updated = true;
@@ -158,80 +164,106 @@ void MainWindow::ToTitleBar(const T_cmd cmd, const T_arg arg0)
 /* slots: TabBar */
 void MainWindow::OnTabCurrentChanged(const T_index index)
 {
+  if (!r_tabbar_updated) return;
+
   UpdateNote();
   emit asSystemData(Cmd::BOOK_CHANGE, QVariant(index), QVariant(0), QVariant(0));
 }
 
-void MainWindow::OnTabCloseRequested(const T_index)
+void MainWindow::OnTabCloseRequested(const T_index index)
 {
+  if (!r_tabbar_updated) return;
+
   UpdateNote();
   emit asSystemData(Cmd::BOOK_DELETE, QVariant(index), QVariant(0), QVariant(0));
 }
 
 void MainWindow::OnTabMoved(const T_index from, const T_index to)
 {
+  if (!r_tabbar_updated) return;
+
   emit asSystemData(Cmd::BOOK_MOVE, QVariant(from), QVariant(to), QVariant(0));
 }
 
 /* slots: PageList */
 void MainWindow::OnListCurrentRowChanged(const T_index index)
 {
+  if (!r_pagelist_updated) return;
+
   UpdateNote();
   emit asSystemData(Cmd::PAGE_CHANGE, QVariant(index), QVariant(0), QVariant(0));
 }
 
-void MainWindow::OnListItemDoubleClicked(const T_item *)
+void MainWindow::OnListItemDoubleClicked(const T_item* item)
 {
-  emit asSystemData(Cmd::PAGE_EDIT, QVariant(0), QVariant(0), QVariant(0));
+  if (!r_pagelist_updated) return;
+
+  auto index = pagelist->row(item);
+
+  emit asSystemData(Cmd::PAGE_EDIT, QVariant(index), QVariant(0), QVariant(0));
 }
 
 /* slots: Editor */
 void MainWindow::OnEditorTextChanged()
 {
+  if (!r_editor_updated) return;
   // NOTE: unsaved state update
 }
 
 /* slots: menus - File */
 void MainWindow::on_actNew_triggered()
 {
+  if (!r_tabbar_updated) return;
+
   UpdateNote();
-  emit asSystemData(Cmd::BOOK_ADD, QVariant(0), QVariant(0), QVariant(0));
+  emit asSystemData(Cmd::BOOK_ADD, QVariant(Nmemo::VALUE::DEFAULT_FILENAME),
+                    QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actOpen_triggered()
 {
-  //auto path = Utl::Path::Load::Input(this, Nmemo::VALUE::LOAD_FILE_CAPTION, r_dirname,
-  //                                  Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
-  //if (path.isEmpty()) return;
-  //r_dirname = QDir::currentPath();
+  if (!r_tabbar_updated) return;
+
+  auto path = Utl::Path::Load::Input(this, Nmemo::VALUE::LOAD_FILE_CAPTION, r_dirname,
+                                    Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
+  if (path.isEmpty()) return;
+  r_dirname = QDir::currentPath();
   UpdateNote();
-  emit asSystemData(Cmd::FILE_LOAD, QVariant(0), QVariant(0), QVariant(0));
+  emit asSystemData(Cmd::FILE_LOAD, QVariant(path), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actClose_triggered()
 {
+  if (!r_tabbar_updated) return;
+
   OnTabCloseRequested(UIP::TabBar::Index::Fetch(tabbar.data()));
 }
 
 void MainWindow::on_actSave_triggered()
 {
+  if (!r_tabbar_updated) return;
+
   UpdateNote();
   emit asSystemData(Cmd::FILE_SAVE, QVariant(0), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actSaveAs_triggered()
 {
-  //auto path = Utl::Path::Save::Input(this, Nmemo::VALUE::SAVE_FILE_CAPTION,
-  //                                  r_dirname,
-  //                                  Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
-  //if (path.isEmpty()) return;
-  //r_dirname = QDir::currentPath();
+  if (!r_tabbar_updated) return;
+
+  auto path = Utl::Path::Save::Input(this, Nmemo::VALUE::SAVE_FILE_CAPTION,
+                                    r_dirname,
+                                    Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
+  if (path.isEmpty()) return;
+  r_dirname = QDir::currentPath();
   UpdateNote();
-  emit asSystemData(Cmd::FILE_SAVE, QVariant(0), QVariant(0), QVariant(0));
+  emit asSystemData(Cmd::FILE_SAVEAS, QVariant(path), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actQuit_triggered()
 {
+  if (!r_tabbar_updated) return;
+
   bool is_unsaved = false;
   for (int i = 0, size = tabbar->count(); i < size; ++i) {
     is_unsaved |= CheckUnsaved();
@@ -278,40 +310,59 @@ void MainWindow::on_actSelectAll_triggered()
 /* slots: menus - Book */
 void MainWindow::on_actAddItem_triggered()
 {
+  if (!r_pagelist_updated) return;
+
+  auto name = Utl::Name::Input(this, Nmemo::VALUE::GET_PAGE_TITLE,
+                               Nmemo::VALUE::GET_PAGE_CAPTION,
+                               Nmemo::VALUE::DEFAULT_LISTITEM_NAME);
+  if (name.isEmpty()) return;
+
   UpdateNote();
-  emit asSystemData(Cmd::PAGE_ADD, QVariant(0), QVariant(0), QVariant(0));
+  emit asSystemData(Cmd::PAGE_ADD, QVariant(name), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actDeleteItem_triggered()
 {
+  if (!r_pagelist_updated) return;
+
   UpdateNote();
   emit asSystemData(Cmd::PAGE_DELETE, QVariant(0), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actRenameItem_triggered()
 {
+  if (!r_pagelist_updated) return;
+
   OnListItemDoubleClicked(UIP::PageList::Item::Fetch(pagelist.data()));
 }
 
 void MainWindow::on_actMoveNext_triggered()
 {
+  if (!r_pagelist_updated) return;
+
   auto index = UIP::PageList::Index::Fetch(pagelist.data());
   emit asSystemData(Cmd::PAGE_MOVE, QVariant(index), QVariant(index+1), QVariant(0));
 }
 
 void MainWindow::on_actMovePrevious_triggered()
 {
+  if (!r_pagelist_updated) return;
+
   auto index = UIP::PageList::Index::Fetch(pagelist.data());
   emit asSystemData(Cmd::PAGE_MOVE, QVariant(index), QVariant(index-1), QVariant(0));
 }
 
 void MainWindow::on_actSort_AtoZ_triggered()
 {
+  if (!r_pagelist_updated) return;
+
   emit asSystemData(Cmd::PAGE_SORT, QVariant(Qt::AscendingOrder), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actSort_ZtoA_triggered()
 {
+  if (!r_pagelist_updated) return;
+
   emit asSystemData(Cmd::PAGE_SORT, QVariant(Qt::DescendingOrder), QVariant(0), QVariant(0));
 }
 
@@ -329,21 +380,29 @@ void MainWindow::on_actFullscreen_triggered()
 
 void MainWindow::on_actNextTab_triggered()
 {
+  if (!r_tabbar_updated) return;
+
   OnTabCurrentChanged(UIP::TabBar::Index::Fetch(tabbar.data()) + 1);
 }
 
 void MainWindow::on_actPreviousTab_triggered()
 {
+  if (!r_tabbar_updated) return;
+
   OnTabCurrentChanged(UIP::TabBar::Index::Fetch(tabbar.data()) - 1);
 }
 
 void MainWindow::on_actNextItem_triggered()
 {
+  if (!r_pagelist_updated) return;
+
   OnListCurrentRowChanged(UIP::PageList::Index::Fetch(pagelist.data()) + 1);
 }
 
 void MainWindow::on_actPreviousItem_triggered()
 {
+  if (!r_pagelist_updated) return;
+
   OnListCurrentRowChanged(UIP::PageList::Index::Fetch(pagelist.data()) - 1);
 }
 
@@ -374,21 +433,31 @@ namespace TitleBar {
 
 auto ToUpdate(const T_cmd cmd, MainWindow* m, const T_arg arg) -> bool
 {
-  Q_UNUSED(cmd);
-  Q_UNUSED(arg);
-  m->setWindowTitle(arg.toString());
-  return true;
+  bool is_updated = false;
+  if (Utl::Cmd::Exists(cmd, Cmd::TITLE)) {
+    m->setWindowTitle(arg.toString());
+    is_updated = true;
+  }
+  return is_updated;
 }
 
 }  // ns UIP::TitleBar
 
 namespace StatusBar {
 
-auto ToUpdate(const T_cmd cmd, QStatusBar* sbar, const T_arg arg0, const T_arg arg1) -> bool
+auto ToUpdate(const T_cmd cmd, QStatusBar* sbar, const T_arg arg_txt,
+              const T_arg arg_time, T_msgtime* time) -> bool
 {
-  Q_UNUSED(cmd);
-  sbar->showMessage(arg0.toString(), arg1.toInt());
-  return true;
+  bool is_updated = false;
+  if (Utl::Cmd::Exists(cmd, Cmd::STATUS_TIME)) {
+    (*time) = arg_time.toInt();
+    is_updated = true;
+  }
+  if (Utl::Cmd::Exists(cmd, Cmd::STATUS_TEXT)) {
+    sbar->showMessage(arg_txt.toString(), *time);
+    is_updated = true;
+  }
+  return is_updated;
 }
 
 }  // ns UIP::StatusBar
@@ -407,10 +476,12 @@ auto Fetch(const QTabBar* tabbar) -> T_index
 auto ToUpdate(const T_cmd cmd, QTabBar* tabbar, const T_arg arg0,
               const T_arg arg1, const T_arg arg2) -> bool
 {
-  Q_UNUSED(cmd);
-  Q_UNUSED(tabbar);
-  Q_UNUSED(arg0);
-  Q_UNUSED(arg1);
+  if (Utl::Cmd::Exists(cmd, Cmd::TAB_NAME)) {
+    Utl::Widget::Names::Merge<QTabBar>(tabbar, arg1.toStringList());
+  }
+  if (Utl::Cmd::Exists(cmd, Cmd::TAB_INDEX)) {
+    tabbar->setCurrentIndex(arg0.toInt());
+  }
   Q_UNUSED(arg2);
   return true;
 }
@@ -439,16 +510,27 @@ constexpr auto Fetch(const QListWidget* list) -> T_item*
 
 auto ToUpdate(const T_cmd cmd, QListWidget* list, const T_arg arg0, const T_arg arg1) -> bool
 {
-  Q_UNUSED(cmd);
-  Q_UNUSED(list);
-  Q_UNUSED(arg0);
-  Q_UNUSED(arg1);
+  if (Utl::Cmd::Exists(cmd, Cmd::LIST_NAME)) {
+    Utl::Widget::Names::Merge<QListWidget>(list, arg1.toStringList());
+  }
+  if (Utl::Cmd::Exists(cmd, Cmd::LIST_INDEX)) {
+    list->setCurrentRow(arg0.toInt());
+  }
   return true;
 }
 
 }  // ns UIP::PageList
 
 namespace Editor {
+
+namespace Text {
+
+auto Fetch(const QTextEdit* e) -> T_text
+{
+  return e->toPlainText();
+}
+
+}  // ns UIP::Editor::Text
 
 namespace Act {
 
@@ -491,9 +573,12 @@ auto SelectAll(QTextEdit* e) -> void
 
 auto ToUpdate(const T_cmd cmd, QTextEdit* editor, const T_arg arg0, const T_arg arg1) -> bool
 {
-  Q_UNUSED(cmd);
-  Q_UNUSED(arg1);
-  editor->setText(arg0.toString());
+  if (Utl::Cmd::Exists(cmd, Cmd::EDITOR_TEXT)) {
+    editor->setText(arg0.toString());
+  }
+  if (Utl::Cmd::Exists(cmd, Cmd::EDITOR_STATE)) {
+    editor->setReadOnly(!arg1.toBool());
+  }
   return true;
 }
 

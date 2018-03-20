@@ -17,32 +17,33 @@
 
 /* enums */
 enum class Cmd {
-  // Operand
-  FILE = 0x03,
-  BOOK = 0x01,
-  PAGE = 0x02,
-  NOTE = 0x02,
-  TAB = 0x01,
-  LIST = 0x02,
-  EDITOR = 0x04,
-  TITLE = 0x04,
-  STATUS = 0x05,
-  ID = 0x06,
-  INDEX = 0x08,
-  NAME = 0x010,
-  TEXT = 0x10,
-  STATE = 0x01,
-  TIME = 0x10,
-  // Opcode
+  // Operand (upper 16bit)
+  FILE = 0x000010000,
+  BOOK = 0x000020000,
+  PAGE = 0x00040000,
+  NOTE = 0x00080000,
+  TAB = 0x00100000,
+  LIST = 0x00200000,
+  EDITOR = 0x00400000,
+  TITLE = 0x00800000,
+  STATUS = 0x01000000,
+  ID = 0x02000000,
+  INDEX = 0x04000000,
+  NAME = 0x08000000,
+  TEXT = 0x10000000,
+  STATE = 0x20000000,
+  TIME = 0x40000000,
+  // Opcode (lower 16bit)
   ADD = 0x0001,
   DELETE = 0x0002,
   CHANGE = 0x0004,
   MOVE = 0x0008,
   EDIT = 0x0010,
-  SORT = 0x0040,
-  LOAD = 0x0100,
-  SAVE = 0x0200,
+  SORT = 0x0020,
+  LOAD = 0x0040,
+  SAVE = 0x0080,
   // opcodes
+  NOP = 0x00,
   BOOK_ADD = BOOK | ADD,
   BOOK_DELETE = BOOK | DELETE,
   BOOK_CHANGE = BOOK | CHANGE,
@@ -111,6 +112,7 @@ using T_pid = T_id;
 using T_idset = QPair<T_bid, T_pid>;
 using T_stats = QList<T_stat>;
 using T_statset = QMap<T_id, T_stat>;
+using T_pathset = T_strset;
 using T_tabnames = T_strs;
 using T_pagenames = T_strs;
 using T_bids = T_ids;

@@ -56,13 +56,14 @@ const QString SAVE_FILE_CAPTION = "Save file";
 const QString FILE_FILTER = "Memo file (*.memo);;All Files (*)";
 const QString DEFAULT_SELECTED_FILTER = "Memo file (*.memo)";
 
-/* for books */
-const QString DEFAULT_BOOK_NAME = "New Book";
-const QString GET_BOOK_TITLE = "Book Name";
-const QString GET_BOOK_CAPTION = "Input a book name: ";
+/* for items */
+const QString DEFAULT_LISTITEM_NAME = "New Page";
+const QString GET_PAGE_TITLE = "Page Name";
+const QString GET_PAGE_CAPTION = "Input a page name: ";
 
-/* for memos */
-const QString DEFAULT_MEMO_TEXT = "new memo";
+/* for editors */
+const QString CAUTION_EDITOR_MESSAGE = "Please create a new page!!";
+const QString DEFAULT_EDITOR_TEXT = "new note";
 
 /* statusbar */
 const int STATUS_MESSAGE_TIME = 3000;

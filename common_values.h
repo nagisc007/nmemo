@@ -47,12 +47,13 @@ extern const qreal EDIT_TAB_DISTANCE;
 namespace VALUE {
 
 extern const int STATUS_MESSAGE_TIME;
-extern const QString DEFAULT_BOOK_NAME;
+extern const QString CAUTION_EDITOR_MESSAGE;
+extern const QString DEFAULT_EDITOR_TEXT;
 extern const QString DEFAULT_FILENAME;
-extern const QString DEFAULT_MEMO_TEXT;
+extern const QString DEFAULT_LISTITEM_NAME;
 extern const QString FILE_EXT;
-extern const QString GET_BOOK_TITLE;
-extern const QString GET_BOOK_CAPTION;
+extern const QString GET_PAGE_TITLE;
+extern const QString GET_PAGE_CAPTION;
 extern const QString LOAD_FILE_CAPTION;
 extern const QString SAVE_FILE_CAPTION;
 extern const QString FILE_FILTER;
