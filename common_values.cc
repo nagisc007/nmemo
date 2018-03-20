@@ -56,6 +56,10 @@ const QString SAVE_FILE_CAPTION = "Save file";
 const QString FILE_FILTER = "Memo file (*.memo);;All Files (*)";
 const QString DEFAULT_SELECTED_FILTER = "Memo file (*.memo)";
 
+/* for tabbar */
+const QColor TAB_MODIFIED_COLOR = QColor::fromRgb(0,0,0);
+const QColor TAB_UNMODIFIED_COLOR = QColor::fromRgb(255,0,0);
+
 /* for items */
 const QString DEFAULT_LISTITEM_NAME = "New Page";
 const QString GET_PAGE_TITLE = "Page Name";

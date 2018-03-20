@@ -33,6 +33,7 @@ public:
   T_note r_note;
   T_stat r_enabled;
   QScopedPointer<T_pidset> r_pidset;
+  QScopedPointer<T_statset> r_savedset;
   /* members: utils */
   T_id u_nextid;
   QScopedPointer<QStack<T_id>> u_idpool;
@@ -101,6 +102,17 @@ T_encoded Encode(const T_text&, const T_text&, const T_pagenames*, const T_notes
 T_decoded Decode(const T_text&, const T_text&, const T_strs*);
 
 }  // ns CP::File::Data
+
+namespace States {
+
+QList<QVariant> Convert(const T_stats*);
+T_stats Filter(const T_statset*, const T_bids*);
+T_statset Add(const T_statset*, const T_bid, const T_stat);
+T_statset Delete(const T_statset*, const T_bid);
+T_statset Edit(const T_statset*, const T_bid, const T_stat);
+bool Merge(T_statset*, T_statset&);
+
+}  // ns CP::File::States
 
 }  // ns CP::File
 

@@ -199,8 +199,10 @@ void MainWindow::OnListItemDoubleClicked(const T_item* item)
   if (!r_pagelist_updated) return;
 
   auto index = pagelist->row(item);
+  auto name = Utl::Name::Input(this, Nmemo::VALUE::GET_PAGE_TITLE,
+                               Nmemo::VALUE::GET_PAGE_CAPTION, item->text());
 
-  emit asSystemData(Cmd::PAGE_EDIT, QVariant(index), QVariant(0), QVariant(0));
+  emit asSystemData(Cmd::PAGE_EDIT, QVariant(index), QVariant(name), QVariant(0));
 }
 
 /* slots: Editor */
@@ -482,7 +484,14 @@ auto ToUpdate(const T_cmd cmd, QTabBar* tabbar, const T_arg arg0,
   if (Utl::Cmd::Exists(cmd, Cmd::TAB_INDEX)) {
     tabbar->setCurrentIndex(arg0.toInt());
   }
-  Q_UNUSED(arg2);
+  if (Utl::Cmd::Exists(cmd, Cmd::TAB_STATUS)) {
+    auto stats = arg2.toList();
+    for (int i = 0, size = tabbar->count(); i < size; ++i) {
+      auto stat = stats.at(i).toBool();
+      tabbar->setTabTextColor(i, stat ? Nmemo::VALUE::TAB_MODIFIED_COLOR:
+                                        Nmemo::VALUE::TAB_UNMODIFIED_COLOR);
+    }
+  }
   return true;
 }
 

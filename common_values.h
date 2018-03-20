@@ -8,6 +8,7 @@
 #ifndef COMMON_VALUES_H
 #define COMMON_VALUES_H
 
+#include <QColor>
 #include <QString>
 
 /* values: Application */
@@ -60,6 +61,8 @@ extern const QString FILE_FILTER;
 extern const QString DEFAULT_SELECTED_FILTER;
 extern const QString SAVE_PREFIX;
 extern const QString SAVE_VERSION;
+extern const QColor TAB_MODIFIED_COLOR;
+extern const QColor TAB_UNMODIFIED_COLOR;
 
 }  // ns Nmemo::VALUE
 

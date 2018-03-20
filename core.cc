@@ -22,6 +22,7 @@ System::System(QObject* parent): QObject(parent),
   r_note(""),
   r_enabled(false),
   r_pidset(new T_pidset()),
+  r_savedset(new T_statset()),
   // utils
   u_nextid(0),
   u_idpool(new QStack<T_id>())
@@ -55,6 +56,10 @@ System::~System()
     r_pidset->clear();
     r_pidset.reset();
   }
+  if (r_savedset) {
+    r_savedset->clear();
+    r_savedset.reset();
+  }
   if (u_idpool) {
     u_idpool->clear();
     u_idpool.reset();
@@ -65,11 +70,12 @@ System::~System()
 /* methods: output */
 auto System::OutToTabBar(const T_cmd cmd) -> void
 {
+  auto stats = CP::File::States::Filter(r_savedset.data(), m_bids.data());
   emit asTabBarData(cmd,
                     QVariant(CP::Book::Index::Fetch(m_bids.data(),
                                                     CP::Book::CurrentId::Fetch(this))),
                     QVariant(CP::Book::Names::Filter(m_pathset.data(), m_bids.data())),
-                    QVariant(0));
+                    QVariant(CP::File::States::Convert(&stats)));
 }
 
 auto System::OutToPageList(const T_cmd cmd) -> void
@@ -322,7 +328,8 @@ auto System::FileToSave(const T_path& path) -> T_cmd
   auto edited = CP::Book::Names::Edit(m_pathset.data(), bid, va_path);
   CP::Book::Names::Merge(m_pathset.data(), edited);
   // register
-  // save state updated
+  auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, true);
+  CP::File::States::Merge(r_savedset.data(), saved_edited);
 
   return Utl::Cmd::Combine(Cmd::TITLE, Cmd::TAB_ALL);
 }
@@ -347,8 +354,10 @@ auto System::BookToAdd(const T_name& path) -> T_cmd
 
   // register
   auto stat_added = Utl::Map::Add<T_bid, T_pid>(r_pidset.data(), bid, -1);
+  auto saved_added = CP::File::States::Add(r_savedset.data(), bid, false);
   Utl::Map::Merge<T_bid, T_pid>(r_pidset.data(), stat_added);
   CP::Book::CurrentId::Merge(&r_bid, bid);
+  CP::File::States::Merge(r_savedset.data(), saved_added);
 
   return Utl::Cmd::Combine(Cmd::TITLE,
                            Utl::Cmd::Combine(Cmd::EDITOR_ALL,
@@ -370,7 +379,9 @@ auto System::BookToDelete(const T_index index) -> T_cmd
 
   // register
   auto cur_bid = CP::Book::Id::Fetch(m_bids.data(), index - 1);
+  auto saved_removed = CP::File::States::Delete(r_savedset.data(), bid);
   CP::Book::CurrentId::Merge(&r_bid, cur_bid);
+  CP::File::States::Merge(r_savedset.data(), saved_removed);
 
   // release
   auto pids = CP::Page::Ids::Fetch(m_pidsset.data(), bid);
@@ -441,7 +452,9 @@ auto System::PageToAdd(const T_bid bid, const T_name& name, const T_note& note) 
 
   // register
   auto cur_added = CP::Page::CurrentIds::Add(r_pidset.data(), bid, pid);
+  auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, false);
   CP::Page::CurrentIds::Merge(r_pidset.data(), cur_added);
+  CP::File::States::Merge(r_savedset.data(), saved_edited);
 
   return Utl::Cmd::Combine(Cmd::EDITOR_ALL, Cmd::LIST_ALL);
 }
@@ -462,10 +475,13 @@ auto System::PageToDelete(const T_bid bid, const T_index index) -> T_cmd
   CP::Note::Texts::Merge(m_noteset.data(), txt_removed);
   // id release
   Utl::ID::Release(u_idpool.data(), pid);
+
   // register
   auto cur_pid = CP::Page::Id::Fetch(m_pidsset.data(), bid, index - 1);
   auto cur_edited = CP::Page::CurrentIds::Edit(r_pidset.data(), bid, cur_pid);
+  auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, false);
   CP::Page::CurrentIds::Merge(r_pidset.data(), cur_edited);
+  CP::File::States::Merge(r_savedset.data(), saved_edited);
 
   return Utl::Cmd::Combine(Cmd::EDITOR_ALL, Cmd::LIST_ALL);
 }
@@ -493,7 +509,11 @@ auto System::PageToMove(const T_bid bid, const T_index from, const T_index to) -
   // memory
   auto moved = CP::Page::Ids::Move(m_pidsset.data(), bid, va_from, va_to);
   CP::Page::Ids::Merge(m_pidsset.data(), bid, moved);
+
   // register
+  auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, false);
+  CP::File::States::Merge(r_savedset.data(), saved_edited);
+
   return Cmd::LIST_ALL;
 }
 
@@ -507,6 +527,9 @@ auto System::PageToRename(const T_bid bid, const T_index index, const T_name& na
   CP::Page::Names::Merge(m_nameset.data(), renamed);
 
   // register
+  auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, false);
+  CP::File::States::Merge(r_savedset.data(), saved_edited);
+
   return Cmd::LIST_ALL;
 }
 
@@ -529,7 +552,10 @@ auto System::PageToSort(const T_bid bid, const T_order order) -> T_cmd
     tmp << combined.at(i).section("///", 1, 1).toInt();
   }
   CP::Page::Ids::Merge(m_pidsset.data(), bid, tmp);
+
   // register
+  auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, false);
+  CP::File::States::Merge(r_savedset.data(), saved_edited);
 
   return Cmd::LIST_ALL;
 }
@@ -657,6 +683,48 @@ auto Decode(const T_text& save_pref, const T_text& save_ver, const T_strs* strs)
 }
 
 }  // ns CP::File::Data
+
+namespace States {
+
+auto Convert(const T_stats* stats) -> QList<QVariant>
+{
+  QList<QVariant> tmp;
+  for (int i = 0, size = stats->count(); i < size; ++i) {
+    tmp << QVariant(stats->at(i));
+  }
+  return tmp;
+}
+
+auto Filter(const T_statset* statset, const T_bids* bids) -> T_stats
+{
+  T_stats tmp;
+  for (int i = 0, size = bids->count(); i < size; ++i) {
+    tmp << statset->value(bids->at(i));
+  }
+  return tmp;
+}
+
+auto Add(const T_statset* statset, const T_bid bid, const T_stat stat) -> T_statset
+{
+  return Utl::Map::Add<T_bid, T_stat>(statset, bid, stat);
+}
+
+auto Delete(const T_statset* statset, const T_bid bid) -> T_statset
+{
+  return Utl::Map::Delete<T_bid, T_stat>(statset, bid);
+}
+
+auto Edit(const T_statset* statset, const T_bid bid, const T_stat stat) -> T_statset
+{
+  return Utl::Map::Edit<T_bid, T_stat>(statset, bid, stat);
+}
+
+auto Merge(T_statset* base, T_statset& updated) -> bool
+{
+  return Utl::Map::Merge<T_bid, T_stat>(base, updated);
+}
+
+}  // ns CP::File::States
 
 }  // ns CP::File
 

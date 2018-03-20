@@ -251,7 +251,7 @@
     <string>Rename(&amp;R)</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+R</string>
+    <string>Ctrl+M</string>
    </property>
   </action>
   <action name="actMoveNext">
