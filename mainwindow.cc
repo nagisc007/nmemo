@@ -242,7 +242,7 @@ void MainWindow::on_actOpen_triggered()
   auto path = Utl::Path::Load::Input(this, Nmemo::VALUE::LOAD_FILE_CAPTION, r_dirname,
                                     Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
   if (path.isEmpty()) return;
-  r_dirname = QDir::currentPath();
+  r_dirname = QDir(path).absolutePath();
   UpdateNote();
   emit asSystemData(Cmd::FILE_LOAD, QVariant(path), QVariant(0), QVariant(0));
 }
