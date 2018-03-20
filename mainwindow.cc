@@ -96,8 +96,18 @@ auto MainWindow::InitActions() -> bool
 }
 
 /* methods: features */
-auto MainWindow::CheckUnsaved() -> bool
+auto MainWindow::CheckUnsaved(const T_index index) -> bool
 {
+  if (!tabbar->tabData(index).toBool()) {
+    auto result = QMessageBox::question(this, Nmemo::VALUE::ASK_UNSAVED_TITLE,
+                                        Nmemo::VALUE::ASK_UNSAVED_MESSAGE,
+                                        QMessageBox::Ok, QMessageBox::No);
+    if (result == QMessageBox::Ok) {
+      emit asSystemData(Cmd::FILE_SAVE, QVariant(0), QVariant(0), QVariant(0));
+      return true;
+    }
+    return false;
+  }
   return false;
 }
 
@@ -173,6 +183,8 @@ void MainWindow::OnTabCurrentChanged(const T_index index)
 void MainWindow::OnTabCloseRequested(const T_index index)
 {
   if (!r_tabbar_updated) return;
+
+  if (CheckUnsaved(index)) return;
 
   UpdateNote();
   emit asSystemData(Cmd::BOOK_DELETE, QVariant(index), QVariant(0), QVariant(0));
@@ -267,11 +279,11 @@ void MainWindow::on_actQuit_triggered()
 {
   if (!r_tabbar_updated) return;
 
-  bool is_unsaved = false;
   for (int i = 0, size = tabbar->count(); i < size; ++i) {
-    is_unsaved |= CheckUnsaved();
+    if (CheckUnsaved(i)) return;
   }
-  if (!is_unsaved) close();
+
+  close();
 }
 
 /* slots: menus - Edit */
@@ -488,7 +500,9 @@ auto ToUpdate(const T_cmd cmd, QTabBar* tabbar, const T_arg arg0,
   if (Utl::Cmd::Exists(cmd, Cmd::TAB_STATUS)) {
     auto stats = arg2.toList();
     for (int i = 0, size = tabbar->count(); i < size; ++i) {
-      auto stat = stats.at(i).toBool();
+      auto v = stats.at(i);
+      tabbar->setTabData(i, v);
+      auto stat = v.toBool();
       tabbar->setTabTextColor(i, stat ? Nmemo::VALUE::TAB_MODIFIED_COLOR:
                                         Nmemo::VALUE::TAB_UNMODIFIED_COLOR);
     }

@@ -294,6 +294,8 @@ auto System::FileToLoad(const T_path& path) -> T_cmd
   for (int i = 0, size = names.count(); i < size; ++i) {
     PageToAdd(new_bid, names.at(i), notes.at(i));
   }
+  BookToChange(0);
+  FileToUpdate(new_bid, true);
 
   return Utl::Cmd::Combine(Cmd::TITLE,
                            Utl::Cmd::Combine(Cmd::EDITOR_ALL,
@@ -336,9 +338,12 @@ auto System::FileToSave(const T_path& path) -> T_cmd
   return Utl::Cmd::Combine(Cmd::TITLE, Cmd::TAB_ALL);
 }
 
-auto System::FileToUpdate() -> T_cmd
+auto System::FileToUpdate(const T_bid bid, const T_stat stat) -> T_cmd
 {
-  return Cmd::NOP;
+  // register
+  auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, stat);
+  CP::File::States::Merge(r_savedset.data(), saved_edited);
+  return Cmd::TAB_STATUS;
 }
 
 /* methods: Book */

@@ -55,6 +55,8 @@ const QString LOAD_FILE_CAPTION = "Load file";
 const QString SAVE_FILE_CAPTION = "Save file";
 const QString FILE_FILTER = "Memo file (*.memo);;All Files (*)";
 const QString DEFAULT_SELECTED_FILTER = "Memo file (*.memo)";
+const QString ASK_UNSAVED_TITLE = "Unsaved file exits";
+const QString ASK_UNSAVED_MESSAGE = "The file is unsaved. Save this file?";
 
 /* for tabbar */
 const QColor TAB_MODIFIED_COLOR = QColor::fromRgb(0,0,0);

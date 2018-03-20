@@ -51,7 +51,7 @@ public:
   /* methods: File */
   T_cmd FileToLoad(const T_path&);
   T_cmd FileToSave(const T_path&);
-  T_cmd FileToUpdate();
+  T_cmd FileToUpdate(const T_bid, const T_stat);
   /* methods: Book */
   T_cmd BookToAdd(const T_name&);
   T_cmd BookToDelete(const T_index);

@@ -48,6 +48,8 @@ extern const qreal EDIT_TAB_DISTANCE;
 namespace VALUE {
 
 extern const int STATUS_MESSAGE_TIME;
+extern const QString ASK_UNSAVED_TITLE;
+extern const QString ASK_UNSAVED_MESSAGE;
 extern const QString CAUTION_EDITOR_MESSAGE;
 extern const QString DEFAULT_EDITOR_TEXT;
 extern const QString DEFAULT_FILENAME;

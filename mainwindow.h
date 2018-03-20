@@ -52,7 +52,7 @@ public:
   bool InitWidgets();
   bool InitActions();
   /* methods: features */
-  bool CheckUnsaved();
+  bool CheckUnsaved(const T_index);
   void UpdateNote();
 
 signals:
