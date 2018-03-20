@@ -208,8 +208,9 @@ void MainWindow::OnListItemDoubleClicked(const T_item* item)
 /* slots: Editor */
 void MainWindow::OnEditorTextChanged()
 {
-  if (!r_editor_updated) return;
-  // NOTE: unsaved state update
+  if (!r_editor_updated || editor->isReadOnly()) return;
+
+  emit asSystemData(Cmd::NOTE_MODIFY, QVariant(0), QVariant(0), QVariant(0));
 }
 
 /* slots: menus - File */

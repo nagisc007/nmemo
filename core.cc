@@ -233,6 +233,8 @@ auto System::ToNoteData(const T_cmd cmd, const T_arg arg0, const T_arg arg1,
   switch (cmd) {
   case Cmd::NOTE_EDIT:
     return NoteToCache(arg0.toString());
+  case Cmd::NOTE_MODIFY:
+    return NoteToModify();
   default:
     return Cmd::NOP;
   }
@@ -585,6 +587,17 @@ auto System::NoteToCache(const T_note& note) -> T_cmd
   r_note = note;
 
   return Cmd::NOP;
+}
+
+auto System::NoteToModify() -> T_cmd
+{
+  auto bid = CP::Book::CurrentId::Fetch(this);
+  if (bid < 0) return Cmd::NOP;
+
+  auto edited = CP::File::States::Edit(r_savedset.data(), bid, false);
+  CP::File::States::Merge(r_savedset.data(), edited);
+
+  return Cmd::TAB_STATUS;
 }
 
 auto System::NoteToUpdate(const T_pid pid) -> T_cmd

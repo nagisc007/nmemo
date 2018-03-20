@@ -351,7 +351,6 @@ auto Merge<QTabBar>(QTabBar* tabbar, const T_strs& strs) -> bool
   }
   return true;
 }
-template bool Merge<QTabBar>(QTabBar*, const T_strs& strs);
 
 template<>
 auto Merge<QListWidget>(QListWidget* w, const T_strs& strs) -> bool
@@ -363,7 +362,6 @@ auto Merge<QListWidget>(QListWidget* w, const T_strs& strs) -> bool
   w->addItems(strs);
   return true;
 }
-template bool Merge<QListWidget>(QListWidget*, const T_strs& strs);
 
 }  // ns Utl::Widget::Names
 

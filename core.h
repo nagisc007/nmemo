@@ -69,6 +69,7 @@ public:
   T_cmd NoteToAdd(const T_pid, const T_note&);
   T_cmd NoteToDelete(const T_pid);
   T_cmd NoteToCache(const T_note&);
+  T_cmd NoteToModify();
   T_cmd NoteToUpdate(const T_pid);
 
 signals:
