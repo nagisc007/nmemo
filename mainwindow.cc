@@ -340,6 +340,11 @@ void MainWindow::on_actDeleteItem_triggered()
 {
   if (!r_pagelist_updated) return;
 
+  auto result = QMessageBox::question(this, "Delete page",
+                                      "The page deleted?",
+                                      QMessageBox::Ok, QMessageBox::No);
+  if (result != QMessageBox::Ok) return;
+
   UpdateNote();
   emit asSystemData(Cmd::PAGE_DELETE, QVariant(0), QVariant(0), QVariant(0));
 }

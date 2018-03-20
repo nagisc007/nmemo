@@ -463,7 +463,8 @@ auto System::PageToAdd(const T_bid bid, const T_name& name, const T_note& note) 
   CP::Page::CurrentIds::Merge(r_pidset.data(), cur_added);
   CP::File::States::Merge(r_savedset.data(), saved_edited);
 
-  return Utl::Cmd::Combine(Cmd::EDITOR_ALL, Cmd::LIST_ALL);
+  return Utl::Cmd::Combine(Cmd::EDITOR_ALL,
+                           Utl::Cmd::Combine(Cmd::LIST_ALL, Cmd::TAB_STATUS));
 }
 
 auto System::PageToDelete(const T_bid bid, const T_index index) -> T_cmd
@@ -490,7 +491,8 @@ auto System::PageToDelete(const T_bid bid, const T_index index) -> T_cmd
   CP::Page::CurrentIds::Merge(r_pidset.data(), cur_edited);
   CP::File::States::Merge(r_savedset.data(), saved_edited);
 
-  return Utl::Cmd::Combine(Cmd::EDITOR_ALL, Cmd::LIST_ALL);
+  return Utl::Cmd::Combine(Cmd::EDITOR_ALL,
+                           Utl::Cmd::Combine(Cmd::LIST_ALL, Cmd::TAB_STATUS));
 }
 
 auto System::PageToChange(const T_bid bid, const T_index index) -> T_cmd
@@ -521,7 +523,7 @@ auto System::PageToMove(const T_bid bid, const T_index from, const T_index to) -
   auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, false);
   CP::File::States::Merge(r_savedset.data(), saved_edited);
 
-  return Cmd::LIST_ALL;
+  return Utl::Cmd::Combine(Cmd::LIST_ALL, Cmd::TAB_STATUS);
 }
 
 auto System::PageToRename(const T_bid bid, const T_index index, const T_name& name) -> T_cmd
@@ -537,7 +539,7 @@ auto System::PageToRename(const T_bid bid, const T_index index, const T_name& na
   auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, false);
   CP::File::States::Merge(r_savedset.data(), saved_edited);
 
-  return Cmd::LIST_ALL;
+  return Utl::Cmd::Combine(Cmd::LIST_ALL, Cmd::TAB_STATUS);
 }
 
 auto System::PageToSort(const T_bid bid, const T_order order) -> T_cmd
@@ -564,7 +566,7 @@ auto System::PageToSort(const T_bid bid, const T_order order) -> T_cmd
   auto saved_edited = CP::File::States::Edit(r_savedset.data(), bid, false);
   CP::File::States::Merge(r_savedset.data(), saved_edited);
 
-  return Cmd::LIST_ALL;
+  return Utl::Cmd::Combine(Cmd::LIST_ALL, Cmd::TAB_STATUS);
 }
 
 /* methods: Note */
