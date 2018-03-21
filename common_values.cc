@@ -13,7 +13,7 @@ namespace VERSION {
 
 const int MAJOR = 1;
 const int MINOR = 2;
-const int MICRO = 0;
+const int MICRO = 1;
 
 }  // ns APP::VERSION
 
