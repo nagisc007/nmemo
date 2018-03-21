@@ -97,6 +97,7 @@ using T_dirname = T_text;
 using T_order = Qt::SortOrder;
 using T_path = T_text;  // =filename
 using T_title = T_text;
+using T_color = QColor;
 
 /* defines: common types (container) */
 using T_ids = QList<T_id>;

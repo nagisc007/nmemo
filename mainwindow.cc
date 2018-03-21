@@ -270,7 +270,7 @@ void MainWindow::on_actSaveAs_triggered()
                                     r_dirname,
                                     Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
   if (path.isEmpty()) return;
-  r_dirname = QDir::currentPath();
+  r_dirname = QDir(path).absolutePath();
   UpdateNote();
   emit asSystemData(Cmd::FILE_SAVEAS, QVariant(path), QVariant(0), QVariant(0));
 }
@@ -344,9 +344,9 @@ void MainWindow::on_actDeleteItem_triggered()
                                       "The page deleted?",
                                       QMessageBox::Ok, QMessageBox::No);
   if (result != QMessageBox::Ok) return;
-
+  auto index = UIP::PageList::Index::Fetch(pagelist.data());
   UpdateNote();
-  emit asSystemData(Cmd::PAGE_DELETE, QVariant(0), QVariant(0), QVariant(0));
+  emit asSystemData(Cmd::PAGE_DELETE, QVariant(index), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actRenameItem_triggered()
