@@ -59,9 +59,9 @@ public:
   T_cmd BookToMove(const T_index, const T_index);
   T_cmd BookToRename(const T_index, const T_name&);
   /* methods: Page */
-  T_cmd PageToAdd(const T_bid, const T_name&, const T_note&);
+  T_cmd PageToAdd(const T_bid, const T_name&, const T_note&, bool is_note_updated = true);
   T_cmd PageToDelete(const T_bid, const T_index);
-  T_cmd PageToChange(const T_bid, const T_index);
+  T_cmd PageToChange(const T_bid, const T_index, bool is_note_updated = true);
   T_cmd PageToMove(const T_bid, const T_index, const T_index);
   T_cmd PageToRename(const T_bid, const T_index, const T_name&);
   T_cmd PageToSort(const T_bid, const T_order);

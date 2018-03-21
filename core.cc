@@ -292,9 +292,9 @@ auto System::FileToLoad(const T_path& path) -> T_cmd
   BookToAdd(va_path);
   auto new_bid = CP::Book::CurrentId::Fetch(this);
   for (int i = 0, size = names.count(); i < size; ++i) {
-    PageToAdd(new_bid, names.at(i), notes.at(i));
+    PageToAdd(new_bid, names.at(i), notes.at(i), false);
   }
-  PageToChange(new_bid, 0);
+  PageToChange(new_bid, 0, false);
   FileToUpdate(new_bid, true);
 
   return Utl::Cmd::Combine(Cmd::TITLE,
@@ -443,10 +443,13 @@ auto System::BookToRename(const T_index index, const T_name& path) -> T_cmd
 }
 
 /* methods: Page */
-auto System::PageToAdd(const T_bid bid, const T_name& name, const T_note& note) -> T_cmd
+auto System::PageToAdd(const T_bid bid, const T_name& name, const T_note& note,
+                       bool is_note_updated) -> T_cmd
 {
-  NoteToUpdate(CP::Page::CurrentId::Fetch(r_pidset.data(),
-                                          CP::Book::CurrentId::Fetch(this)));
+  if (is_note_updated) {
+    NoteToUpdate(CP::Page::CurrentId::Fetch(r_pidset.data(),
+                                            CP::Book::CurrentId::Fetch(this)));
+  }
   auto pid = Utl::ID::Allocate(u_idpool.data(), &u_nextid);
 
   // memory
@@ -495,10 +498,13 @@ auto System::PageToDelete(const T_bid bid, const T_index index) -> T_cmd
                            Utl::Cmd::Combine(Cmd::LIST_ALL, Cmd::TAB_STATUS));
 }
 
-auto System::PageToChange(const T_bid bid, const T_index index) -> T_cmd
+auto System::PageToChange(const T_bid bid, const T_index index,
+                          bool is_note_updated) -> T_cmd
 {
-  NoteToUpdate(CP::Page::CurrentId::Fetch(r_pidset.data(),
-                                          CP::Book::CurrentId::Fetch(this)));
+  if (is_note_updated) {
+    NoteToUpdate(CP::Page::CurrentId::Fetch(r_pidset.data(),
+                                            CP::Book::CurrentId::Fetch(this)));
+  }
   auto pid = CP::Page::Id::Fetch(m_pidsset.data(), bid, index);
   if (pid <= 0) return Cmd::NOP;
 
