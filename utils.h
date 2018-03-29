@@ -33,13 +33,14 @@
 
 namespace Utl {
 
-/* process: command */
-namespace Cmd {
+/* process: control signal */
+namespace Sig {
 
-T_cmd Combine(const T_cmd, const T_cmd);
-bool Exists(const T_cmd, const T_cmd);
+T_sig Combine(const T_sig, const T_sig);
+bool Exists(const T_sig, const T_sig);
 
-}  // ns Utl::Cmd
+}  // ns Utl::Sig
+
 /* process: id */
 namespace ID {
 
@@ -96,70 +97,70 @@ int Fetch(const QList<T>*, const T);
 }  // ns Utl::List::Index
 }  // ns Utl::List
 
-/* process: Map */
-namespace Map {
+/* process: Hash */
+namespace Hash {
 
 template<typename S, typename T>
-QList<T> Filter(const QMap<S, T>*, const QList<S>*);
+QList<T> Filter(const QHash<S, T>*, const QList<S>*);
 
 template<typename S, typename T>
-T Fetch(const QMap<S, T>*, const S, const T);
+T Fetch(const QHash<S, T>*, const S, const T);
 
 template<typename S, typename T>
-QMap<S, T> Add(const QMap<S, T>*, const S, const T);
+QHash<S, T> Add(const QHash<S, T>*, const S, const T);
 
 template<typename S, typename T>
-QMap<S, T> Delete(const QMap<S, T>*, const S);
+QHash<S, T> Delete(const QHash<S, T>*, const S);
 
 template<typename S, typename T>
-QMap<S, T> Edit(const QMap<S, T>*, const S, const T);
+QHash<S, T> Edit(const QHash<S, T>*, const S, const T);
 
 template<typename S, typename T>
-bool Merge(QMap<S, T>*, QMap<S, T>&);
+bool Merge(QHash<S, T>*, QHash<S, T>&);
 
 namespace List {
 
 template<typename S, typename T>
-QList<T> Fetch(const QMap<S, QList<T>>*, const S);
+QList<T> Fetch(const QHash<S, QList<T>>*, const S);
 
 template<typename S, typename T>
-QList<T> Add(const QMap<S, QList<T>>*, const S, const T);
+QList<T> Add(const QHash<S, QList<T>>*, const S, const T);
 
 template<typename S, typename T>
-QList<T> Delete(const QMap<S, QList<T>>*, const S, const T);
+QList<T> Delete(const QHash<S, QList<T>>*, const S, const T);
 
 template<typename S, typename T>
-QList<T> Move(const QMap<S, QList<T>>*, const S, const int, const int);
+QList<T> Move(const QHash<S, QList<T>>*, const S, const int, const int);
 
 template<typename S, typename T>
-bool Merge(QMap<S, QList<T>>*, const S, QList<T>&);
+bool Merge(QHash<S, QList<T>>*, const S, QList<T>&);
 
 template<typename S, typename T>
-QMap<S, QList<T>> DeleteAll(const QMap<S, QList<T>>*, const S);
+QHash<S, QList<T>> DeleteAll(const QHash<S, QList<T>>*, const S);
 
 template<typename S, typename T>
-bool MergeAll(QMap<S, QList<T>>*, QMap<S, QList<T>>&);
+bool MergeAll(QHash<S, QList<T>>*, QHash<S, QList<T>>&);
 
 namespace Index {
 
 template<typename S, typename T>
-int Valid(const QMap<S, QList<T>>*, const S, const int);
+int Valid(const QHash<S, QList<T>>*, const S, const int);
 
 template<typename S, typename T>
-int Fetch(const QMap<S, QList<T>>*, const S, const T);
+int Fetch(const QHash<S, QList<T>>*, const S, const T);
 
-}  // ns Utl::Map::List::Index
+}  // ns Utl::Hash::List::Index
 
 namespace Value {
 
 template<typename S, typename T>
-T Fetch(const QMap<S, QList<T>>*, const S, const int, const T);
+T Fetch(const QHash<S, QList<T>>*, const S, const int, const T);
 
-}  // ns Utl::Map::List::Value
+}  // ns Utl::Hash::List::Value
 
-}  // ns Utl::Map::List
+}  // ns Utl::Hash::List
 
-}  // ns Utl::Map
+}  // ns Utl::Hash
 
 namespace Widget {
 namespace Names {

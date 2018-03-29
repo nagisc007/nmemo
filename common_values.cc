@@ -35,6 +35,12 @@ const QString COPYRIGHT = "Copyright (c) 2018";
 
 namespace Nmemo {
 
+namespace ERR {
+
+const QString PREFIX = "__ERR";
+
+}  // ns Nmemo::ERR
+
 namespace PROP {
 
 const int LISTVIEW_MAX_WIDTH = 120;

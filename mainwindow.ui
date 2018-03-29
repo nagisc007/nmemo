@@ -78,6 +78,9 @@
     </property>
     <addaction name="actFullscreen"/>
     <addaction name="separator"/>
+    <addaction name="actEditPlainText"/>
+    <addaction name="actEditRichText"/>
+    <addaction name="separator"/>
     <addaction name="actNextTab"/>
     <addaction name="actPreviousTab"/>
     <addaction name="separator"/>
@@ -325,6 +328,16 @@
    </property>
    <property name="iconText">
     <string>ZtoA</string>
+   </property>
+  </action>
+  <action name="actEditPlainText">
+   <property name="text">
+    <string>PlainText</string>
+   </property>
+  </action>
+  <action name="actEditRichText">
+   <property name="text">
+    <string>RichText</string>
    </property>
   </action>
  </widget>

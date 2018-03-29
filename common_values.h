@@ -38,6 +38,12 @@ extern const QString COPYRIGHT;
 /* values: Common */
 namespace Nmemo {
 
+namespace ERR {
+
+extern const QString PREFIX;
+
+}  // ns Nmemo::Err
+
 namespace PROP {
 
 extern const int LISTVIEW_MAX_WIDTH;

@@ -13,6 +13,7 @@
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMainWindow>
+#include <QScrollBar>
 #include <QTabBar>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -38,33 +39,39 @@ public:
   QScopedPointer<QTextEdit> editor;
   QScopedPointer<Core::System> sys;
   /* members: register */
-  bool r_titlebar_updated;
-  bool r_statusbar_updated;
-  bool r_tabbar_updated;
-  bool r_pagelist_updated;
-  bool r_editor_updated;
+  bool r_ui_updated;
   T_filter r_filter_selected;
-  T_msgtime r_statusshow_time;
   T_dirname r_dirname;
   /* members: utils */
   QMutex u_mutex;
   /* methods: base */
   bool InitWidgets();
   bool InitActions();
+  bool ToInitWidgetsLayouts();
+  bool ToInitWidgetsProperties();
   /* methods: features */
-  bool CheckUnsaved(const T_index);
+  bool ExistsUnsavedAll();
   void UpdateNote();
+  bool isDeletedBook();
+  bool isDeletedPage();
+  /* methods: utils */
+  inline constexpr bool isUnsaved(const T_index i) {
+    return i < tabbar->count() && tabbar->tabData(i).toBool();
+  }
+  inline constexpr bool isUiUpdated() {
+    return r_ui_updated;
+  }
 
 signals:
-  void asSystemData(T_cmd, T_arg, T_arg, T_arg);
+  void asSystemData(T_code, T_arg, T_arg, T_arg);
 
 public slots:
   /* for output */
-  void ToTabBar(const T_cmd, const T_arg, const T_arg, const T_arg);
-  void ToPageList(const T_cmd, const T_arg, const T_arg);
-  void ToEditor(const T_cmd, const T_arg, const T_arg);
-  void ToTitleBar(const T_cmd, const T_arg);
-  void ToStatusBar(const T_cmd, const T_arg, const T_arg);
+  void ToTabBar(const T_sig, const T_arg, const T_arg, const T_arg);
+  void ToPageList(const T_sig, const T_arg, const T_arg);
+  void ToEditor(const T_sig, const T_arg, const T_arg, const T_arg, const T_arg);
+  void ToTitleBar(const T_sig, const T_arg);
+  void ToStatusBar(const T_sig, const T_arg, const T_arg);
   /* for tabbar */
   void OnTabCurrentChanged(const T_index);
   void OnTabCloseRequested(const T_index);
@@ -101,6 +108,8 @@ private slots:
   void on_actSort_ZtoA_triggered();
   /* menus: View */
   void on_actFullscreen_triggered();
+  void on_actEditPlainText_triggered();
+  void on_actEditRichText_triggered();
   void on_actNextTab_triggered();
   void on_actPreviousTab_triggered();
   void on_actNextItem_triggered();
@@ -115,67 +124,73 @@ namespace UIP {
 
 namespace TitleBar {
 
-bool ToUpdate(const T_cmd, MainWindow*, const T_arg);
+bool ToUpdate(const T_sig, MainWindow*, const T_arg);
 
 }  // ns UIP:TitleBar
 
 namespace StatusBar {
 
-bool ToUpdate(const T_cmd, QStatusBar*, const T_arg, const T_arg, T_msgtime*);
+bool ToUpdate(const T_sig, QStatusBar*, const T_arg, const T_arg);
 
 }  // ns UIP:StatusBar
 
 namespace TabBar {
 
-namespace Index {
+inline T_index indexFetch(const QTabBar* tbar) {
+  return tbar->currentIndex();
+}
 
-T_index Fetch(const QTabBar*);
-
-}  // ns UIP::TabBar::Index
-
-bool ToUpdate(const T_cmd, QTabBar*, const T_arg, const T_arg, const T_arg);
+bool ToUpdate(const T_sig, QTabBar*, const T_arg, const T_arg, const T_arg);
+bool ColorsUpdate(QTabBar*, const T_arg);
 
 }  // ns UIP:TabBar
 
 namespace PageList {
 
-namespace Index {
+inline T_index indexFetch(const QListWidget* li) {
+  return li->currentRow();
+}
+inline T_item* itemFetch(const QListWidget* li) {
+  return li->currentItem();
+}
 
-T_index Fetch(const QListWidget*);
-
-}  // ns UIP::PageList::Index
-
-namespace Item {
-
-constexpr T_item* Fetch(const QListWidget*);
-
-}  // ns UIP::PageList::Item
-
-bool ToUpdate(const T_cmd, QListWidget*, const T_arg, const T_arg);
+bool ToUpdate(const T_sig, QListWidget*, const T_arg, const T_arg);
 
 }  // ns UIP:PageList
 
 namespace Editor {
 
-namespace Text {
-
-T_text Fetch(const QTextEdit*);
-
-}  // ns UIP::Editor::Text
+inline T_text textFetch(const QTextEdit* editor) {
+  return editor->toPlainText();
+}
 
 namespace Act {
 
-void Undo(QTextEdit*);
-void Redo(QTextEdit*);
-void Cut(QTextEdit*);
-void Copy(QTextEdit*);
-void Paste(QTextEdit*);
-void Erase(QTextEdit*);
-void SelectAll(QTextEdit*);
+inline void Undo(QTextEdit* e) {
+  if (!e->isReadOnly()) e->undo();
+}
+inline void Redo(QTextEdit* e) {
+  if (!e->isReadOnly()) e->redo();
+}
+inline void Cut(QTextEdit* e) {
+  if (!e->isReadOnly()) e->cut();
+}
+inline void Copy(QTextEdit* e) {
+  if (!e->isReadOnly()) e->copy();
+}
+inline void Paste(QTextEdit* e) {
+  if (!e->isReadOnly()) e->paste();
+}
+inline void Erase(QTextEdit* e) {
+  if (!e->isReadOnly()) e->textCursor().removeSelectedText();
+}
+inline void SelectAll(QTextEdit* e) {
+  if (!e->isReadOnly()) e->selectAll();
+}
 
 }  // ns UIP::Editor::Act
 
-bool ToUpdate(const T_cmd, QTextEdit*, const T_arg, const T_arg);
+bool ToUpdate(const T_sig, QTextEdit*, const T_arg, const T_arg, const T_arg, const T_arg);
 
 }  // ns UIP:Editor
 

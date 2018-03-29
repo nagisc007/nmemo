@@ -16,66 +16,52 @@
 #include <QListWidgetItem>
 
 /* enums */
-enum class Cmd {
-  // Operand (upper 16bit)
-  FILE = 0x000010000,
-  BOOK = 0x000020000,
-  PAGE = 0x00040000,
-  NOTE = 0x00080000,
-  TAB = 0x00100000,
-  LIST = 0x00200000,
-  EDITOR = 0x00400000,
-  TITLE = 0x00800000,
-  STATUS = 0x01000000,
-  ID = 0x02000000,
-  INDEX = 0x04000000,
-  NAME = 0x08000000,
-  TEXT = 0x10000000,
-  STATE = 0x20000000,
-  TIME = 0x40000000,
-  // Opcode (lower 16bit)
-  ADD = 0x0001,
-  DELETE = 0x0002,
-  CHANGE = 0x0004,
-  MOVE = 0x0008,
-  EDIT = 0x0010,
-  SORT = 0x0020,
-  LOAD = 0x0040,
-  SAVE = 0x0080,
-  // opcodes
+enum class Sig {// Control Signal
   NOP = 0x00,
-  BOOK_ADD = BOOK | ADD,
-  BOOK_DELETE = BOOK | DELETE,
-  BOOK_CHANGE = BOOK | CHANGE,
-  BOOK_MOVE = BOOK | MOVE,
-  BOOK_EDIT = BOOK | EDIT,
-  PAGE_ADD = PAGE | ADD,
-  PAGE_DELETE = PAGE | DELETE,
-  PAGE_CHANGE = PAGE | CHANGE,
-  PAGE_MOVE = PAGE | MOVE,
-  PAGE_EDIT = PAGE | EDIT,
-  PAGE_SORT = PAGE | SORT,
-  NOTE_ADD = NOTE | ADD,
-  NOTE_DELETE = NOTE | DELETE,
-  NOTE_EDIT = NOTE | EDIT,
-  NOTE_MODIFY = NOTE | CHANGE,
-  FILE_LOAD = FILE | LOAD,
-  FILE_SAVE = FILE | SAVE,
-  FILE_SAVEAS = FILE | SAVE | NAME,
-  TAB_NAME = TAB | NAME,
-  TAB_INDEX = TAB | INDEX,
-  TAB_STATUS = TAB | STATUS,
-  TAB_ALL = TAB | NAME | INDEX | STATUS,
-  LIST_NAME = LIST | NAME,
-  LIST_INDEX = LIST | INDEX,
-  LIST_ALL = LIST | NAME | INDEX,
+  // types
+  EDITOR = 0x01,
+  LIST = 0x02,
+  STATUS = 0x04,
+  TAB = 0x08,
+  TITLE = 0x10,
+  // items
+  INDEX = 0x0100,
+  MESSAGE = 0x0200,
+  MODE = 0x0400,
+  NAME = 0x0800,
+  POSITION = 0x1000,
+  STATE = 0x2000,
+  TEXT = 0x4000,
+  TIME = 0x8000,
+  // utils
   EDITOR_TEXT = EDITOR | TEXT,
+  EDITOR_MODE = EDITOR | MODE,
+  EDITOR_POS = EDITOR | POSITION,
   EDITOR_STATE = EDITOR | STATE,
-  EDITOR_ALL = EDITOR | TEXT | STATE,
-  TITLE_NAME = TITLE | NAME,
-  STATUS_TEXT = STATUS | TEXT,
-  STATUS_TIME = STATUS | TIME,
-  STATUS_ALL = STATUS | TEXT | TIME,
+  EDITOR_TEXT_MODE = EDITOR | TEXT | MODE,
+  EDITOR_ALL = EDITOR | MODE | POSITION | TEXT | STATE,
+  LIST_INDEX = LIST | INDEX,
+  LIST_NAME = LIST | NAME,
+  LIST_ALL = LIST | INDEX | NAME,
+  STATUS_MESSAGE = STATUS | MESSAGE,
+  TAB_INDEX = TAB | INDEX,
+  TAB_NAME = TAB | NAME,
+  TAB_STATE = TAB | STATE,
+  TAB_ALL = TAB | INDEX | NAME | STATE,
+  TITLE_TEXT = TITLE | TEXT,
+};
+
+enum class OpCode {
+  NOP = 0x00,
+  FILE_LOAD, FILE_SAVE, FILE_SAVEAS,
+  BOOK_ADD, BOOK_CHANGE, BOOK_DELETE, BOOK_MOVE, BOOK_RENAME,
+  PAGE_ADD, PAGE_CHANGE, PAGE_DELETE, PAGE_MOVE, PAGE_RENAME, PAGE_SORT,
+  NOTE_ADD, NOTE_CACHE, NOTE_CHANGE_MODE, NOTE_DELETE, NOTE_MODIFY, NOTE_UPDATE,
+};
+
+enum class EditMode {
+  PLAIN,
+  HTML,
 };
 
 /* defines: common (base) */
@@ -98,15 +84,18 @@ using T_order = Qt::SortOrder;
 using T_path = T_text;  // =filename
 using T_title = T_text;
 using T_color = QColor;
+using T_pos = int;
+using T_mode = EditMode;
 
 /* defines: common types (container) */
 using T_ids = QList<T_id>;
-using T_strset = QMap<T_id, QString>;
-using T_listset = QMap<T_id, QList<T_id>>;
+using T_strset = QHash<T_id, QString>;
+using T_listset = QHash<T_id, QList<T_id>>;
 using T_strs = QStringList;
 
 /* defines: specific types */
-using T_cmd = Cmd;
+using T_sig = Sig;
+using T_code = OpCode;
 using T_tab_i = T_index;
 using T_book_i = T_index;
 using T_page_i = T_index;
@@ -114,15 +103,18 @@ using T_bid = T_id;
 using T_pid = T_id;
 using T_idset = QPair<T_bid, T_pid>;
 using T_stats = QList<T_stat>;
-using T_statset = QMap<T_id, T_stat>;
+using T_statset = QHash<T_id, T_stat>;
 using T_pathset = T_strset;
 using T_tabnames = T_strs;
 using T_pagenames = T_strs;
 using T_bids = T_ids;
 using T_pids = T_ids;
-using T_pidset = QMap<T_bid, T_pid>;
+using T_pidset = QHash<T_bid, T_pid>;
 using T_pidsset = T_listset;
+using T_poss = QList<T_pos>;
+using T_posset = QHash<T_pid, T_pos>;
 using T_nameset = T_strset;
+using T_modeset = QHash<T_pid, T_mode>;
 using T_note = T_text;
 using T_notes = T_strs;
 using T_noteset = T_strset;

@@ -13,6 +13,76 @@
 #include <QObject>
 #include <QStack>
 
+namespace Mem {
+
+/* class: Book */
+struct Book {
+  explicit Book();
+  ~Book();
+  // memory
+  QScopedPointer<T_ids> m_bids;
+  QScopedPointer<T_strset> m_pathset;
+  // register
+  T_bid r_bid;
+  QScopedPointer<T_statset> r_savedset;
+  // props
+  inline T_ids* bids() const {
+    return m_bids.data();
+  }
+  inline T_strset* pathset() const {
+    return m_pathset.data();
+  }
+  inline T_bid currentBid() const {
+    return r_bid;
+  }
+  inline T_statset* savedset() const {
+    return r_savedset.data();
+  }// methods
+  inline bool ToMergeCurrentBid(const T_bid bid) {
+    r_bid = bid;
+    return true;
+  }
+};
+
+/* class: Page */
+struct Page {
+  explicit Page();
+  ~Page();
+  // memory
+  QScopedPointer<T_pidsset> m_pidsset;
+  QScopedPointer<T_strset> m_nameset;
+  QScopedPointer<T_strset> m_noteset;
+  QScopedPointer<T_modeset> m_modeset;
+  // register
+  T_msgtime r_msg_show_time;
+  QScopedPointer<T_pidset> r_pidset;
+  QScopedPointer<T_posset> r_posset;
+  // props
+  inline T_pidsset* pidsset() const {
+    return m_pidsset.data();
+  }
+  inline T_strset* nameset() const {
+    return m_nameset.data();
+  }
+  inline T_strset* noteset() const {
+    return m_noteset.data();
+  }
+  inline T_modeset* modeset() const {
+    return m_modeset.data();
+  }
+  inline T_msgtime msg_show_time() const {
+    return r_msg_show_time;
+  }
+  inline T_pidset* pidset() const {
+    return r_pidset.data();
+  }
+  inline T_posset* posset() const {
+    return r_posset.data();
+  }
+};
+
+}  // ns Mem
+
 namespace Core {
 
 /* class: System */
@@ -22,66 +92,65 @@ class System: public QObject
 public:
   explicit System(QObject* parent = nullptr);
   ~System();
-  /* members: memory */
-  QScopedPointer<T_ids> m_bids;
-  QScopedPointer<T_strset> m_pathset;
-  QScopedPointer<T_pidsset> m_pidsset;
-  QScopedPointer<T_strset> m_nameset;
-  QScopedPointer<T_strset> m_noteset;
+  /* members: class */
+  QScopedPointer<Mem::Book> m_books;
+  QScopedPointer<Mem::Page> m_pages;
   /* members: register */
-  T_bid r_bid;
   T_note r_note;
+  T_pos r_pos;
   T_stat r_enabled;
-  QScopedPointer<T_pidset> r_pidset;
-  QScopedPointer<T_statset> r_savedset;
   /* members: utils */
   T_id u_nextid;
   QScopedPointer<QStack<T_id>> u_idpool;
   /* methods: output */
-  void OutToTabBar(const T_cmd);
-  void OutToPageList(const T_cmd);
-  void OutToEditor(const T_cmd);
-  void OutToTitleBar(const T_cmd);
-  void OutToStatusBar(const T_cmd);
+  void ToOutputs(const T_sig, const T_code);
+  void OutToTabBar(const T_sig);
+  void OutToPageList(const T_sig);
+  void OutToEditor(const T_sig);
+  void OutToTitleBar(const T_sig);
+  void OutToStatusBar(const T_msg&);
   /* methods: Data */
-  T_cmd ToFileData(const T_cmd, const T_arg, const T_arg, const T_arg);
-  T_cmd ToBookData(const T_cmd, const T_arg, const T_arg, const T_arg);
-  T_cmd ToPageData(const T_cmd, const T_arg, const T_arg, const T_arg);
-  T_cmd ToNoteData(const T_cmd, const T_arg, const T_arg, const T_arg);
+  T_sig BranchToData(const T_code, const T_arg, const T_arg, const T_arg);
   /* methods: File */
-  T_cmd FileToLoad(const T_path&);
-  T_cmd FileToSave(const T_path&);
-  T_cmd FileToUpdate(const T_bid, const T_stat);
+  T_sig FileToLoad(const T_path&);
+  T_sig FileToSave(const T_bid);
+  T_sig FileToSaveAs(const T_bid, const T_path&);
+  T_sig FileToUpdate(const T_bid, const T_stat);
   /* methods: Book */
-  T_cmd BookToAdd(const T_name&);
-  T_cmd BookToDelete(const T_index);
-  T_cmd BookToChange(const T_index);
-  T_cmd BookToMove(const T_index, const T_index);
-  T_cmd BookToRename(const T_index, const T_name&);
+  T_sig BookToAdd(const T_name&);
+  T_sig BookToDelete(const T_index);
+  T_sig BookToChange(const T_index);
+  T_sig BookToMove(const T_index, const T_index);
+  T_sig BookToRename(const T_index, const T_name&);
   /* methods: Page */
-  T_cmd PageToAdd(const T_bid, const T_name&, const T_note&, bool is_note_updated = true);
-  T_cmd PageToDelete(const T_bid, const T_index);
-  T_cmd PageToChange(const T_bid, const T_index, bool is_note_updated = true);
-  T_cmd PageToMove(const T_bid, const T_index, const T_index);
-  T_cmd PageToRename(const T_bid, const T_index, const T_name&);
-  T_cmd PageToSort(const T_bid, const T_order);
+  T_sig PageToAdd(const T_bid, const T_name&, const T_note&);
+  T_sig PageToDelete(const T_bid, const T_index);
+  T_sig PageToChange(const T_bid, const T_index);
+  T_sig PageToMove(const T_bid, const T_index, const T_index);
+  T_sig PageToRename(const T_bid, const T_index, const T_name&);
+  T_sig PageToSort(const T_bid, const T_order);
   /* methods: Note */
-  T_cmd NoteToAdd(const T_pid, const T_note&);
-  T_cmd NoteToDelete(const T_pid);
-  T_cmd NoteToCache(const T_note&);
-  T_cmd NoteToModify();
-  T_cmd NoteToUpdate(const T_pid);
+  T_sig NoteToAdd(const T_pid, const T_note&);
+  T_sig NoteToDelete(const T_pid);
+  T_sig NoteToCache(const T_note&, const T_pos);
+  T_sig NoteToChangeMode(const T_bid, const T_mode);
+  T_sig NoteToModify(const T_bid);
+  T_sig NoteToUpdate(const T_pid);
+  /* utils */
+  inline bool existsCurrentBook() {
+    return (m_books->currentBid() > 0);
+  }
 
 signals:
-  void asTabBarData(T_cmd, T_arg, T_arg, T_arg);
-  void asPageListData(T_cmd, T_arg, T_arg);
-  void asEditorData(T_cmd, T_arg, T_arg);
-  void asTitleBarData(T_cmd, T_arg);
-  void asStatusBarData(T_cmd, T_arg, T_arg);
+  void asTabBarData(T_sig, T_arg, T_arg, T_arg);
+  void asPageListData(T_sig, T_arg, T_arg);
+  void asEditorData(T_sig, T_arg, T_arg, T_arg, T_arg);
+  void asTitleBarData(T_sig, T_arg);
+  void asStatusBarData(T_sig, T_arg, T_arg);
   void asFileNameRequest();
 
 public slots:
-  void ToSystemData(const T_cmd, const T_arg, const T_arg, const T_arg);
+  void ToSystemData(const T_code, const T_arg, const T_arg, const T_arg);
 };
 
 /* process: Core Process */
@@ -101,6 +170,8 @@ namespace Data {
 
 T_encoded Encode(const T_text&, const T_text&, const T_pagenames*, const T_notes*);
 T_decoded Decode(const T_text&, const T_text&, const T_strs*);
+T_strs Load(const T_path&);
+bool Save(const T_path&, const T_encoded*);
 
 }  // ns CP::File::Data
 
@@ -131,13 +202,6 @@ namespace Index {
 T_index Fetch(const T_ids*, const T_id);
 
 }  // ns CP::Book::Index
-
-namespace CurrentId {
-
-T_bid Fetch(const System*);
-bool Merge(T_bid*, const T_bid);
-
-}  // ns CP::Book::CurrentId
 
 namespace Ids {
 
@@ -181,6 +245,7 @@ T_pids Fetch(const T_pidsset*, const T_bid);
 T_pids Add(const T_pidsset*, const T_bid, const T_pid);
 T_pids Delete(const T_pidsset*, const T_bid, const T_pid);
 T_pids Move(const T_pidsset*, const T_bid, const T_index, const T_index);
+T_pids Sort(const T_pids*, const T_nameset*, const T_order);
 bool Merge(T_pidsset*, const T_bid, T_pids&);
 bool DeleteAll(T_pidsset*, const T_bid);
 
@@ -232,6 +297,24 @@ T_noteset Edit(const T_noteset*, const T_pid, const T_note&);
 bool Merge(T_noteset*, T_noteset&);
 
 }  // CP::Note::Texts
+
+namespace Pos {
+
+T_posset Add(const T_posset*, const T_pid, const T_pos);
+T_posset Delete(const T_posset*, const T_pid);
+T_posset Edit(const T_posset*, const T_pid, const T_pos);
+bool Merge(T_posset*, T_posset&);
+
+}  // ns CP::Note::Pos
+
+namespace Mode {
+
+T_modeset Add(const T_modeset*, const T_pid, const T_mode);
+T_modeset Delete(const T_modeset*, const T_pid);
+T_modeset Edit(const T_modeset*, const T_pid, const T_mode);
+bool Merge(T_modeset*, T_modeset&);
+
+}  // ns CP::Note::Mode
 
 }  // ns CP::Note
 

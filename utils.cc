@@ -9,20 +9,20 @@
 
 namespace Utl {
 
-/* process: command */
-namespace Cmd {
+/* process: control signal */
+namespace Sig {
 
-auto Combine(const T_cmd a, const T_cmd b) -> T_cmd
+auto Combine(const T_sig a, const T_sig b) -> T_sig
 {
-  return static_cast<T_cmd>((static_cast<int>(a) | static_cast<int>(b)));
+  return static_cast<T_sig>((static_cast<int>(a) | static_cast<int>(b)));
 }
 
-auto Exists(const T_cmd a, const T_cmd b) -> bool
+auto Exists(const T_sig a, const T_sig b) -> bool
 {
   return (static_cast<int>(a) & static_cast<int>(b)) == static_cast<int>(b);
 }
 
-}  // ns Utl::Cmd
+}  // ns Utl::Sig
 
 /* process: id */
 namespace ID {
@@ -146,11 +146,11 @@ template int Fetch<int>(const QList<int>*, const int);
 }  // ns Utl::List::Index
 }  // ns Utl::List
 
-/* process: Map */
-namespace Map {
+/* process: Hash */
+namespace Hash {
 
 template<typename S, typename T>
-auto Filter(const QMap<S, T>* map, const QList<S>* li) -> QList<T>
+auto Filter(const QHash<S, T>* map, const QList<S>* li) -> QList<T>
 {
   QList<T> tmp;
   for (int i = 0, size = li->count(); i < size; ++i) {
@@ -160,103 +160,110 @@ auto Filter(const QMap<S, T>* map, const QList<S>* li) -> QList<T>
   }
   return tmp;
 }
-template QList<QString> Filter<int, QString>(const QMap<int, QString>*, const QList<int>*);
-template QList<bool> Filter<int, bool>(const QMap<int, bool>*, const QList<int>*);
+template QList<QString> Filter<int, QString>(const QHash<int, QString>*, const QList<int>*);
+template QList<bool> Filter<int, bool>(const QHash<int, bool>*, const QList<int>*);
+template QList<EditMode> Filter<int, EditMode>(const QHash<int, EditMode>*, const QList<int>*);
 
 template<typename S, typename T>
-auto Fetch(const QMap<S, T>* map, const S key, const T def_val) -> T
+auto Fetch(const QHash<S, T>* map, const S key, const T def_val) -> T
 {
   return map->value(key, def_val);
 }
-template int Fetch<int, int>(const QMap<int, int>*, const int, const int);
-template QString Fetch<int, QString>(const QMap<int, QString>*, const int, const QString);
+template int Fetch<int, int>(const QHash<int, int>*, const int, const int);
+template QString Fetch<int, QString>(const QHash<int, QString>*, const int, const QString);
+template EditMode Fetch<int, EditMode>(const QHash<int, EditMode>*, const int, const EditMode);
 
 template<typename S, typename T>
-auto Add(const QMap<S, T>* map, const S key, const T val) -> QMap<S, T>
+auto Add(const QHash<S, T>* map, const S key, const T val) -> QHash<S, T>
 {
-  auto tmp = QMap<S, T>(*map);
+  auto tmp = QHash<S, T>(*map);
   tmp[key] = val;
   return tmp;
 }
-template QMap<int, int> Add<int, int>(const QMap<int, int>*, const int, const int);
-template QMap<int, bool> Add<int, bool>(const QMap<int, bool>*, const int, const bool);
-template QMap<int, QString> Add<int, QString>(const QMap<int, QString>*,
+template QHash<int, int> Add<int, int>(const QHash<int, int>*, const int, const int);
+template QHash<int, bool> Add<int, bool>(const QHash<int, bool>*, const int, const bool);
+template QHash<int, QString> Add<int, QString>(const QHash<int, QString>*,
                                               const int, const QString);
+template QHash<int, EditMode> Add<int, EditMode>(const QHash<int, EditMode>*, const int,
+                                                 const EditMode);
 
 template<typename S, typename T>
-auto Delete(const QMap<S, T>* map, const S key) -> QMap<S, T>
+auto Delete(const QHash<S, T>* map, const S key) -> QHash<S, T>
 {
-  auto tmp = QMap<S, T>(*map);
+  auto tmp = QHash<S, T>(*map);
   tmp.remove(key);
   return tmp;
 }
 
-template QMap<int, int> Delete<int, int>(const QMap<int, int>*, const int);
-template QMap<int, bool> Delete<int, bool>(const QMap<int, bool>*, const int);
-template QMap<int, QString> Delete<int, QString>(const QMap<int, QString>*, const int);
+template QHash<int, int> Delete<int, int>(const QHash<int, int>*, const int);
+template QHash<int, bool> Delete<int, bool>(const QHash<int, bool>*, const int);
+template QHash<int, QString> Delete<int, QString>(const QHash<int, QString>*, const int);
+template QHash<int, EditMode> Delete<int, EditMode>(const QHash<int, EditMode>*, const int);
 
 template<typename S, typename T>
-auto Edit(const QMap<S, T>* map, const S key, const T val) -> QMap<S, T>
+auto Edit(const QHash<S, T>* map, const S key, const T val) -> QHash<S, T>
 {
-  auto tmp = QMap<S, T>(*map);
+  auto tmp = QHash<S, T>(*map);
   tmp[key] = val;
   return tmp;
 }
 
-template QMap<int, int> Edit<int, int>(const QMap<int, int>*, const int, const int);
-template QMap<int, bool> Edit<int, bool>(const QMap<int, bool>*, const int, const bool);
-template QMap<int, QString> Edit<int, QString>(const QMap<int, QString>*,
+template QHash<int, int> Edit<int, int>(const QHash<int, int>*, const int, const int);
+template QHash<int, bool> Edit<int, bool>(const QHash<int, bool>*, const int, const bool);
+template QHash<int, QString> Edit<int, QString>(const QHash<int, QString>*,
                                                const int, const QString);
-
+template QHash<int, EditMode> Edit<int, EditMode>(const QHash<int, EditMode>*, const int,
+                                                  const EditMode);
 template<typename S, typename T>
-auto Merge(QMap<S, T>* base, QMap<S, T>& updated) -> bool
+auto Merge(QHash<S, T>* base, QHash<S, T>& updated) -> bool
 {
   base->swap(updated);
   return true;
 }
-template bool Merge<int, int>(QMap<int, int>*, QMap<int, int>&);
-template bool Merge<int, bool>(QMap<int, bool>*, QMap<int, bool>&);
-template bool Merge<int, QString>(QMap<int, QString>*, QMap<int, QString>&);
+template bool Merge<int, int>(QHash<int, int>*, QHash<int, int>&);
+template bool Merge<int, bool>(QHash<int, bool>*, QHash<int, bool>&);
+template bool Merge<int, QString>(QHash<int, QString>*, QHash<int, QString>&);
+template bool Merge<int, EditMode>(QHash<int, EditMode>*, QHash<int, EditMode>&);
 
 namespace List {
 
 template<typename S, typename T>
-auto Fetch(const QMap<S, QList<T>>* map, const S key) -> QList<T>
+auto Fetch(const QHash<S, QList<T>>* map, const S key) -> QList<T>
 {
   return map->contains(key) ? map->value(key): QList<T>();
 }
-template QList<int> Fetch<int, int>(const QMap<int, QList<int>>*, const int);
+template QList<int> Fetch<int, int>(const QHash<int, QList<int>>*, const int);
 
 template<typename S, typename T>
-auto Add(const QMap<S, QList<T>>* map, const S key, const T val) -> QList<T>
+auto Add(const QHash<S, QList<T>>* map, const S key, const T val) -> QList<T>
 {
   auto tmp = map->contains(key) ? QList<T>(map->value(key)): QList<T>();
   return tmp + QList<T>{val};
 }
-template QList<int> Add<int, int>(const QMap<int, QList<int>>*, const int, const int);
+template QList<int> Add<int, int>(const QHash<int, QList<int>>*, const int, const int);
 
 template<typename S, typename T>
-auto Delete(const QMap<S, QList<T>>* map, const S key, const T val) -> QList<T>
+auto Delete(const QHash<S, QList<T>>* map, const S key, const T val) -> QList<T>
 {
   auto tmp = map->contains(key) ? QList<T>(map->value(key)): QList<T>();
   tmp.removeAll(val);
   return tmp;
 }
-template QList<int> Delete<int, int>(const QMap<int, QList<int>>*, const int, const int);
+template QList<int> Delete<int, int>(const QHash<int, QList<int>>*, const int, const int);
 
 template<typename S, typename T>
-auto Move(const QMap<S, QList<T>>* map, const S key,
+auto Move(const QHash<S, QList<T>>* map, const S key,
           const int from, const int to) -> QList<T>
 {
   auto tmp = map->contains(key) ? QList<T>(map->value(key)): QList<T>();
   tmp.move(from, to);
   return tmp;
 }
-template QList<int> Move<int, int>(const QMap<int, QList<int>>*, const int,
+template QList<int> Move<int, int>(const QHash<int, QList<int>>*, const int,
                                    const int, const int);
 
 template<typename S, typename T>
-auto Merge(QMap<S, QList<T>>* map, const S key, QList<T>& updated) -> bool
+auto Merge(QHash<S, QList<T>>* map, const S key, QList<T>& updated) -> bool
 {
   if (map->contains(key)) {
     (*map)[key].swap(updated);
@@ -265,60 +272,60 @@ auto Merge(QMap<S, QList<T>>* map, const S key, QList<T>& updated) -> bool
   }
   return true;
 }
-template bool Merge<int, int>(QMap<int, QList<int>>*, const int, QList<int>&);
+template bool Merge<int, int>(QHash<int, QList<int>>*, const int, QList<int>&);
 
 template<typename S, typename T>
-QMap<S, QList<T>> DeleteAll(const QMap<S, QList<T>>* map, const S key)
+QHash<S, QList<T>> DeleteAll(const QHash<S, QList<T>>* map, const S key)
 {
-  auto tmp = QMap<S, QList<T>>(*map);
+  auto tmp = QHash<S, QList<T>>(*map);
   if (tmp.contains(key)) {
     tmp.remove(key);
   }
   return tmp;
 }
-template QMap<int, QList<int>> DeleteAll(const QMap<int, QList<int>>*, const int);
+template QHash<int, QList<int>> DeleteAll(const QHash<int, QList<int>>*, const int);
 
 template<typename S, typename T>
-auto MergeAll(QMap<S, QList<T>>* map, QMap<S, QList<T>>& updated) -> bool
+auto MergeAll(QHash<S, QList<T>>* map, QHash<S, QList<T>>& updated) -> bool
 {
   map->swap(updated);
   return true;
 }
-template bool MergeAll<int, int>(QMap<int, QList<int>>*, QMap<int, QList<int>>&);
+template bool MergeAll<int, int>(QHash<int, QList<int>>*, QHash<int, QList<int>>&);
 
 namespace Index {
 
 template<typename S, typename T>
-auto Valid(const QMap<S, QList<T>>* map, const S key, const int index) -> int
+auto Valid(const QHash<S, QList<T>>* map, const S key, const int index) -> int
 {
   if (!map->contains(key)) return -1;
   return index >= 0 && map->value(key).count() > 0 && index < map->value(key).count() ?
         index: -1;
 }
-template int Valid<int, int>(const QMap<int, QList<int>>*, const int, const int);
+template int Valid<int, int>(const QHash<int, QList<int>>*, const int, const int);
 
 template<typename S, typename T>
-auto Fetch(const QMap<S, QList<T>>* map, const S key, const T val) -> int
+auto Fetch(const QHash<S, QList<T>>* map, const S key, const T val) -> int
 {
   if (!map->contains(key)) return -1;
   auto tmp = map->value(key);
   return tmp.indexOf(val);
 }
-template int Fetch<int, int>(const QMap<int, QList<int>>*, const int, const int);
+template int Fetch<int, int>(const QHash<int, QList<int>>*, const int, const int);
 
 }  // ns Utl::Map::List::Index
 
 namespace Value {
 
 template<typename S, typename T>
-auto Fetch(const QMap<S, QList<T>>* map, const S key, const int index, const T def_val) -> T
+auto Fetch(const QHash<S, QList<T>>* map, const S key, const int index, const T def_val) -> T
 {
   if (!map->contains(key)) return def_val;
   auto tmp = map->value(key);
   return (index >= 0 && tmp.count() > 0 && index < tmp.count()) ?
         tmp.at(index): def_val;
 }
-template int Fetch<int, int>(const QMap<int, QList<int>>*, const int, const int, const int);
+template int Fetch<int, int>(const QHash<int, QList<int>>*, const int, const int, const int);
 
 }  // ns Utl::Map::List::Value
 
