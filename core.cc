@@ -239,7 +239,7 @@ auto System::BranchToData(const T_code code, const T_arg arg0,
   case OpCode::PAGE_CHANGE: return PageToChange(bid, arg0.toInt());
   case OpCode::PAGE_DELETE: return PageToDelete(bid, arg0.toInt());
   case OpCode::PAGE_MOVE: return PageToMove(bid, arg0.toInt(), arg1.toInt());
-  case OpCode::PAGE_RENAME: return PageToRename(bid, arg0.toInt(), arg0.toString());
+  case OpCode::PAGE_RENAME: return PageToRename(bid, arg0.toInt(), arg1.toString());
   case OpCode::PAGE_SORT: return PageToSort(bid, static_cast<Qt::SortOrder>(arg0.toInt()));
   case OpCode::NOTE_CACHE:
     return NoteToCache(arg0.toString(), arg1.toInt());
