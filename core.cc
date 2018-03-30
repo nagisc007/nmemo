@@ -267,7 +267,7 @@ auto System::FileToLoad(const T_path& path) -> T_sig
 
   // load from file
   auto data = CP::File::Data::Load(va_path);
-  if (data.at(0) == Nmemo::ERR::PREFIX) {
+  if (data.count() == 2 && data.at(0) == Nmemo::ERR::PREFIX) {
     emit asStatusBarData(Sig::STATUS_MESSAGE, QVariant(data.at(1)),
                          QVariant(m_pages->msg_show_time()));
     return Sig::NOP;
@@ -742,7 +742,7 @@ auto Save(const T_path& path, const T_encoded* encoded) -> bool
 
   QDataStream out(&file);
   out.setVersion(QDataStream::Qt_5_10);
-  out << encoded;
+  out << (*encoded);
 
   return true;
 }
