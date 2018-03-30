@@ -19,9 +19,11 @@ MainWindow::MainWindow(QWidget *parent) :
   tabbar(new QTabBar(this)),
   pagelist(new QListWidget(this)),
   editor(new QTextEdit(this)),
+  mode_label(new QLabel(this)),
   sys(new Core::System()),
   // register
   r_ui_updated(true),
+  r_current_mode(EditMode::PLAIN),
   r_filter_selected(Nmemo::VALUE::DEFAULT_SELECTED_FILTER),
   r_dirname(QDir::currentPath())
   // utils
@@ -85,6 +87,8 @@ auto MainWindow::ToInitWidgetsLayouts() -> bool
   mainLayout->addLayout(subLayout);
   mainWidget->setLayout(mainLayout);
   setCentralWidget(mainWidget);
+  // statusbar
+  statusBar()->addPermanentWidget(mode_label.data());
 
   return true;
 }
@@ -97,6 +101,9 @@ auto MainWindow::ToInitWidgetsProperties() -> bool
   pagelist->setMaximumWidth(Nmemo::PROP::LISTVIEW_MAX_WIDTH);
   editor->setTabStopDistance(Nmemo::PROP::EDIT_TAB_DISTANCE);
   editor->setReadOnly(true);
+  editor->setAcceptRichText(false);
+  // statusbar
+  mode_label->setText("Mode");
 
   return true;
 }
@@ -116,8 +123,10 @@ auto MainWindow::UpdateNote() -> void
 {
   if (!r_ui_updated || editor->isReadOnly()) return;
 
-  emit asSystemData(OpCode::NOTE_CACHE, QVariant(UIP::Editor::textFetch(editor.data())),
-                    QVariant(0), QVariant(0));
+  emit asSystemData(OpCode::NOTE_CACHE,
+                    QVariant(UIP::Editor::textFetch(r_current_mode, editor.data())),
+                    QVariant(UIP::Editor::posFetch(editor.data())),
+                    QVariant(0));
 }
 
 auto MainWindow::isDeletedBook() -> bool
@@ -164,6 +173,15 @@ void MainWindow::ToEditor(const T_sig sig, const T_arg arg0, const T_arg arg1,
   u_mutex.lock();
   r_ui_updated = false;
   UIP::Editor::ToUpdate(sig, editor.data(), arg0, arg1, arg2, arg3);
+  if (Utl::Sig::Exists(sig, Sig::EDITOR_MODE)) {
+    UIP::StatusBar::ToUpdate(sig, this, arg0, arg1);
+    r_current_mode = static_cast<EditMode>(arg1.toInt());
+  }
+  if (r_current_mode == EditMode::HTML) {
+    editor->setAcceptRichText(true);
+  } else {
+    editor->setAcceptRichText(false);
+  }
   u_mutex.unlock();
 
   r_ui_updated = true;
@@ -173,7 +191,7 @@ void MainWindow::ToStatusBar(const T_sig sig, const T_arg arg0, const T_arg arg1
 {
   u_mutex.lock();
   r_ui_updated = false;
-  UIP::StatusBar::ToUpdate(sig, this->statusBar(), arg0, arg1);
+  UIP::StatusBar::ToUpdate(sig, this, arg0, arg1);
   u_mutex.unlock();
 
   r_ui_updated = true;
@@ -428,6 +446,7 @@ void MainWindow::on_actEditPlainText_triggered()
 {
   if (!isUiUpdated()) return;
 
+  UpdateNote();
   emit asSystemData(OpCode::NOTE_CHANGE_MODE, QVariant(static_cast<int>(EditMode::PLAIN)),
                     QVariant(0), QVariant(0));
 }
@@ -436,6 +455,7 @@ void MainWindow::on_actEditRichText_triggered()
 {
   if (!isUiUpdated()) return;
 
+  UpdateNote();
   emit asSystemData(OpCode::NOTE_CHANGE_MODE, QVariant(static_cast<int>(EditMode::HTML)),
                     QVariant(0), QVariant(0));
 }
@@ -507,13 +527,21 @@ auto ToUpdate(const T_sig sig, MainWindow* m, const T_arg arg) -> bool
 
 namespace StatusBar {
 
-auto ToUpdate(const T_sig sig, QStatusBar* sbar, const T_arg arg_txt,
-              const T_arg arg_time) -> bool
+auto ToUpdate(const T_sig sig, MainWindow* win, const T_arg arg_txt,
+              const T_arg arg_opt) -> bool
 {
   bool is_updated = false;
   if (Utl::Sig::Exists(sig, Sig::STATUS_MESSAGE)) {
-    sbar->showMessage(arg_txt.toString(), arg_time.toInt());
+    win->statusBar()->showMessage(arg_txt.toString(), arg_opt.toInt());
     is_updated = true;
+  }
+  if (Utl::Sig::Exists(sig, Sig::EDITOR_MODE)) {
+    auto mode = static_cast<EditMode>(arg_opt.toInt());
+    if (mode == EditMode::HTML) {
+      win->mode_label->setText("HTML");
+    } else {
+      win->mode_label->setText("TEXT");
+    }
   }
   return is_updated;
 }

@@ -11,6 +11,7 @@
 #include "core.h"
 
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QListWidget>
 #include <QMainWindow>
 #include <QScrollBar>
@@ -37,9 +38,11 @@ public:
   QScopedPointer<QTabBar> tabbar;
   QScopedPointer<QListWidget> pagelist;
   QScopedPointer<QTextEdit> editor;
+  QScopedPointer<QLabel> mode_label;
   QScopedPointer<Core::System> sys;
   /* members: register */
   bool r_ui_updated;
+  T_mode r_current_mode;
   T_filter r_filter_selected;
   T_dirname r_dirname;
   /* members: utils */
@@ -130,7 +133,7 @@ bool ToUpdate(const T_sig, MainWindow*, const T_arg);
 
 namespace StatusBar {
 
-bool ToUpdate(const T_sig, QStatusBar*, const T_arg, const T_arg);
+bool ToUpdate(const T_sig, MainWindow*, const T_arg, const T_arg);
 
 }  // ns UIP:StatusBar
 
@@ -160,8 +163,12 @@ bool ToUpdate(const T_sig, QListWidget*, const T_arg, const T_arg);
 
 namespace Editor {
 
-inline T_text textFetch(const QTextEdit* editor) {
-  return editor->toPlainText();
+inline T_text textFetch(const T_mode mode, const QTextEdit* editor) {
+  return mode == EditMode::HTML ? editor->toHtml(): editor->toPlainText();
+}
+
+inline T_pos posFetch(const QTextEdit* editor) {
+  return editor->verticalScrollBar()->sliderPosition();
 }
 
 namespace Act {

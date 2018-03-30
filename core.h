@@ -300,6 +300,7 @@ bool Merge(T_noteset*, T_noteset&);
 
 namespace Pos {
 
+T_pos Fetch(const T_posset*, const T_pid);
 T_posset Add(const T_posset*, const T_pid, const T_pos);
 T_posset Delete(const T_posset*, const T_pid);
 T_posset Edit(const T_posset*, const T_pid, const T_pos);
@@ -309,6 +310,7 @@ bool Merge(T_posset*, T_posset&);
 
 namespace Mode {
 
+T_mode Fetch(const T_modeset*, const T_pid);
 T_modeset Add(const T_modeset*, const T_pid, const T_mode);
 T_modeset Delete(const T_modeset*, const T_pid);
 T_modeset Edit(const T_modeset*, const T_pid, const T_mode);
