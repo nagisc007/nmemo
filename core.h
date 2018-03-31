@@ -191,6 +191,11 @@ bool Merge(T_statset*, T_statset&);
 /* CP: Book */
 namespace Book {
 
+inline T_index indexValidated(const T_ids* ids, const T_index i) {
+  if (ids->count() <= 0) return -1;
+  return i < 0 ? 0: i;
+}
+
 namespace Id {
 
 T_bid Fetch(const T_ids*, const T_index);

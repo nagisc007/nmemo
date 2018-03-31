@@ -378,13 +378,11 @@ auto System::BookToDelete(const T_index index) -> T_sig
   auto name_removed = CP::Book::Names::Delete(m_books->pathset(), bid);
   auto pids = CP::Page::Ids::Fetch(m_pages->pidsset(), bid);
   // register
-  auto cur_bid = CP::Book::Id::Fetch(m_books->bids(), index - 1);
   auto cpids_removed = CP::Page::CurrentIds::Delete(m_pages->pidset(), bid);
   auto saved_removed = CP::File::States::Delete(m_books->savedset(), bid);
   // merge
   CP::Book::Ids::Merge(m_books->bids(), removed);
   CP::Book::Names::Merge(m_books->pathset(), name_removed);
-  m_books->ToMergeCurrentBid(cur_bid);
   CP::Page::CurrentIds::Merge(m_pages->pidset(), cpids_removed);
   CP::Page::Ids::DeleteAll(m_pages->pidsset(), bid);
   CP::File::States::Merge(m_books->savedset(), saved_removed);
@@ -393,6 +391,8 @@ auto System::BookToDelete(const T_index index) -> T_sig
     Utl::ID::Release(u_idpool.data(), pids.at(i));
   }
   Utl::ID::Release(u_idpool.data(), bid);
+  // update current bid
+  BookToChange(CP::Book::indexValidated(m_books->bids(), index - 1));
 
   return Utl::Sig::Combine(Sig::TITLE,
                            Utl::Sig::Combine(Sig::TAB_ALL,
