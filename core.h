@@ -9,142 +9,324 @@
 #define CORE_H
 
 #include "utils.h"
-#include "common_values.h"
 
 #include <QObject>
+#include <QStack>
 
-namespace Nmemo {
+namespace Mem {
 
-/* functors: tabs */
-struct TabsToAdd
-{
-  T_tid operator ()(T_tids*, T_labels*, const T_name&);
+/* class: Book */
+struct Book {
+  explicit Book();
+  ~Book();
+  // memory
+  QScopedPointer<T_ids> m_bids;
+  QScopedPointer<T_strset> m_pathset;
+  // register
+  T_bid r_bid;
+  QScopedPointer<T_statset> r_savedset;
+  // props
+  inline T_ids* bids() const {
+    return m_bids.data();
+  }
+  inline T_strset* pathset() const {
+    return m_pathset.data();
+  }
+  inline T_bid currentBid() const {
+    return r_bid;
+  }
+  inline T_statset* savedset() const {
+    return r_savedset.data();
+  }// methods
+  inline bool ToMergeCurrentBid(const T_bid bid) {
+    r_bid = bid;
+    return true;
+  }
 };
 
-struct TabsToRemove
-{
-  T_tid operator ()(T_tids*, T_labels*, T_books*, T_tab_i);
+/* class: Page */
+struct Page {
+  explicit Page();
+  ~Page();
+  // memory
+  QScopedPointer<T_pidsset> m_pidsset;
+  QScopedPointer<T_strset> m_nameset;
+  QScopedPointer<T_strset> m_noteset;
+  QScopedPointer<T_modeset> m_modeset;
+  // register
+  T_msgtime r_msg_show_time;
+  QScopedPointer<T_pidset> r_pidset;
+  QScopedPointer<T_posset> r_posset;
+  // props
+  inline T_pidsset* pidsset() const {
+    return m_pidsset.data();
+  }
+  inline T_strset* nameset() const {
+    return m_nameset.data();
+  }
+  inline T_strset* noteset() const {
+    return m_noteset.data();
+  }
+  inline T_modeset* modeset() const {
+    return m_modeset.data();
+  }
+  inline T_msgtime msg_show_time() const {
+    return r_msg_show_time;
+  }
+  inline T_pidset* pidset() const {
+    return r_pidset.data();
+  }
+  inline T_posset* posset() const {
+    return r_posset.data();
+  }
 };
 
-struct TabsToMove
-{
-  T_tid operator ()(T_tids*, T_tab_i, T_index);
-};
+}  // ns Mem
 
-struct TabsToRename
-{
-  T_tid operator ()(const T_tids*, T_labels*, T_tab_i, const T_name&);
-};
+namespace Core {
 
-struct TabNamesToConvertFromPaths
-{
-  T_slist operator ()(const T_slist*);
-};
-
-/* functors: books */
-struct BooksToAdd
-{
-  T_bid operator ()(T_books*, T_labels*, T_memos*, T_tid, const T_name&, const T_text&);
-};
-
-struct BooksToRemove
-{
-  T_bid operator ()(T_books*, T_labels*, T_tid, T_book_i);
-};
-
-struct BooksToMove
-{
-  T_bid operator ()(T_books*, T_tid, T_book_i, T_index);
-};
-
-struct BooksToRename
-{
-  T_bid operator ()(const T_books*, T_labels*, T_tid, T_book_i, const T_name&);
-};
-
-struct BooksToSort
-{
-  T_bid operator ()(T_books*, const T_labels*, T_tid, T_order);
-};
-
-struct BookIdsToRelease
-{
-  bool operator ()(const T_books*, T_tid);
-};
-
-/* class: Core */
-class Core: public QObject
+/* class: System */
+class System: public QObject
 {
   Q_OBJECT
 public:
-  /* con[de]structor */
-  explicit Core(QObject* parent = nullptr);
-  ~Core();
-  /* methods: features */
-  T_index tabIndexExisted(const T_fname&);
-  bool UpdateData(T_cmd, T_index, const T_text&, T_arg);
-  bool OutputData(T_tid, T_bid);
-  bool UpdateTabData(T_cmd, T_tab_i, T_arg);
-  bool UpdateBookData(T_cmd, T_book_i, T_arg,
-                      const T_text& = "new text");
-  bool UpdateMemoData(T_bid, T_text);
-  T_slist EncodeData(const T_slist*, const T_slist*);
-  QPair<T_slist, T_slist> DecodeData(const T_slist*);
+  explicit System(QObject* parent = nullptr);
+  ~System();
+  /* members: class */
+  QScopedPointer<Mem::Book> m_books;
+  QScopedPointer<Mem::Page> m_pages;
+  /* members: register */
+  T_note r_note;
+  T_pos r_pos;
+  T_stat r_enabled;
+  /* members: utils */
+  T_id u_nextid;
+  QScopedPointer<QStack<T_id>> u_idpool;
+  /* methods: output */
+  void ToOutputs(const T_sig, const T_code);
+  void OutToTabBar(const T_sig);
+  void OutToPageList(const T_sig);
+  void OutToEditor(const T_sig);
+  void OutToTitleBar(const T_sig);
+  void OutToStatusBar(const T_msg&);
+  /* methods: Data */
+  T_sig BranchToData(const T_code, const T_arg, const T_arg, const T_arg);
+  /* methods: File */
+  T_sig FileToLoad(const T_path&);
+  T_sig FileToSave(const T_bid);
+  T_sig FileToSaveAs(const T_bid, const T_path&);
+  T_sig FileToUpdate(const T_bid, const T_stat);
+  /* methods: Book */
+  T_sig BookToAdd(const T_name&);
+  T_sig BookToDelete(const T_index);
+  T_sig BookToChange(const T_index);
+  T_sig BookToMove(const T_index, const T_index);
+  T_sig BookToRename(const T_index, const T_name&);
+  /* methods: Page */
+  T_sig PageToAdd(const T_bid, const T_name&, const T_note&);
+  T_sig PageToDelete(const T_bid, const T_index);
+  T_sig PageToChange(const T_bid, const T_index);
+  T_sig PageToMove(const T_bid, const T_index, const T_index);
+  T_sig PageToRename(const T_bid, const T_index, const T_name&);
+  T_sig PageToSort(const T_bid, const T_order);
+  /* methods: Note */
+  T_sig NoteToAdd(const T_pid, const T_note&);
+  T_sig NoteToDelete(const T_pid);
+  T_sig NoteToCache(const T_note&, const T_pos);
+  T_sig NoteToChangeMode(const T_bid, const T_mode);
+  T_sig NoteToModify(const T_bid);
+  T_sig NoteToUpdate(const T_pid);
+  /* utils */
+  inline bool existsCurrentBook() {
+    return (m_books->currentBid() > 0);
+  }
 
 signals:
-  void tabOutputted(T_tab_i, T_tabnames);
-  void booksOutputted(T_book_i, T_booknames);
-  void memoOutputted(T_stat, T_memo);
-  void filenameToSaveRequested();
-  void statusUpdated(T_text);
-  void fileUpdated(T_fname, T_isUpdated);
+  void asTabBarData(T_sig, T_arg, T_arg, T_arg);
+  void asPageListData(T_sig, T_arg, T_arg);
+  void asEditorData(T_sig, T_arg, T_arg, T_arg, T_arg);
+  void asTitleBarData(T_sig, T_arg);
+  void asStatusBarData(T_sig, T_arg, T_arg);
+  void asFileNameRequest();
 
 public slots:
-  void Update(T_cmd, T_index, const T_text&, T_arg);
-  void ModifyMemo();
-  void LoadData(const T_fname&, T_tab_i, const T_text&);
-  void SaveData(const T_fname&, T_tab_i, const T_text&);
-
-private:
-  int m_tid_;
-  int m_bid_;
-  QScopedPointer<T_lmap> m_books_;
-  QScopedPointer<T_smap> m_labels_;
-  QScopedPointer<T_smap> m_memos_;
-  QScopedPointer<T_stmap> m_stats_;
-  QScopedPointer<T_ids> m_tids_;
+  void ToSystemData(const T_code, const T_arg, const T_arg, const T_arg);
 };
 
-/* defines */
-using tabIdFetched = Utl::listValFetched<T_tid>;
-using tabIndexFetched = Utl::listIndexFetched<T_tid>;
-using tidsAdded = Utl::listAdded<T_tid>;
-using tidsRemoved = Utl::listRemoved<T_tid>;
-using tidsMoved = Utl::listMoved<T_tid>;
-using TidsToMerge = Utl::ListToMerge<T_tid>;
+/* process: Core Process */
+namespace CP {
 
-using bookIdFetched = Utl::listMapValFetched<T_tid, T_bid>;
-using bookIndexFetched = Utl::listMapIndexFetched<T_tid, T_bid>;
-using bidsFetched = Utl::listMapListFetched<T_tid, T_bid>;
-using booksAdded = Utl::listMapAdded<T_tid, T_bid>;
-using booksRemoved = Utl::listMapRemoved<T_tid, T_bid>;
-using booksMoved = Utl::listMapMoved<T_tid, T_bid>;
-using booksRemovedTid = Utl::listMapRemovedKey<T_tid, T_bid>;
-using BooksToMerge = Utl::ListMapToMerge<T_tid, T_bid>;
+/* CP: File */
+namespace File {
 
-using labelFetched = Utl::strMapValFetched<T_id>;
-using labelsUpdated = Utl::strMapUpdated<T_id>;
-using labelsRemoved = Utl::strMapRemoved<T_id>;
-using LabelsToMerge = Utl::StrMapToMerge<T_id>;
+namespace Path {
 
-using memoFetched = Utl::strMapValFetched<T_bid>;
-using memosUpdated = Utl::strMapUpdated<T_bid>;
-using MemosToMerge = Utl::StrMapToMerge<T_bid>;
+T_name FetchBase(const T_pathset*, const T_bid);
+T_path Valid(const T_path&, const T_ext&);
 
-using tabNamesConverted = Utl::strListConvertedFromMap<T_tid>;
-using bookNamesConverted = Utl::strListConvertedFromMap<T_bid>;
-using memosConverted = Utl::strListConvertedFromMap<T_bid>;
+}  // ns CP::File::Path
 
-}  // namespace Nmemo
+namespace Data {
+
+T_encoded Encode(const T_text&, const T_text&, const T_pagenames*, const T_notes*);
+T_decoded Decode(const T_text&, const T_text&, const T_strs*);
+T_strs Load(const T_path&);
+bool Save(const T_path&, const T_encoded*);
+
+}  // ns CP::File::Data
+
+namespace States {
+
+QList<QVariant> Convert(const T_stats*);
+T_stats Filter(const T_statset*, const T_bids*);
+T_statset Add(const T_statset*, const T_bid, const T_stat);
+T_statset Delete(const T_statset*, const T_bid);
+T_statset Edit(const T_statset*, const T_bid, const T_stat);
+bool Merge(T_statset*, T_statset&);
+
+}  // ns CP::File::States
+
+}  // ns CP::File
+
+/* CP: Book */
+namespace Book {
+
+inline T_index indexValidated(const T_ids* ids, const T_index i) {
+  if (ids->count() <= 0) return -1;
+  return i < 0 ? 0: i;
+}
+
+namespace Id {
+
+T_bid Fetch(const T_ids*, const T_index);
+
+}  // ns CP::Book::Id
+
+namespace Index {
+
+T_index Fetch(const T_ids*, const T_id);
+
+}  // ns CP::Book::Index
+
+namespace Ids {
+
+T_bids Add(const T_bids*, const T_bid);
+T_bids Delete(const T_bids*, const T_bid);
+T_bids Move(const T_bids*, const T_index, const T_index);
+bool Merge(T_bids*, T_bids&);
+
+}  // ns CP::Book::Ids
+
+namespace Names {
+
+T_tabnames Filter(const T_pathset*, const T_bids*);
+T_pathset Add(const T_pathset*, const T_bid, const T_path&);
+T_pathset Delete(const T_pathset*, const T_bid);
+T_pathset Edit(const T_pathset*, const T_bid, const T_path&);
+bool Merge(T_pathset*, T_pathset&);
+
+}  // ns CP::Book::Names
+
+}  // ns CP::Book
+
+/* CP: Page */
+namespace Page {
+
+namespace Id {
+
+T_pid Fetch(const T_pidsset*, const T_bid, const T_index);
+
+}  // ns CP::Page::Id
+
+namespace Index {
+
+T_index Fetch(const T_pidsset*, const T_bid, const T_pid);
+
+}  // ns CP::Page::Index
+
+namespace Ids {
+
+T_pids Fetch(const T_pidsset*, const T_bid);
+T_pids Add(const T_pidsset*, const T_bid, const T_pid);
+T_pids Delete(const T_pidsset*, const T_bid, const T_pid);
+T_pids Move(const T_pidsset*, const T_bid, const T_index, const T_index);
+T_pids Sort(const T_pids*, const T_nameset*, const T_order);
+bool Merge(T_pidsset*, const T_bid, T_pids&);
+bool DeleteAll(T_pidsset*, const T_bid);
+
+}  // ns CP::Page::Ids
+
+namespace Names {
+
+T_pagenames Filter(const T_nameset*, const T_pids*);
+T_nameset Add(const T_nameset*, const T_pid, const T_name&);
+T_nameset Delete(const T_nameset*, const T_pid);
+T_nameset Edit(const T_nameset*, const T_pid, const T_name&);
+bool Merge(T_nameset*, T_nameset&);
+
+}  // ns CP::Page::Names
+
+namespace CurrentId {
+
+T_pid Fetch(const T_pidset*, const T_bid);
+
+}  // ns CP::Page::CurrentId
+
+namespace CurrentIds {
+
+T_pids Filter(const T_pidset*, const T_bids*);
+T_pidset Add(const T_pidset*, const T_bid, const T_pid);
+T_pidset Delete(const T_pidset*, const T_bid);
+T_pidset Edit(const T_pidset*, const T_bid, const T_pid);
+bool Merge(T_pidset*, T_pidset&);
+
+}  // ns CP::Page::CurrentIds
+
+}  // ns CP::Page
+
+/* CP: Note */
+namespace Note {
+
+namespace Text {
+
+T_note Fetch(const T_noteset*, const T_pid);
+
+}  // ns CP::Note::Text
+
+namespace Texts {
+
+T_notes Filter(const T_noteset*, const T_pids*);
+T_noteset Add(const T_noteset*, const T_pid, const T_note&);
+T_noteset Delete(const T_noteset*, const T_pid);
+T_noteset Edit(const T_noteset*, const T_pid, const T_note&);
+bool Merge(T_noteset*, T_noteset&);
+
+}  // CP::Note::Texts
+
+namespace Pos {
+
+T_pos Fetch(const T_posset*, const T_pid);
+T_posset Add(const T_posset*, const T_pid, const T_pos);
+T_posset Delete(const T_posset*, const T_pid);
+T_posset Edit(const T_posset*, const T_pid, const T_pos);
+bool Merge(T_posset*, T_posset&);
+
+}  // ns CP::Note::Pos
+
+namespace Mode {
+
+T_mode Fetch(const T_modeset*, const T_pid);
+T_modeset Add(const T_modeset*, const T_pid, const T_mode);
+T_modeset Delete(const T_modeset*, const T_pid);
+T_modeset Edit(const T_modeset*, const T_pid, const T_mode);
+bool Merge(T_modeset*, T_modeset&);
+
+}  // ns CP::Note::Mode
+
+}  // ns CP::Note
+
+}  // ns CP
+
+}  // ns Core
 
 #endif // CORE_H

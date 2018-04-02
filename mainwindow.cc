@@ -14,16 +14,19 @@
 /* class */
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
+  // class
   ui(new Ui::MainWindow),
-  is_booklist_updating_(false),
-  is_editor_updating_(false),
-  is_tab_updating_(false),
-  filename_(""),
-  selected_(Nmemo::Values::DEFAULT_SELECTED_FILTER),
-  booklist_(nullptr),
-  editor_(nullptr),
-  tab_(nullptr),
-  core_(new Nmemo::Core())
+  tabbar(new QTabBar(this)),
+  pagelist(new QListWidget(this)),
+  editor(new QTextEdit(this)),
+  mode_label(new QLabel(this)),
+  sys(new Core::System()),
+  // register
+  r_ui_updated(true),
+  r_current_mode(EditMode::PLAIN),
+  r_filter_selected(Nmemo::VALUE::DEFAULT_SELECTED_FILTER),
+  r_dirname(QDir::currentPath())
+  // utils
 {
   ui->setupUi(this);
   if (!InitWidgets()) {
@@ -39,13 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-  if (booklist_) {
-    booklist_->clear();
-    booklist_.reset();
-  }
-  if (editor_) editor_.reset();
-  if (tab_) tab_.reset();
-  if (core_) core_.reset();
+  if (sys) sys.reset();
   delete ui;
   qDebug() << "MainWindow: destruct";
 }
@@ -53,323 +50,383 @@ MainWindow::~MainWindow()
 /* methods: base */
 auto MainWindow::InitWidgets() -> bool
 {
-  // layouts
-  auto mainWidget = new QWidget(this);
-  auto mainLayout = new QVBoxLayout();
-  auto subLayout = new QHBoxLayout();
-  // widgets
-  tab_.reset(new QTabBar(this));
-  booklist_.reset(new QListWidget(this));
-  editor_.reset(new QTextEdit(this));
-  // set props
-  tab_->setTabsClosable(true);
-  tab_->setMovable(true);
-  booklist_->setMaximumWidth(Nmemo::Props::BOOKLIST_MAX_WIDTH);
-  editor_->setTabStopDistance(Nmemo::Props::EDIT_TAB_DISTANCE);
-  editor_->setReadOnly(true);
-  editor_->setText("Welcome to Nmemo pad!");
-  // set layout
-  mainLayout->addWidget(tab_.data());
-  subLayout->addWidget(editor_.data());
-  subLayout->addWidget(booklist_.data());
-  setCentralWidget(mainWidget);
-  mainWidget->setLayout(mainLayout);
-  mainLayout->addLayout(subLayout);
-  return true;
+  return ToInitWidgetsProperties() &&
+      ToInitWidgetsLayouts();
 }
 
 auto MainWindow::InitActions() -> bool
 {
-  connect(tab_.data(), &QTabBar::currentChanged, this, &MainWindow::ChangeTab);
-  connect(tab_.data(), &QTabBar::tabBarClicked, this, &MainWindow::ChangeTab);
-  connect(tab_.data(), &QTabBar::tabCloseRequested, this, &MainWindow::DeleteTab);
-  connect(tab_.data(), &QTabBar::tabMoved, this, &MainWindow::MoveTab);
-  connect(booklist_.data(), &QListWidget::currentRowChanged, this, &MainWindow::ChangeBook);
-  connect(booklist_.data(), &QListWidget::itemDoubleClicked, this, &MainWindow::DoubleClickBook);
-  connect(editor_.data(), &QTextEdit::textChanged, this, &MainWindow::ChangeTextInMemo);
-  connect(this, &MainWindow::updated, core_.data(), &Nmemo::Core::Update);
-  connect(this, &MainWindow::loaded, core_.data(), &Nmemo::Core::LoadData);
-  connect(this, &MainWindow::saved, core_.data(), &Nmemo::Core::SaveData);
-  connect(this, &MainWindow::edited, core_.data(), &Nmemo::Core::ModifyMemo);
-  connect(core_.data(), &Nmemo::Core::tabOutputted, this, &MainWindow::outputToTab);
-  connect(core_.data(), &Nmemo::Core::booksOutputted, this, &MainWindow::outputToBookList);
-  connect(core_.data(), &Nmemo::Core::memoOutputted, this, &MainWindow::outputToEditor);
-  connect(core_.data(), &Nmemo::Core::filenameToSaveRequested,
+  connect(tabbar.data(), &QTabBar::currentChanged, this, &MainWindow::OnTabCurrentChanged);
+  connect(tabbar.data(), &QTabBar::tabCloseRequested, this, &MainWindow::OnTabCloseRequested);
+  connect(tabbar.data(), &QTabBar::tabMoved, this, &MainWindow::OnTabMoved);
+  connect(pagelist.data(), &QListWidget::currentRowChanged,
+          this, &MainWindow::OnListCurrentRowChanged);
+  connect(pagelist.data(), &QListWidget::itemDoubleClicked,
+          this, &MainWindow::OnListItemDoubleClicked);
+  connect(editor.data(), &QTextEdit::textChanged, this, &MainWindow::OnEditorTextChanged);
+  connect(this, &MainWindow::asSystemData, sys.data(), &Core::System::ToSystemData);
+  connect(sys.data(), &Core::System::asTabBarData, this, &MainWindow::ToTabBar);
+  connect(sys.data(), &Core::System::asPageListData, this, &MainWindow::ToPageList);
+  connect(sys.data(), &Core::System::asEditorData, this, &MainWindow::ToEditor);
+  connect(sys.data(), &Core::System::asStatusBarData, this, &MainWindow::ToStatusBar);
+  connect(sys.data(), &Core::System::asTitleBarData, this, &MainWindow::ToTitleBar);
+  connect(sys.data(), &Core::System::asFileNameRequest,
           this, &MainWindow::on_actSaveAs_triggered);
-  connect(core_.data(), &Nmemo::Core::statusUpdated, this, &MainWindow::updateStatus);
-  connect(core_.data(), &Nmemo::Core::fileUpdated, this, &MainWindow::updateFile);
+  return true;
+}
+
+auto MainWindow::ToInitWidgetsLayouts() -> bool
+{
+  // layout
+  auto mainLayout = new QVBoxLayout();
+  auto subLayout = new QHBoxLayout();
+  auto mainWidget = new QWidget();
+  subLayout->addWidget(editor.data());
+  subLayout->addWidget(pagelist.data());
+  mainLayout->addWidget(tabbar.data());
+  mainLayout->addLayout(subLayout);
+  mainWidget->setLayout(mainLayout);
+  setCentralWidget(mainWidget);
+  // statusbar
+  statusBar()->addPermanentWidget(mode_label.data());
+
+  return true;
+}
+
+auto MainWindow::ToInitWidgetsProperties() -> bool
+{
+  // props
+  tabbar->setTabsClosable(true);
+  tabbar->setMovable(true);
+  pagelist->setMaximumWidth(Nmemo::PROP::LISTVIEW_MAX_WIDTH);
+  editor->setTabStopDistance(Nmemo::PROP::EDIT_TAB_DISTANCE);
+  editor->setReadOnly(true);
+  editor->setAcceptRichText(false);
+  // statusbar
+  mode_label->setText("Mode");
+
   return true;
 }
 
 /* methods: features */
-
-/* slots: output */
-void MainWindow::outputToTab(T_tab_i index, T_tabnames slist)
+auto MainWindow::ExistsUnsavedAll() -> bool
 {
-  mutex_.lock();
-  is_tab_updating_ = true;
-  Utl::TabBarToMerge()(tab_.data(), slist);
-  tab_->setCurrentIndex(index);
-  mutex_.unlock();
-
-  is_tab_updating_ = false;
-}
-
-void MainWindow::outputToBookList(T_book_i index, T_booknames slist)
-{
-  mutex_.lock();
-  is_booklist_updating_ = true;
-  Utl::ListWidgetToMerge()(booklist_.data(), slist);
-  booklist_->setCurrentRow(index);
-  mutex_.unlock();
-
-  is_booklist_updating_ = false;
-}
-
-void MainWindow::outputToEditor(T_stat stat, const T_text& text)
-{
-  mutex_.lock();
-  is_editor_updating_ = true;
-  editor_->setReadOnly(!stat);
-  editor_->setText(text);
-  mutex_.unlock();
-
-  is_editor_updating_ = false;
-}
-
-void MainWindow::updateStatus(const QString& msg)
-{
-  statusBar()->showMessage(msg, Nmemo::Values::STATUS_MESSAGE_TIME);
-}
-
-void MainWindow::updateFile(const T_fname& fname, T_isUpdated is_updated)
-{
-  filename_ = fname;
-  setWindowTitle(QString("%1Nmemo[%2]").arg(is_updated ? "": "*")
-                 .arg(Utl::baseNameFetched()(fname)));
-}
-
-/* slots: tabs */
-void MainWindow::AddTab()
-{
-  if (is_tab_updating_) return;
-  updated(CmdSig::TAB_ADD, -1, editor_->toPlainText(),
-          QVariant(Nmemo::Values::DEFAULT_FILENAME));
-}
-
-void MainWindow::DeleteTab(int index)
-{
-  if (is_tab_updating_) return;
-  updated(CmdSig::TAB_DELETE, index, editor_->toPlainText(), QVariant(0));
-}
-
-void MainWindow::ChangeTab(int index)
-{
-  if (is_tab_updating_) return;
-  updated(CmdSig::TAB_CHANGE, index, editor_->toPlainText(), QVariant(0));
-}
-
-void MainWindow::MoveTab(int from, int to)
-{
-  if (is_tab_updating_) return;
-  updated(CmdSig::TAB_MOVE, from, editor_->toPlainText(), QVariant(to));
-}
-
-void MainWindow::RenameTab()
-{
-  if (is_tab_updating_) return;
-}
-
-/* slots: books */
-void MainWindow::AddBook()
-{
-  if (is_booklist_updating_) return;
-  if (tab_->count() > 0) {
-    auto name = Utl::NameToGet()(this, Nmemo::Values::GET_BOOK_TITLE,
-                                 Nmemo::Values::GET_BOOK_CAPTION,
-                                 Nmemo::Values::DEFAULT_BOOK_NAME);
-    updated(CmdSig::BOOK_ADD, -1, editor_->toPlainText(),
-            QVariant(name == "" ? Nmemo::Values::DEFAULT_BOOK_NAME: name));
+  for (int i = 0, size = tabbar->count(); i < size; ++i) {
+    if (isUnsaved(i)) {
+      return true;
+    }
   }
+  return false;
 }
 
-void MainWindow::DeleteBook(int index)
+auto MainWindow::UpdateNote() -> void
 {
-  if (is_booklist_updating_) return;
-  updated(CmdSig::BOOK_DELETE, index, editor_->toPlainText(), QVariant(0));
+  if (!r_ui_updated || editor->isReadOnly()) return;
+
+  emit asSystemData(OpCode::NOTE_CACHE,
+                    QVariant(UIP::Editor::textFetch(r_current_mode, editor.data())),
+                    QVariant(UIP::Editor::posFetch(editor.data())),
+                    QVariant(0));
 }
 
-void MainWindow::ChangeBook(int index)
+auto MainWindow::isDeletedBook() -> bool
 {
-  if (is_booklist_updating_) return;
-  updated(CmdSig::BOOK_CHANGE, index, editor_->toPlainText(), QVariant(0));
+  auto result = QMessageBox::question(this, "Delete book",
+                                      "The book deleted?",
+                                      QMessageBox::Ok, QMessageBox::No);
+  return (result == QMessageBox::Ok);
 }
 
-void MainWindow::MoveBook(int from, int to)
+auto MainWindow::isDeletedPage() -> bool
 {
-  if (is_booklist_updating_) return;
-  updated(CmdSig::BOOK_MOVE, from, editor_->toPlainText(), QVariant(to));
+  auto result = QMessageBox::question(this, "Delete page",
+                                      "The page deleted?",
+                                      QMessageBox::Ok, QMessageBox::No);
+  return (result == QMessageBox::Ok);
 }
 
-void MainWindow::RenameBook()
+auto MainWindow::isApplyedClosed() -> bool
 {
-  auto item = booklist_->currentItem();
-  if (!item) return;
-  DoubleClickBook(item);
+  auto result = QMessageBox::question(this, "Nmemo",
+                                      "Are you sure want to close Nmemo?",
+                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  return result != QMessageBox::No;
 }
 
-void MainWindow::DoubleClickBook(QListWidgetItem* item)
+/* slots: Devices */
+void MainWindow::ToTabBar(const T_sig sig, const T_arg arg0, const T_arg arg1,
+                          const T_arg arg2)
 {
-  if (is_booklist_updating_) return;
-  if (tab_->count() > 0 && booklist_->count() > 0) {
-    auto name = Utl::NameToGet()(this, Nmemo::Values::GET_BOOK_TITLE,
-                                 Nmemo::Values::GET_BOOK_CAPTION,
-                                 item->text());
-    updated(CmdSig::BOOK_RENAME, booklist_->currentRow(), editor_->toPlainText(),
-            QVariant(name == "" ? item->text(): name));
+  u_mutex.lock();
+  r_ui_updated = false;
+  UIP::TabBar::ToUpdate(sig, tabbar.data(), arg0, arg1, arg2);
+  u_mutex.unlock();
+
+  r_ui_updated = true;
+}
+
+void MainWindow::ToPageList(const T_sig sig, const T_arg arg0, const T_arg arg1)
+{
+  u_mutex.lock();
+  r_ui_updated = false;
+  UIP::PageList::ToUpdate(sig, pagelist.data(), arg0, arg1);
+  u_mutex.unlock();
+
+  r_ui_updated = true;
+}
+
+void MainWindow::ToEditor(const T_sig sig, const T_arg arg0, const T_arg arg1,
+                          const T_arg arg2, const T_arg arg3)
+{
+  u_mutex.lock();
+  r_ui_updated = false;
+  UIP::Editor::ToUpdate(sig, editor.data(), arg0, arg1, arg2, arg3);
+  if (Utl::Sig::Exists(sig, Sig::EDITOR_MODE)) {
+    UIP::StatusBar::ToUpdate(sig, this, arg0, arg1);
+    r_current_mode = static_cast<EditMode>(arg1.toInt());
   }
-}
-
-void MainWindow::SortBook(T_order order)
-{
-  if (is_booklist_updating_) return;
-  if (tab_->count() > 0 && booklist_->count() > 0) {
-    updated(CmdSig::BOOK_SORT, booklist_->currentRow(), editor_->toPlainText(),
-            QVariant(order));
+  if (r_current_mode == EditMode::HTML) {
+    editor->setAcceptRichText(true);
+  } else {
+    editor->setAcceptRichText(false);
   }
+  u_mutex.unlock();
+
+  r_ui_updated = true;
 }
 
-/* slots: memos */
-void MainWindow::ChangeTextInMemo()
+void MainWindow::ToStatusBar(const T_sig sig, const T_arg arg0, const T_arg arg1)
 {
-  if (is_editor_updating_) return;
-  emit edited();
+  u_mutex.lock();
+  r_ui_updated = false;
+  UIP::StatusBar::ToUpdate(sig, this, arg0, arg1);
+  u_mutex.unlock();
+
+  r_ui_updated = true;
+}
+
+void MainWindow::ToTitleBar(const T_sig sig, const T_arg arg0)
+{
+  u_mutex.lock();
+  r_ui_updated = false;
+  UIP::TitleBar::ToUpdate(sig, this, arg0);
+  u_mutex.unlock();
+
+  r_ui_updated = true;
+}
+
+/* slots: TabBar */
+void MainWindow::OnTabCurrentChanged(const T_index index)
+{
+  if (!isUiUpdated()) return;
+
+  UpdateNote();
+  emit asSystemData(OpCode::BOOK_CHANGE, QVariant(index), QVariant(0), QVariant(0));
+}
+
+void MainWindow::OnTabCloseRequested(const T_index index)
+{
+  if (!isUiUpdated()) return;
+
+  if (isUnsaved(index)) {
+    if (!isDeletedBook()) {
+      on_actSave_triggered();
+      return;
+    }
+  }
+
+  UpdateNote();
+  emit asSystemData(OpCode::BOOK_DELETE, QVariant(index), QVariant(0), QVariant(0));
+}
+
+void MainWindow::OnTabMoved(const T_index from, const T_index to)
+{
+  if (!isUiUpdated()) return;
+
+  emit asSystemData(OpCode::BOOK_MOVE, QVariant(from), QVariant(to), QVariant(0));
+}
+
+/* slots: PageList */
+void MainWindow::OnListCurrentRowChanged(const T_index index)
+{
+  if (!isUiUpdated()) return;
+
+  UpdateNote();
+  emit asSystemData(OpCode::PAGE_CHANGE, QVariant(index), QVariant(0), QVariant(0));
+}
+
+void MainWindow::OnListItemDoubleClicked(const T_item* item)
+{
+  if (!isUiUpdated()) return;
+
+  auto index = pagelist->row(item);
+  auto name = Utl::Name::Input(this, Nmemo::VALUE::GET_PAGE_TITLE,
+                               Nmemo::VALUE::GET_PAGE_CAPTION, item->text());
+
+  emit asSystemData(OpCode::PAGE_RENAME, QVariant(index), QVariant(name), QVariant(0));
+}
+
+/* slots: Editor */
+void MainWindow::OnEditorTextChanged()
+{
+  if (!isUiUpdated() || editor->isReadOnly()) return;
+
+  emit asSystemData(OpCode::NOTE_MODIFY, QVariant(0), QVariant(0), QVariant(0));
 }
 
 /* slots: menus - File */
 void MainWindow::on_actNew_triggered()
 {
-  AddTab();
+  if (!isUiUpdated()) return;
+
+  UpdateNote();
+  emit asSystemData(OpCode::BOOK_ADD, QVariant(Nmemo::VALUE::DEFAULT_FILENAME),
+                    QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actOpen_triggered()
 {
-  auto dir = QDir::currentPath();
-  if (!filename_.isEmpty()) dir = QFileInfo(filename_).absoluteFilePath();
-  auto fname = Utl::LoadNameToGet()(this, Nmemo::Values::LOAD_FILE_CAPTION, dir,
-                                    Nmemo::Values::FILE_FILTER, &selected_);
-  if (fname.isEmpty()) return;
-  emit loaded(fname, tab_->currentIndex(), editor_->toPlainText());
+  if (!isUiUpdated()) return;
+
+  auto path = Utl::Path::Load::Input(this, Nmemo::VALUE::LOAD_FILE_CAPTION, r_dirname,
+                                    Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
+  if (path.isEmpty()) return;
+  r_dirname = QDir(path).absolutePath();
+  UpdateNote();
+  emit asSystemData(OpCode::FILE_LOAD, QVariant(path), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actClose_triggered()
 {
-  DeleteTab(tab_->currentIndex());
+  if (!isUiUpdated()) return;
+
+  OnTabCloseRequested(UIP::TabBar::indexFetch(tabbar.data()));
 }
 
 void MainWindow::on_actSave_triggered()
 {
-  emit saved(QString(""), tab_->currentIndex(), editor_->toPlainText());
+  if (!isUiUpdated()) return;
+
+  UpdateNote();
+  emit asSystemData(OpCode::FILE_SAVE, QVariant(0), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actSaveAs_triggered()
 {
-  auto fname = Utl::SaveNameToGet()(this, Nmemo::Values::SAVE_FILE_CAPTION,
-                                    filename_,
-                                    Nmemo::Values::FILE_FILTER, &selected_);
-  if (fname.isEmpty()) return;
-  emit saved(fname, tab_->currentIndex(), editor_->toPlainText());
+  if (!isUiUpdated()) return;
+
+  auto path = Utl::Path::Save::Input(this, Nmemo::VALUE::SAVE_FILE_CAPTION,
+                                    r_dirname,
+                                    Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
+  if (path.isEmpty()) return;
+  r_dirname = QDir(path).absolutePath();
+  UpdateNote();
+  emit asSystemData(OpCode::FILE_SAVEAS, QVariant(path), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actQuit_triggered()
 {
+  if (!isUiUpdated()) return;
+
   close();
 }
 
 /* slots: menus - Edit */
 void MainWindow::on_actUndo_triggered()
 {
-  if (is_editor_updating_ || editor_->isReadOnly()) return;
-
-  editor_->undo();
+  if (isUiUpdated()) UIP::Editor::Act::Undo(editor.data());
 }
 
 void MainWindow::on_actRedo_triggered()
 {
-  if (is_editor_updating_ || editor_->isReadOnly()) return;
-
-  editor_->redo();
+  if (isUiUpdated()) UIP::Editor::Act::Redo(editor.data());
 }
 
 void MainWindow::on_actCut_triggered()
 {
-  if (is_editor_updating_ || editor_->isReadOnly()) return;
-
-  editor_->cut();
+  if (isUiUpdated()) UIP::Editor::Act::Cut(editor.data());
 }
 
 void MainWindow::on_actCopy_triggered()
 {
-  if (is_editor_updating_ || editor_->isReadOnly()) return;
-
-  editor_->copy();
+  if (isUiUpdated()) UIP::Editor::Act::Copy(editor.data());
 }
 
 void MainWindow::on_actPaste_triggered()
 {
-  if (is_editor_updating_ || editor_->isReadOnly()) return;
-
-  editor_->paste();
+  if (isUiUpdated()) UIP::Editor::Act::Paste(editor.data());
 }
 
 void MainWindow::on_actErase_triggered()
 {
-  if (is_editor_updating_ || editor_->isReadOnly()) return;
-
-  editor_->textCursor().removeSelectedText();
+  if (isUiUpdated()) UIP::Editor::Act::Erase(editor.data());
 }
 
 void MainWindow::on_actSelectAll_triggered()
 {
-  if (is_editor_updating_ || editor_->isReadOnly()) return;
-
-  editor_->selectAll();
+  if (isUiUpdated()) UIP::Editor::Act::SelectAll(editor.data());
 }
 
 /* slots: menus - Book */
-void MainWindow::on_actAddBook_triggered()
+void MainWindow::on_actAddItem_triggered()
 {
-  AddBook();
+  if (!isUiUpdated()) return;
+
+  auto name = Utl::Name::Input(this, Nmemo::VALUE::GET_PAGE_TITLE,
+                               Nmemo::VALUE::GET_PAGE_CAPTION,
+                               Nmemo::VALUE::DEFAULT_LISTITEM_NAME);
+  if (name.isEmpty()) return;
+
+  UpdateNote();
+  emit asSystemData(OpCode::PAGE_ADD, QVariant(name), QVariant(0), QVariant(0));
 }
 
-void MainWindow::on_actDeleteBook_triggered()
+void MainWindow::on_actDeleteItem_triggered()
 {
-  DeleteBook(booklist_->currentRow());
+  if (!isUiUpdated()) return;
+
+  if (!isDeletedPage()) return;
+
+  auto index = UIP::PageList::indexFetch(pagelist.data());
+  UpdateNote();
+  emit asSystemData(OpCode::PAGE_DELETE, QVariant(index), QVariant(0), QVariant(0));
 }
 
-void MainWindow::on_actRenameBook_triggered()
+void MainWindow::on_actRenameItem_triggered()
 {
-  RenameBook();
+  if (!isUiUpdated()) return;
+
+  OnListItemDoubleClicked(UIP::PageList::itemFetch(pagelist.data()));
 }
 
 void MainWindow::on_actMoveNext_triggered()
 {
-  MoveBook(booklist_->currentRow(), booklist_->currentRow() + 1);
+  if (!isUiUpdated()) return;
+
+  auto index = UIP::PageList::indexFetch(pagelist.data());
+  emit asSystemData(OpCode::PAGE_MOVE, QVariant(index), QVariant(index+1), QVariant(0));
 }
 
 void MainWindow::on_actMovePrevious_triggered()
 {
-  MoveBook(booklist_->currentRow(), booklist_->currentRow() - 1);
+  if (!isUiUpdated()) return;
+
+  auto index = UIP::PageList::indexFetch(pagelist.data());
+  emit asSystemData(OpCode::PAGE_MOVE, QVariant(index), QVariant(index-1), QVariant(0));
 }
 
 void MainWindow::on_actSort_AtoZ_triggered()
 {
-  SortBook(Qt::AscendingOrder);
+  if (!isUiUpdated()) return;
+
+  emit asSystemData(OpCode::PAGE_SORT, QVariant(Qt::AscendingOrder), QVariant(0), QVariant(0));
 }
 
 void MainWindow::on_actSort_ZtoA_triggered()
 {
-  SortBook(Qt::DescendingOrder);
+  if (!isUiUpdated()) return;
+
+  emit asSystemData(OpCode::PAGE_SORT, QVariant(Qt::DescendingOrder), QVariant(0), QVariant(0));
 }
 
 /* slots: menus - View */
@@ -384,24 +441,50 @@ void MainWindow::on_actFullscreen_triggered()
   }
 }
 
+void MainWindow::on_actEditPlainText_triggered()
+{
+  if (!isUiUpdated()) return;
+
+  UpdateNote();
+  emit asSystemData(OpCode::NOTE_CHANGE_MODE, QVariant(static_cast<int>(EditMode::PLAIN)),
+                    QVariant(0), QVariant(0));
+}
+
+void MainWindow::on_actEditRichText_triggered()
+{
+  if (!isUiUpdated()) return;
+
+  UpdateNote();
+  emit asSystemData(OpCode::NOTE_CHANGE_MODE, QVariant(static_cast<int>(EditMode::HTML)),
+                    QVariant(0), QVariant(0));
+}
+
 void MainWindow::on_actNextTab_triggered()
 {
-  ChangeTab(tab_->currentIndex() + 1);
+  if (!isUiUpdated()) return;
+
+  OnTabCurrentChanged(UIP::TabBar::indexFetch(tabbar.data()) + 1);
 }
 
 void MainWindow::on_actPreviousTab_triggered()
 {
-  ChangeTab(tab_->currentIndex() - 1);
+  if (!isUiUpdated()) return;
+
+  OnTabCurrentChanged(UIP::TabBar::indexFetch(tabbar.data()) - 1);
 }
 
-void MainWindow::on_actNextBook_triggered()
+void MainWindow::on_actNextItem_triggered()
 {
-  ChangeBook(booklist_->currentRow() + 1);
+  if (!isUiUpdated()) return;
+
+  OnListCurrentRowChanged(UIP::PageList::indexFetch(pagelist.data()) + 1);
 }
 
-void MainWindow::on_actPreviousBook_triggered()
+void MainWindow::on_actPreviousItem_triggered()
 {
-  ChangeBook(booklist_->currentRow() - 1);
+  if (!isUiUpdated()) return;
+
+  OnListCurrentRowChanged(UIP::PageList::indexFetch(pagelist.data()) - 1);
 }
 
 /* slots: menus - Help */
@@ -413,13 +496,142 @@ void MainWindow::on_actAboutQt_triggered()
 void MainWindow::on_actAboutApp_triggered()
 {
   auto title = QString("About %1")
-      .arg(APP::Values::NAME);
+      .arg(APP::VALUE::NAME);
   auto msg = QString("<h3>About %1 %2</h3><p>%3<br>Licensed by %4.<br>%5</p><p>%6</p>")
-      .arg(APP::Values::NAME)
-      .arg(APP::Values::VERSION)
-      .arg(APP::Values::DESCRIPTION)
-      .arg(APP::Values::LICENSE)
-      .arg(APP::Values::COPYRIGHT)
-      .arg(APP::Values::AUTHORS);
+      .arg(APP::VALUE::NAME)
+      .arg(APP::VALUE::VERSION)
+      .arg(APP::VALUE::DESCRIPTION)
+      .arg(APP::VALUE::LICENSE)
+      .arg(APP::VALUE::COPYRIGHT)
+      .arg(APP::VALUE::AUTHORS);
   QMessageBox::about(this, title, msg);
 }
+
+/* override */
+void MainWindow::closeEvent(QCloseEvent* evt)
+{
+  if (ExistsUnsavedAll()) {
+    if (!isApplyedClosed()) {
+      evt->ignore();
+      return;
+    }
+  }
+
+  QWidget::closeEvent(evt);
+}
+
+/* process: UI Process */
+namespace UIP {
+
+namespace TitleBar {
+
+auto ToUpdate(const T_sig sig, MainWindow* m, const T_arg arg) -> bool
+{
+  bool is_updated = false;
+  if (Utl::Sig::Exists(sig, Sig::TITLE)) {
+    m->setWindowTitle(arg.toString());
+    is_updated = true;
+  }
+  return is_updated;
+}
+
+}  // ns UIP::TitleBar
+
+namespace StatusBar {
+
+auto ToUpdate(const T_sig sig, MainWindow* win, const T_arg arg_txt,
+              const T_arg arg_opt) -> bool
+{
+  bool is_updated = false;
+  if (Utl::Sig::Exists(sig, Sig::STATUS_MESSAGE)) {
+    win->statusBar()->showMessage(arg_txt.toString(), arg_opt.toInt());
+    is_updated = true;
+  }
+  if (Utl::Sig::Exists(sig, Sig::EDITOR_MODE)) {
+    auto mode = static_cast<EditMode>(arg_opt.toInt());
+    if (mode == EditMode::HTML) {
+      win->mode_label->setText("HTML");
+    } else {
+      win->mode_label->setText("TEXT");
+    }
+  }
+  return is_updated;
+}
+
+}  // ns UIP::StatusBar
+
+namespace TabBar {
+
+auto ToUpdate(const T_sig sig, QTabBar* tbar, const T_arg arg_i,
+              const T_arg arg_names, const T_arg arg_stats) -> bool
+{
+  if (Utl::Sig::Exists(sig, Sig::TAB_NAME)) {
+    Utl::Widget::Names::Merge<QTabBar>(tbar, arg_names.toStringList());
+  }
+  if (Utl::Sig::Exists(sig, Sig::TAB_INDEX)) {
+    tbar->setCurrentIndex(arg_i.toInt());
+  }
+  if (Utl::Sig::Exists(sig, Sig::TAB_STATE)) {
+    ColorsUpdate(tbar, arg_stats);
+  }
+  return true;
+}
+
+auto ColorsUpdate(QTabBar* tbar, const T_arg arg) -> bool
+{
+  auto stats = arg.toList();
+  for (int i = 0, size = tbar->count(); i < size; ++i) {
+    auto v = stats.at(i);
+    tbar->setTabData(i, v);
+    auto stat = v.toBool();
+    tbar->setTabTextColor(i, stat ? Nmemo::VALUE::TAB_MODIFIED_COLOR:
+                                    Nmemo::VALUE::TAB_UNMODIFIED_COLOR);
+  }
+  return true;
+}
+
+}  // ns UIP::TabBar
+
+namespace PageList {
+
+auto ToUpdate(const T_sig sig, QListWidget* li, const T_arg arg_i,
+              const T_arg arg_names) -> bool
+{
+  if (Utl::Sig::Exists(sig, Sig::LIST_NAME)) {
+    Utl::Widget::Names::Merge<QListWidget>(li, arg_names.toStringList());
+  }
+  if (Utl::Sig::Exists(sig, Sig::LIST_INDEX)) {
+    li->setCurrentRow(arg_i.toInt());
+  }
+  return true;
+}
+
+}  // ns UIP::PageList
+
+namespace Editor {
+
+auto ToUpdate(const T_sig sig, QTextEdit* editor, const T_arg arg_txt,
+              const T_arg arg_mode, const T_arg arg_pos, const T_arg arg_stat) -> bool
+{
+  auto mode = Utl::Sig::Exists(sig, Sig::EDITOR_MODE) ?
+                                      static_cast<EditMode>(arg_mode.toInt()):
+        EditMode::PLAIN;
+  if (Utl::Sig::Exists(sig, Sig::EDITOR_TEXT)) {
+    if (mode == EditMode::HTML) {
+      editor->setText(arg_txt.toString());
+    } else {
+      editor->setPlainText(arg_txt.toString());
+    }
+  }
+  if (Utl::Sig::Exists(sig, Sig::EDITOR_POS)) {
+    editor->verticalScrollBar()->setSliderPosition(arg_pos.toInt());
+  }
+  if (Utl::Sig::Exists(sig, Sig::EDITOR_STATE)) {
+    editor->setReadOnly(!arg_stat.toBool());
+  }
+  return true;
+}
+
+}  // ns UIP::Editor
+
+}  // ns UIP

@@ -9,7 +9,9 @@
 #define UTILS_H
 
 #include "common_types.h"
+#include "common_values.h"
 
+#include <QColor>
 #include <QDebug>
 #include <QDataStream>
 #include <QDir>
@@ -31,204 +33,144 @@
 
 namespace Utl {
 
-/* values */
-extern T_id next_id;
-extern QStack<T_id> idpool;
+/* process: control signal */
+namespace Sig {
 
-/* functors: QString */
-struct fileNameValidated
-{
-  T_fname operator ()(const T_fname&, const T_ext&);
-};
+T_sig Combine(const T_sig, const T_sig);
+bool Exists(const T_sig, const T_sig);
 
-/* functors: ID */
-struct idGenerated
-{
-  T_id operator ()();
-};
+}  // ns Utl::Sig
 
-struct idReleased
-{
-  T_id operator ()(T_id);
-};
+/* process: id */
+namespace ID {
 
-/* functors: CmdSig */
-struct hasCmd
-{
-  bool operator ()(T_cmd, T_cmd);
-};
+T_id Allocate(QStack<T_id>*, T_id*);
+bool Release(QStack<T_id>*, const T_id);
 
-struct haveCmds
-{
-  bool operator ()(T_cmd, T_cmd, T_cmd);
-};
+}  // ns Utl::ID
+namespace Path {
+namespace Load {
 
-/* functors: QFileInfo */
-struct baseNameFetched
-{
-  T_name operator ()(const T_fname&);
-};
+T_path Input(QWidget*,const T_caption&, const T_path&,
+                          const T_filter&, T_filter*);
+}  // ns Utl::Path::Load
+namespace Save {
 
-/* functors: QInputDialog */
-struct NameToGet
-{
-  T_name operator ()(QWidget*, const T_title&, const T_caption&, const T_text&);
-};
+T_path Input(QWidget*,const T_caption&, const T_path&,
+                          const T_filter&, T_filter*);
+}  // ns Utl::Path::Save
+}  // ns Utl::Path
+namespace Name {
 
-/* functors: QFileDialog */
-struct LoadNameToGet
-{
-  T_fname operator ()(QWidget*, const T_caption&, const T_fname&,
-                      const T_filter&, T_filter*);
-};
+T_name Input(QWidget*, const T_title&, const T_caption&, const T_text&);
+T_name Filter(const T_path&);
+T_dirname FilterDirname(const T_path&);
 
-struct SaveNameToGet
-{
-  T_fname operator ()(QWidget*, const T_caption&, const T_fname&,
-                      const T_filter&, T_filter*);
-};
+}  // ns Utl::Name
 
-/* functors: QList */
-template<typename T>
-struct listIndexValidated
-{
-  int operator ()(const QList<T>*, int, int);
-};
+/* process: list */
+namespace List {
 
 template<typename T>
-struct listAdded
-{
-  QList<T> operator ()(const QList<T>*, T);
-};
+T Fetch(const QList<T>*, const int, const T);
 
 template<typename T>
-struct listRemoved
-{
-  QList<T> operator ()(const QList<T>*, T);
-};
+QList<T> Add(const QList<T>*, const T);
 
 template<typename T>
-struct listMoved
-{
-  QList<T> operator ()(const QList<T>*, int, int);
-};
+QList<T> Delete(const QList<T>*, const T);
 
 template<typename T>
-struct listValFetched
-{
-  T operator ()(const QList<T>*, int, T);
-};
+QList<T> Move(const QList<T>*, const int, const int);
 
 template<typename T>
-struct listIndexFetched
-{
-  int operator ()(const QList<T>*, T);
-};
+bool Merge(QList<T>*, QList<T>&);
+
+namespace Index {
 
 template<typename T>
-struct ListToMerge
-{
-  bool operator ()(QList<T>*, QList<T>&);
-};
+int Valid(const QList<T>*, const int);
 
-/* functors: QMap(S, T) */
-template<typename S, typename T>
-struct listMapAdded
-{
-  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
-};
+template<typename T>
+int Fetch(const QList<T>*, const T);
+
+}  // ns Utl::List::Index
+}  // ns Utl::List
+
+/* process: Hash */
+namespace Hash {
 
 template<typename S, typename T>
-struct listMapUpdated
-{
-  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, T);
-};
+QList<T> Filter(const QHash<S, T>*, const QList<S>*);
 
 template<typename S, typename T>
-struct listMapRemoved
-{
-  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, T);
-};
+T Fetch(const QHash<S, T>*, const S, const T);
 
 template<typename S, typename T>
-struct listMapRemovedKey
-{
-  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S);
-};
+QHash<S, T> Add(const QHash<S, T>*, const S, const T);
 
 template<typename S, typename T>
-struct listMapMoved
-{
-  QMap<S, QList<T>> operator ()(const QMap<S, QList<T>>*, S, int, int);
-};
+QHash<S, T> Delete(const QHash<S, T>*, const S);
 
 template<typename S, typename T>
-struct listMapValFetched
-{
-  T operator ()(const QMap<S, QList<T>>*, S, int, T);
-};
+QHash<S, T> Edit(const QHash<S, T>*, const S, const T);
 
 template<typename S, typename T>
-struct listMapIndexFetched
-{
-  int operator ()(const QMap<S, QList<T>>*, S, T);
-};
+bool Merge(QHash<S, T>*, QHash<S, T>&);
+
+namespace List {
 
 template<typename S, typename T>
-struct listMapListFetched
-{
-  QList<T> operator ()(const QMap<S, QList<T>>*, S);
-};
+QList<T> Fetch(const QHash<S, QList<T>>*, const S);
 
 template<typename S, typename T>
-struct ListMapToMerge
-{
-  bool operator ()(QMap<S, QList<T>>*, QMap<S, QList<T>>&);
-};
+QList<T> Add(const QHash<S, QList<T>>*, const S, const T);
 
-/* functors: QMap(T, QString) */
-template<typename T>
-struct strMapUpdated
-{
-  QMap<T, QString> operator ()(const QMap<T, QString>*, T, const QString&);
-};
+template<typename S, typename T>
+QList<T> Delete(const QHash<S, QList<T>>*, const S, const T);
 
-template<typename T>
-struct strMapRemoved
-{
-  QMap<T, QString> operator ()(const QMap<T, QString>*, T);
-};
+template<typename S, typename T>
+QList<T> Move(const QHash<S, QList<T>>*, const S, const int, const int);
 
-template<typename T>
-struct StrMapToMerge
-{
-  bool operator ()(QMap<T, QString>*, QMap<T, QString>&);
-};
+template<typename S, typename T>
+bool Merge(QHash<S, QList<T>>*, const S, QList<T>&);
+
+template<typename S, typename T>
+QHash<S, QList<T>> DeleteAll(const QHash<S, QList<T>>*, const S);
+
+template<typename S, typename T>
+bool MergeAll(QHash<S, QList<T>>*, QHash<S, QList<T>>&);
+
+namespace Index {
+
+template<typename S, typename T>
+int Valid(const QHash<S, QList<T>>*, const S, const int);
+
+template<typename S, typename T>
+int Fetch(const QHash<S, QList<T>>*, const S, const T);
+
+}  // ns Utl::Hash::List::Index
+
+namespace Value {
+
+template<typename S, typename T>
+T Fetch(const QHash<S, QList<T>>*, const S, const int, const T);
+
+}  // ns Utl::Hash::List::Value
+
+}  // ns Utl::Hash::List
+
+}  // ns Utl::Hash
+
+namespace Widget {
+namespace Names {
 
 template<typename T>
-struct strListConvertedFromMap
-{
-  QStringList operator ()(const QMap<T, QString>*, const QList<T>*);
-};
+bool Merge(T*, const T_strs&);
 
-template<typename T>
-struct strMapValFetched
-{
-  QString operator ()(const QMap<T, QString>*, T);
-};
+}  // ns Utl::Widget::Names
+}  // ns Utl::Widget
 
-/* functors: QListWidget */
-struct ListWidgetToMerge
-{
-  bool operator ()(QListWidget*, const QStringList&);
-};
-
-/* functors: QTabBar */
-struct TabBarToMerge
-{
-  bool operator ()(QTabBar*, const QStringList&);
-};
-
-}  // namespace Utl
+}  // ns Utl
 
 #endif // UTILS_H

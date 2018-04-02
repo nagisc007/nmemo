@@ -6,6 +6,44 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.2.1] - 2018-04-02
+### Added
+- Keep the page index in each books
+- UI Process in mainwindow
+- Ask when delete a book and a page
+- Ask when unsaved file exits
+- Shortcut to rename a page(old called "rename book")
+- Cached the current directory path
+- Tab text color change when unsaved tab(file)
+- Edit mode in TextEdit(PlainText or RichText)
+- Display Edit mode state on statusbar
+
+### Removed
+- For tab features in mainwindow
+- For book features in mainwindow
+- For memo features in mainwindow
+- Signals in mainwindow (updated, edited, loaded and saved)
+- Many functors (to convert static methods with namespaces)
+
+### Changed
+- Renamed from Tab to Book
+- Renamed from Book to Page
+- Renamed from Memo to Note
+- Renamed from "Core" to "Core::System"
+- Common values rename
+- Common types rename
+- Convert from functor or classes to namespaces
+- Signals in mainwindow to combined "asSystemData"
+- Renamed from xx book to xx item in ui file
+- Shortcut to change books and pages
+- Minor renamed to namespaces in utils
+- Signal's name to "asXXX" from "xxed"
+- Renamed tooltips
+
+### Fixed
+- Destroyed window when there are unsaved files
+- Uncontrollable when close first tab
+
 ## [1.2.0] - 2018-03-05
 ### Added
 - Tab UI.
