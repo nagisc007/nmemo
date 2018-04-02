@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [1.2.1] - 2018-03-21
+## [1.2.1] - 2018-04-02
 ### Added
 - Keep the page index in each books
 - UI Process in mainwindow
@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shortcut to rename a page(old called "rename book")
 - Cached the current directory path
 - Tab text color change when unsaved tab(file)
+- Edit mode in TextEdit(PlainText or RichText)
+- Display Edit mode state on statusbar
 
 ### Removed
 - For tab features in mainwindow
@@ -36,6 +38,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shortcut to change books and pages
 - Minor renamed to namespaces in utils
 - Signal's name to "asXXX" from "xxed"
+- Renamed tooltips
+
+### Fixed
+- Destroyed window when there are unsaved files
+- Uncontrollable when close first tab
 
 ## [1.2.0] - 2018-03-05
 ### Added
