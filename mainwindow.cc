@@ -145,6 +145,14 @@ auto MainWindow::isDeletedPage() -> bool
   return (result == QMessageBox::Ok);
 }
 
+auto MainWindow::isApplyedClosed() -> bool
+{
+  auto result = QMessageBox::question(this, "Nmemo",
+                                      "Are you sure want to close Nmemo?",
+                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  return result != QMessageBox::No;
+}
+
 /* slots: Devices */
 void MainWindow::ToTabBar(const T_sig sig, const T_arg arg0, const T_arg arg1,
                           const T_arg arg2)
@@ -319,15 +327,6 @@ void MainWindow::on_actSaveAs_triggered()
 void MainWindow::on_actQuit_triggered()
 {
   if (!isUiUpdated()) return;
-
-  if (ExistsUnsavedAll()) {
-    auto result = QMessageBox::question(this, "Exists unsaved file",
-                                        "Shutdown app to ignore unsaved files?",
-                                        QMessageBox::Ok, QMessageBox::No);
-    if (result != QMessageBox::Ok) {
-      return;
-    }
-  }
 
   close();
 }
@@ -506,6 +505,19 @@ void MainWindow::on_actAboutApp_triggered()
       .arg(APP::VALUE::COPYRIGHT)
       .arg(APP::VALUE::AUTHORS);
   QMessageBox::about(this, title, msg);
+}
+
+/* override */
+void MainWindow::closeEvent(QCloseEvent* evt)
+{
+  if (ExistsUnsavedAll()) {
+    if (!isApplyedClosed()) {
+      evt->ignore();
+      return;
+    }
+  }
+
+  QWidget::closeEvent(evt);
 }
 
 /* process: UI Process */

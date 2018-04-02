@@ -19,6 +19,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QCloseEvent>
 
 namespace Ui {
 class MainWindow;
@@ -57,9 +58,10 @@ public:
   void UpdateNote();
   bool isDeletedBook();
   bool isDeletedPage();
+  bool isApplyedClosed();
   /* methods: utils */
   inline constexpr bool isUnsaved(const T_index i) {
-    return i < tabbar->count() && tabbar->tabData(i).toBool();
+    return i < tabbar->count() && !tabbar->tabData(i).toBool();
   }
   inline constexpr bool isUiUpdated() {
     return r_ui_updated;
@@ -120,6 +122,10 @@ private slots:
   /* menus: Help */
   void on_actAboutQt_triggered();
   void on_actAboutApp_triggered();
+
+private:
+  /* override */
+  void closeEvent(QCloseEvent*) override;
 };
 
 /* process: UI Process */

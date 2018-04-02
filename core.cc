@@ -614,6 +614,9 @@ auto System::NoteToChangeMode(const T_bid bid, const T_mode mode) -> T_sig
 
 auto System::NoteToModify(const T_bid bid) -> T_sig
 {
+  // check
+  if (m_books->savedset()->value(bid) == false) return Sig::NOP;
+
   // register
   auto edited = CP::File::States::Edit(m_books->savedset(), bid, false);
   // merge
