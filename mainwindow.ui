@@ -118,6 +118,7 @@
    <addaction name="separator"/>
    <addaction name="actAddItem"/>
    <addaction name="actDeleteItem"/>
+   <addaction name="actRenameItem"/>
    <addaction name="separator"/>
    <addaction name="actSort_AtoZ"/>
    <addaction name="actSort_ZtoA"/>
@@ -127,6 +128,9 @@
    <property name="text">
     <string>Open(O)</string>
    </property>
+   <property name="toolTip">
+    <string>Open file</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
@@ -135,10 +139,16 @@
    <property name="text">
     <string>Close(&amp;C)</string>
    </property>
+   <property name="toolTip">
+    <string>Close file</string>
+   </property>
   </action>
   <action name="actSave">
    <property name="text">
     <string>Save(&amp;S)</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the current file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -148,10 +158,16 @@
    <property name="text">
     <string>Save As(&amp;A)</string>
    </property>
+   <property name="toolTip">
+    <string>Save the current file as the name</string>
+   </property>
   </action>
   <action name="actQuit">
    <property name="text">
     <string>Quit(&amp;Q)</string>
+   </property>
+   <property name="toolTip">
+    <string>Quit this application</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -171,6 +187,9 @@
    <property name="text">
     <string>New(&amp;N)</string>
    </property>
+   <property name="toolTip">
+    <string>New file</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
    </property>
@@ -178,6 +197,9 @@
   <action name="actUndo">
    <property name="text">
     <string>Undo(&amp;U)</string>
+   </property>
+   <property name="toolTip">
+    <string>Undo</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
@@ -187,6 +209,9 @@
    <property name="text">
     <string>Redo(&amp;R)</string>
    </property>
+   <property name="toolTip">
+    <string>Redo</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
    </property>
@@ -194,6 +219,9 @@
   <action name="actCut">
    <property name="text">
     <string>Cut(&amp;T)</string>
+   </property>
+   <property name="toolTip">
+    <string>Cut</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
@@ -203,6 +231,9 @@
    <property name="text">
     <string>Copy(&amp;C)</string>
    </property>
+   <property name="toolTip">
+    <string>Copy</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
    </property>
@@ -210,6 +241,9 @@
   <action name="actPaste">
    <property name="text">
     <string>Paste(&amp;P)</string>
+   </property>
+   <property name="toolTip">
+    <string>Paste</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
@@ -219,10 +253,16 @@
    <property name="text">
     <string>Erase(&amp;D)</string>
    </property>
+   <property name="toolTip">
+    <string>Erase</string>
+   </property>
   </action>
   <action name="actSelectAll">
    <property name="text">
     <string>SelectAll(&amp;A)</string>
+   </property>
+   <property name="toolTip">
+    <string>SelectAll</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
@@ -232,6 +272,12 @@
    <property name="text">
     <string>Add(&amp;A)</string>
    </property>
+   <property name="iconText">
+    <string>Add</string>
+   </property>
+   <property name="toolTip">
+    <string>Add a new item</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Shift+N</string>
    </property>
@@ -239,6 +285,12 @@
   <action name="actDeleteItem">
    <property name="text">
     <string>Delete(&amp;D)</string>
+   </property>
+   <property name="iconText">
+    <string>Delete</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete the item</string>
    </property>
   </action>
   <action name="actFullscreen">
@@ -248,10 +300,19 @@
    <property name="text">
     <string>Fullscreen(&amp;F)</string>
    </property>
+   <property name="toolTip">
+    <string>Toggle Fullscreen mode</string>
+   </property>
   </action>
   <action name="actRenameItem">
    <property name="text">
     <string>Rename(&amp;R)</string>
+   </property>
+   <property name="iconText">
+    <string>Rename</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename the item</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
@@ -261,6 +322,9 @@
    <property name="text">
     <string>MoveNext(&amp;N)</string>
    </property>
+   <property name="toolTip">
+    <string>Move the item to Next</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Down</string>
    </property>
@@ -268,6 +332,9 @@
   <action name="actMovePrevious">
    <property name="text">
     <string>MovePrevious(&amp;P)</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the item to Previous</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Up</string>
@@ -277,6 +344,9 @@
    <property name="text">
     <string>NextTab</string>
    </property>
+   <property name="toolTip">
+    <string>Change to Next tab</string>
+   </property>
    <property name="shortcut">
     <string>Alt+Right</string>
    </property>
@@ -284,6 +354,9 @@
   <action name="actPreviousTab">
    <property name="text">
     <string>PreviousTab</string>
+   </property>
+   <property name="toolTip">
+    <string>Change to Previous tab</string>
    </property>
    <property name="shortcut">
     <string>Alt+Left</string>
@@ -294,7 +367,7 @@
     <string>NextItem</string>
    </property>
    <property name="toolTip">
-    <string>NextItem</string>
+    <string>Change to Next Item</string>
    </property>
    <property name="shortcut">
     <string>Alt+Down</string>
@@ -305,7 +378,7 @@
     <string>PreviousItem</string>
    </property>
    <property name="toolTip">
-    <string>PreviousItem</string>
+    <string>Change to Previous Item</string>
    </property>
    <property name="shortcut">
     <string>Alt+Up</string>
@@ -319,7 +392,7 @@
     <string>AtoZ</string>
    </property>
    <property name="toolTip">
-    <string>Sort AtoZ</string>
+    <string>Sort items as AtoZ</string>
    </property>
   </action>
   <action name="actSort_ZtoA">
@@ -329,15 +402,24 @@
    <property name="iconText">
     <string>ZtoA</string>
    </property>
+   <property name="toolTip">
+    <string>Sort items as ZtoA</string>
+   </property>
   </action>
   <action name="actEditPlainText">
    <property name="text">
     <string>PlainText</string>
    </property>
+   <property name="toolTip">
+    <string>Set Plain Text mode</string>
+   </property>
   </action>
   <action name="actEditRichText">
    <property name="text">
     <string>RichText</string>
+   </property>
+   <property name="toolTip">
+    <string>Set Rich Text mode</string>
    </property>
   </action>
  </widget>
