@@ -47,6 +47,8 @@
     <addaction name="actSave"/>
     <addaction name="actSaveAs"/>
     <addaction name="separator"/>
+    <addaction name="actionRename_R"/>
+    <addaction name="separator"/>
     <addaction name="actClose"/>
     <addaction name="separator"/>
     <addaction name="actQuit"/>
@@ -76,10 +78,12 @@
     <property name="title">
      <string>View(&amp;V)</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="separator"/>
     <addaction name="actFullscreen"/>
     <addaction name="separator"/>
-    <addaction name="actEditPlainText"/>
-    <addaction name="actEditRichText"/>
+    <addaction name="actionNextFile"/>
+    <addaction name="actionPreviousFile"/>
     <addaction name="separator"/>
     <addaction name="actNextTab"/>
     <addaction name="actPreviousTab"/>
@@ -102,9 +106,22 @@
     <addaction name="actSort_AtoZ"/>
     <addaction name="actSort_ZtoA"/>
    </widget>
+   <widget class="QMenu" name="menuPage_P">
+    <property name="title">
+     <string>Page(&amp;P)</string>
+    </property>
+    <addaction name="actionAdd_A"/>
+    <addaction name="actionDelete_D"/>
+    <addaction name="actionRename_R_2"/>
+    <addaction name="actionMoveNext"/>
+    <addaction name="actionMovePrevious_P"/>
+    <addaction name="actionSortAtoZ"/>
+    <addaction name="actionSortZtoA"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuBook"/>
+   <addaction name="menuPage_P"/>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -342,7 +359,7 @@
   </action>
   <action name="actNextTab">
    <property name="text">
-    <string>NextTab</string>
+    <string>NextBook</string>
    </property>
    <property name="toolTip">
     <string>Change to Next tab</string>
@@ -353,7 +370,7 @@
   </action>
   <action name="actPreviousTab">
    <property name="text">
-    <string>PreviousTab</string>
+    <string>PreviousBook</string>
    </property>
    <property name="toolTip">
     <string>Change to Previous tab</string>
@@ -364,7 +381,7 @@
   </action>
   <action name="actNextItem">
    <property name="text">
-    <string>NextItem</string>
+    <string>NextPage</string>
    </property>
    <property name="toolTip">
     <string>Change to Next Item</string>
@@ -375,7 +392,7 @@
   </action>
   <action name="actPreviousItem">
    <property name="text">
-    <string>PreviousItem</string>
+    <string>PreviousPage</string>
    </property>
    <property name="toolTip">
     <string>Change to Previous Item</string>
@@ -420,6 +437,56 @@
    </property>
    <property name="toolTip">
     <string>Set Rich Text mode</string>
+   </property>
+  </action>
+  <action name="actionRename_R">
+   <property name="text">
+    <string>Rename(&amp;R)</string>
+   </property>
+  </action>
+  <action name="actionAdd_A">
+   <property name="text">
+    <string>Add(&amp;A)</string>
+   </property>
+  </action>
+  <action name="actionDelete_D">
+   <property name="text">
+    <string>Delete(&amp;D)</string>
+   </property>
+  </action>
+  <action name="actionRename_R_2">
+   <property name="text">
+    <string>Rename(&amp;R)</string>
+   </property>
+  </action>
+  <action name="actionMoveNext">
+   <property name="text">
+    <string>MoveNext(&amp;N)</string>
+   </property>
+  </action>
+  <action name="actionMovePrevious_P">
+   <property name="text">
+    <string>MovePrevious(&amp;P)</string>
+   </property>
+  </action>
+  <action name="actionSortAtoZ">
+   <property name="text">
+    <string>SortAtoZ</string>
+   </property>
+  </action>
+  <action name="actionSortZtoA">
+   <property name="text">
+    <string>SortZtoA</string>
+   </property>
+  </action>
+  <action name="actionNextFile">
+   <property name="text">
+    <string>NextFile</string>
+   </property>
+  </action>
+  <action name="actionPreviousFile">
+   <property name="text">
+    <string>PreviousFile</string>
    </property>
   </action>
  </widget>
