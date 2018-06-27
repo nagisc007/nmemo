@@ -32,7 +32,9 @@ SOURCES += \
     core.cc \
     common_values.cc \
     cpu.cc \
-    gpu.cc
+    gpu.cc \
+    ram.cc \
+    vram.cc
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +43,9 @@ HEADERS += \
     core.h \
     common_values.h \
     cpu.h \
-    gpu.h
+    gpu.h \
+    ram.h \
+    vram.h
 
 FORMS += \
         mainwindow.ui
