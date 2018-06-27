@@ -30,14 +30,18 @@ SOURCES += \
         mainwindow.cc \
     utils.cc \
     core.cc \
-    common_values.cc
+    common_values.cc \
+    cpu.cc \
+    gpu.cc
 
 HEADERS += \
         mainwindow.h \
     common_types.h \
     utils.h \
     core.h \
-    common_values.h
+    common_values.h \
+    cpu.h \
+    gpu.h
 
 FORMS += \
         mainwindow.ui
