@@ -8,6 +8,7 @@
 #ifndef COMMON_TYPES_H
 #define COMMON_TYPES_H
 
+#include <QColor>
 #include <QListWidgetItem>
 #include <QPair>
 #include <QString>
