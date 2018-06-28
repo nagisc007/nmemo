@@ -30,6 +30,7 @@ namespace COMMON {
 extern const QString FILE_EXTENSION;
 extern const QString FILE_PREFIX;
 extern const QString FILE_VERSION;
+extern const QString SPLITTER;
 
 }  // ns COMMON
 

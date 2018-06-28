@@ -8,6 +8,7 @@
 #ifndef COMMON_TYPES_H
 #define COMMON_TYPES_H
 
+#include <QBitArray>
 #include <QColor>
 #include <QListWidgetItem>
 #include <QPair>
@@ -75,6 +76,27 @@ enum class Addr {
   TEXT_MODIFY,
 };
 
+enum class Irq {
+  NOP,
+  RESET,
+};
+
+enum class Result {
+  SUCCESS,
+  INVALID_FILEID,
+  INVALID_FILEINDEX,
+  INVALID_BOOKID,
+  INVALID_BOOKINDEX,
+  INVALID_PAGEID,
+  INVALID_PAGEINDEX,
+  INVALID_NAME,
+  INVALID_PATH,
+  INVALID_OPERATION,
+  ERR_NOTOPEN_FILE,
+  ERR_FILE_VERSION_MISMATCH,
+  ERR_UNKNOWN,
+};
+
 }  // ns CPU
 
 namespace GPU {
@@ -94,6 +116,7 @@ enum class Addr {
   STATES = 0x800,
   TEXT = 0x1000,
   READONLY = 0x2000,
+  FLUSH = 0x4000,
   WINDOW_TITLE = TITLE | WINDOW,
   FILETAB_LABELS = LABELS | FILETAB,
   FILETAB_INDEX = INDEX | FILETAB,
@@ -106,16 +129,39 @@ enum class Addr {
   PAGELIST_STATES = STATES | PAGELIST,
   EDITOR_TEXT = TEXT | EDITOR,
   EDITOR_READONLY = READONLY | EDITOR,
+  STATUS_MESSAGE = TEXT | STATUSBAR,
+};
+
+enum class Irq {
+  NOP,
+  RESET,
+};
+
+enum class Result {
+  SUCCESS,
+  INVALID_INDEX,
+  INVALID_LABELS,
+  INVALID_STATES,
+  INVALID_VALUE,
+  INVALID_OPERATION,
 };
 
 }  // ns GPU
 
 // common types
 using T_arg = QVariant;
+using T_cpu_addr = CPU::Addr;
+using T_cpu_irq = CPU::Irq;
+using T_cpu_result = CPU::Result;
+using T_dev_addr = DEV::Addr;
+using T_gpu_addr = GPU::Addr;
+using T_gpu_irq = GPU::Irq;
+using T_gpu_result = GPU::Result;
 using T_id = int;
 using T_index = int;
 using T_ivec = QVector<int>;
 using T_order = Qt::SortOrder;
+using T_states = QBitArray;
 using T_str = QString;
 using T_strs = QStringList;
 

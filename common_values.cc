@@ -30,6 +30,7 @@ namespace COMMON {
 const QString FILE_EXTENSION = "memo";
 const QString FILE_PREFIX = "__NMEMO_DATA__";
 const QString FILE_VERSION = "2";
+const QString SPLITTER = "///";
 
 }  // ns COMMON
 
