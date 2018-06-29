@@ -17,6 +17,7 @@ struct Vram
 {
   Vram();
   // members
+  QVector<bool> breg;
   QVector<int> ireg;
   T_strs sreg;
   T_strs file_labels;
@@ -29,9 +30,26 @@ struct Vram
   void Reset();
 };
 
+enum class BRegAddr {
+  FILE_INDEX,
+  FILE_LABELS,
+  FILE_STATES,
+  BOOK_INDEX,
+  BOOK_LABELS,
+  BOOK_STATES,
+  PAGE_INDEX,
+  PAGE_LABELS,
+  PAGE_STATES,
+  EDITOR_TEXT,
+  EDITOR_READONLY,
+  WINDOW_TITLE,
+  STATUS_MESSAGE,
+};
+const int BREG_SIZE = 13;
+
 enum class IRegAddr {
   FILE_INDEX,
-  BOOK_INDEx,
+  BOOK_INDEX,
   PAGE_INDEX,
   TEXT_READONLY,
 };
