@@ -81,12 +81,12 @@ T_ivec _ivecPacked(int i)
   return res;
 }
 
-T_ivec _ivecCompressred(int i, T_states states)
+T_ivec _ivecCompressred(int iv, T_states states)
 {
   T_ivec res;
-  res << i;
-  for (auto& v: states) {
-    res << v;
+  res << iv;
+  for (int i = 0; i < states.size(); ++i) {
+    res << states.at(i);
   }
   return res;
 }
@@ -151,7 +151,7 @@ T_cpu_result Core::ToAddBook(T_id fid, const T_str& name)
 {
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
 
-  auto bid = PopId(IdAddr::BOOK);
+  auto bid = PopId(&ram, IdAddr::BOOK);
   if (!IsValidName(name)) return Result::INVALID_NAME;
 
   if (!AddBook(&ram, bid, name) &&
@@ -165,11 +165,11 @@ T_cpu_result Core::ToAddPage(T_id fid, T_id bid, const T_str& name, const T_str&
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   if (!IsValidBookId(&ram, fid, bid)) return Result::INVALID_BOOKID;
 
-  auto pid = PopId(IdAddr::PAGE);
+  auto pid = PopId(&ram, IdAddr::PAGE);
   if (!IsValidName(name)) return Result::INVALID_NAME;
 
   if (!AddPage(&ram, pid, name, text) &&
-      !UpdateCurrentPageId(&ram, fid, bid, pid)) return Result::INVALID_OPERATION;
+      !UpdateCurrentPageId(&ram, bid, pid)) return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
 }
@@ -204,7 +204,7 @@ T_cpu_result Core::ToChangePage(T_id fid, T_id bid, T_index idx)
   auto pid = pageIdOf(&ram, fid, bid, idx);
   if (!IsValidPageId(&ram, bid, pid)) return Result::INVALID_PAGEID;
 
-  if (!UpdateCurrentPageId(&ram, fid, bid, pid)) return Result::INVALID_OPERATION;
+  if (!UpdateCurrentPageId(&ram, bid, pid)) return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
 }
@@ -218,7 +218,7 @@ T_cpu_result Core::ToCloseFile(T_index idx)
 
   if (!IsValidFileId(&ram, currentFileId(&ram)) &&
       !UpdateCurrentFileId(&ram, fileIdOf(&ram, idx - 1))) return Result::INVALID_OPERATION;
-  PushId(IdAddr::FILE, fid);
+  PushId(&ram, IdAddr::FILE, fid);
 
   return Result::SUCCESS;
 }
@@ -227,7 +227,7 @@ T_cpu_result Core::ToCreateFile(const T_str& name)
 {
   if (!IsValidName(name)) return Result::INVALID_NAME;
 
-  auto fid = PopId(IdAddr::FILE);
+  auto fid = PopId(&ram, IdAddr::FILE);
 
   if (!AddFile(&ram, fid, name) &&
       UpdateCurrentFileId(&ram, fid)) return Result::INVALID_OPERATION;
@@ -247,7 +247,7 @@ T_cpu_result Core::ToDeleteBook(T_id fid, T_index idx)
   if (!IsValidBookId(&ram, fid, currentBookId(&ram)) &&
       !UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, idx - 1)))
     return Result::INVALID_OPERATION;
-  PushId(IdAddr::BOOK, bid);
+  PushId(&ram, IdAddr::BOOK, bid);
 
   return Result::SUCCESS;
 }
@@ -260,12 +260,12 @@ T_cpu_result Core::ToDeletePage(T_id fid, T_id bid, T_index idx)
   auto pid = pageIdOf(&ram, fid, bid, idx);
   if (!IsValidPageId(&ram, bid, pid)) return Result::INVALID_PAGEID;
 
-  if (!RemovePage(&ram, fid, bid, pid)) return Result::INVALID_OPERATION;
+  if (!RemovePage(&ram, bid, pid)) return Result::INVALID_OPERATION;
 
   if (!IsValidPageId(&ram, bid, currentPageId(&ram)) &&
-      !UpdateCurrentPageId(&ram, fid, bid, pageIdOf(&ram, fid, bid, idx - 1)))
+      !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, fid, bid, idx - 1)))
     return Result::INVALID_OPERATION;
-  PushId(IdAddr::PAGE, pid);
+  PushId(&ram, IdAddr::PAGE, pid);
 
   return Result::SUCCESS;
 }
@@ -441,8 +441,8 @@ T_cpu_result Core::ToMovePage(T_id fid, T_id bid, T_index from, T_index to)
       !IsValidPageId(&ram, bid, pageIdOf(&ram, fid, bid, to)))
     return Result::INVALID_PAGEID;
 
-  if (!MovePage(&ram, fid, bid, from, to) &&
-      !UpdateCurrentPageId(&ram, fid, bid, pageIdOf(&ram, fid, bid, to)))
+  if (!MovePage(&ram, bid, from, to) &&
+      !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, fid, bid, to)))
     return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
@@ -480,7 +480,8 @@ T_cpu_result Core::ToOpenFile(const T_str& path)
     }
   }
   if (!UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, 0)) &&
-      !UpdateCurrentPageId&ram, fid, pageIdOf(&ram, fid, currentBookId(&ram), 0))
+      !UpdateCurrentPageId(&ram, currentBookId(&ram),
+                           pageIdOf(&ram, fid, currentBookId(&ram), 0)))
     return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
@@ -564,7 +565,7 @@ T_cpu_result Core::ToSaveFile(T_index idx, const T_str& path)
   if (!IsValidPath(path)) return Result::INVALID_PATH;
 
   auto encoded = _dataEncoded();
-  QFile file(va_path);
+  QFile file(path);
   if (!file.open(QIODevice::WriteOnly)) return Result::ERR_NOTOPEN_FILE;
 
   QDataStream out(&file);
@@ -590,8 +591,8 @@ T_cpu_result Core::ToSortPages(T_id fid, T_id bid, T_order order)
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   if (!IsValidBookId(&ram, fid, bid)) return Result::INVALID_BOOKID;
 
-  if (!SortPages(&ram, fid, bid, order) &&
-      !UpdateCurrentPageId(&ram, fid, bid, currentPageId(&ram)))
+  if (!SortPages(&ram, bid, order) &&
+      !UpdateCurrentPageId(&ram, bid, currentPageId(&ram)))
     return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;

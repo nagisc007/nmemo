@@ -297,7 +297,7 @@ bool UpdatePageModified(Ram* ram, T_id pid, bool modified)
   return true;
 }
 
-bool AddBook(Ram* ram, T_id fid, T_id bid, const T_str& name)
+bool AddBook(Ram* ram, T_id bid, const T_str& name)
 {
   if (bid < ram->books.size()) {
     ram->books.at(bid)->Refresh(name);

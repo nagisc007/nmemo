@@ -9,20 +9,29 @@
 #include <QtTest>
 #include <QCoreApplication>
 
+#include "../../cpu.h"
+
+#include <QThread>
+
 class CpuTest : public QObject
 {
   Q_OBJECT
 
 public:
   CpuTest();
+  // members
+  QScopedPointer<CPU::Core> cpu;
 
 private Q_SLOTS:
+  void init();
+  void cleanup();
   void initTestCase();
   void cleanupTestCase();
   void testCase1();
 };
 
-CpuTest::CpuTest()
+CpuTest::CpuTest():
+  cpu(new CPU::Core())
 {
 }
 
@@ -32,6 +41,16 @@ void CpuTest::initTestCase()
 
 void CpuTest::cleanupTestCase()
 {
+}
+
+void CpuTest::init()
+{
+
+}
+
+void CpuTest::cleanup()
+{
+
 }
 
 void CpuTest::testCase1()

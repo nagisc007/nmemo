@@ -26,7 +26,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         tst_cputest.cc \
-    ../../cpu.cc
+    ../../cpu.cc \
+    ../../ram.cc \
+    ../../common_values.cc
 
 HEADERS += \
-    ../../cpu.h
+    ../../cpu.h \
+    ../../ram.h \
+    ../../common_types.h \
+    ../../common_values.h
