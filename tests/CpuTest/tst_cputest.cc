@@ -98,6 +98,16 @@ private Q_SLOTS:
   void testCaseBookMove1();
   void testCaseBookRename0();
   void testCaseBookRename1();
+  void testCasePageAdd0();
+  void testCasePageAdd1();
+  void testCasePageDelete0();
+  void testCasePageDelete1();
+  void testCasePageChange0();
+  void testCasePageChange1();
+  void testCasePageMove0();
+  void testCasePageMove1();
+  void testCasePageRename0();
+  void testCasePageRename1();
 };
 
 CpuTest::CpuTest():
@@ -333,6 +343,109 @@ void CpuTest::testCaseBookRename1()
   VerifyBookSize(1);
   T_states st(1, true);
   VerifyBookStates(st);
+}
+
+void CpuTest::testCasePageAdd0()
+{
+  dev_in->AddPage("test1");
+  VerifyPageIndex(-1);
+  VerifyPageSize(0);
+}
+
+void CpuTest::testCasePageAdd1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  VerifyPageIndex(0);
+  VerifyPageLabels(T_strs{"test1"});
+  VerifyPageSize(1);
+  T_states st(1, true);
+  VerifyPageStates(st);
+}
+
+void CpuTest::testCasePageDelete0()
+{
+  dev_in->DeletePage(0);
+  VerifyPageIndex(-1);
+  VerifyPageSize(0);
+}
+
+void CpuTest::testCasePageDelete1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  dev_in->AddPage("test2");
+  dev_in->DeletePage(0);
+  VerifyPageIndex(-1);
+  VerifyPageLabels(T_strs{"test2"});
+  VerifyPageSize(1);
+  T_states st(1, true);
+  VerifyPageStates(st);
+}
+
+void CpuTest::testCasePageChange0()
+{
+  dev_in->ChangePage(0);
+  VerifyPageIndex(-1);
+  VerifyPageSize(0);
+}
+
+void CpuTest::testCasePageChange1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  dev_in->AddPage("test2");
+  dev_in->ChangePage(0);
+  VerifyPageIndex(0);
+  VerifyPageLabels(T_strs{"test1", "test2"});
+  T_states st(2, true);
+  VerifyPageStates(st);
+}
+
+void CpuTest::testCasePageMove0()
+{
+  dev_in->MovePage(10, 100);
+  VerifyPageIndex(-1);
+  VerifyPageSize(0);
+}
+
+void CpuTest::testCasePageMove1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  dev_in->AddPage("test2");
+  dev_in->AddPage("test3");
+  dev_in->MovePage(1, 0);
+  VerifyPageIndex(0);
+  VerifyPageLabels(T_strs{"test2", "test1", "test3"});
+  VerifyPageSize(3);
+  T_states st(3, true);
+  VerifyPageStates(st);
+}
+
+void CpuTest::testCasePageRename0()
+{
+  dev_in->RenamePage(0, "tested");
+  VerifyPageIndex(-1);
+  VerifyPageLabels(T_strs());
+  VerifyPageSize(0);
+}
+
+void CpuTest::testCasePageRename1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  dev_in->RenamePage(0, "tested");
+  VerifyPageIndex(0);
+  VerifyPageLabels(T_strs{"tested"});
+  VerifyPageSize(1);
+  T_states st(1, true);
+  VerifyPageStates(st);
 }
 
 QTEST_MAIN(CpuTest)

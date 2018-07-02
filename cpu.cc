@@ -171,6 +171,7 @@ T_cpu_result Core::ToAddPage(T_id fid, T_id bid, const T_str& name, const T_str&
   if (!IsValidName(name)) return Result::INVALID_NAME;
 
   if (!AddPage(&ram, pid, name, text) ||
+      !AppendPageIds(&ram, bid, pid) ||
       !UpdateCurrentPageId(&ram, bid, pid)) return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
@@ -268,9 +269,10 @@ T_cpu_result Core::ToDeletePage(T_id fid, T_id bid, T_index idx)
 
   if (!RemovePageIds(&ram, bid, pid)) return Result::INVALID_OPERATION;
 
-  if (!IsValidPageId(&ram, bid, currentPageId(&ram)) ||
-      !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, bid, idx - 1)))
-    return Result::INVALID_OPERATION;
+  if (!IsValidPageId(&ram, bid, currentPageId(&ram))) {
+    if (!UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, bid, idx - 1)))
+      return Result::INVALID_OPERATION;
+  }
   PushId(&ram, IdAddr::PAGE, pid);
 
   return Result::SUCCESS;

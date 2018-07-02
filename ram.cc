@@ -175,7 +175,7 @@ T_states fileStatesOf(const Ram* ram)
 
 T_id pageIdOf(const Ram* ram, T_id bid, T_index idx)
 {
-  return bid >= 0 && idx < ram->books.at(bid)->page_ids.size() ?
+  return bid >= 0 && idx >= 0 && idx < ram->books.at(bid)->page_ids.size() ?
         ram->books.at(bid)->page_ids.at(idx): -1;
 }
 
@@ -279,6 +279,8 @@ bool UpdateBookModified(Ram* ram, T_id bid, bool modified)
 
 bool UpdateCurrentBookId(Ram* ram, T_id fid, T_id bid)
 {
+  if (fid < 0) return false;
+
   ram->files.at(fid)->current_bookid = bid;
   return true;
 }
@@ -291,6 +293,8 @@ bool UpdateCurrentFileId(Ram* ram, T_id fid)
 
 bool UpdateCurrentPageId(Ram* ram, T_id bid, T_id pid)
 {
+  if (bid < 0) return false;
+
   ram->books.at(bid)->current_pageid = pid;
   return true;
 }
