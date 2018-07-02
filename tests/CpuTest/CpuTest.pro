@@ -28,10 +28,12 @@ SOURCES += \
         tst_cputest.cc \
     ../../cpu.cc \
     ../../ram.cc \
-    ../../common_values.cc
+    ../../common_values.cc \
+    mock/input_device.cc
 
 HEADERS += \
     ../../cpu.h \
     ../../ram.h \
     ../../common_types.h \
-    ../../common_values.h
+    ../../common_values.h \
+    mock/input_device.h

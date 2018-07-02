@@ -99,12 +99,14 @@ T_id bookIdOf(const Ram* ram, T_id fid, T_index idx)
 
 T_index bookIndexOf(const Ram* ram, T_id fid, T_id bid)
 {
-  return ram->files.at(fid)->book_ids.indexOf(bid);
+  return fid >= 0 ? ram->files.at(fid)->book_ids.indexOf(bid): -1;
 }
 
 T_strs bookLabelsOf(const Ram* ram, T_id fid)
 {
   T_strs res;
+  if (fid < 0) return res;
+
   for (auto& id: ram->files.at(fid)->book_ids) {
     res << ram->books.at(id)->label;
   }
@@ -130,18 +132,18 @@ T_id currentFileId(const Ram* ram)
 T_id currentBookId(const Ram* ram)
 {
   auto cur_fid = currentFileId(ram);
-  return ram->files.at(cur_fid)->current_bookid;
+  return cur_fid >= 0 ? ram->files.at(cur_fid)->current_bookid: -1;
 }
 
 T_id currentPageId(const Ram* ram)
 {
   auto cur_bid = currentBookId(ram);
-  return ram->books.at(cur_bid)->current_pageid;
+  return cur_bid >= 0 ? ram->books.at(cur_bid)->current_pageid: -1;
 }
 
 T_id fileIdOf(const Ram* ram, T_index idx)
 {
-  return ram->file_ids.at(idx);
+  return idx >= 0 && idx < ram->file_ids.size() ? ram->file_ids.at(idx): -1;
 }
 
 T_index fileIndexOf(const Ram* ram, T_id fid)
@@ -168,19 +170,21 @@ T_states fileStatesOf(const Ram* ram)
   return res;
 }
 
-T_id pageIdOf(const Ram* ram, T_id fid, T_id bid, T_index idx)
+T_id pageIdOf(const Ram* ram, T_id bid, T_index idx)
 {
   return ram->books.at(bid)->page_ids.at(idx);
 }
 
 T_index pageIndexOf(const Ram* ram, T_id bid, T_id pid)
 {
-  return ram->books.at(bid)->page_ids.indexOf(pid);
+  return bid >= 0 ? ram->books.at(bid)->page_ids.indexOf(pid): -1;
 }
 
 T_strs pageLabelsOf(const Ram* ram, T_id bid)
 {
   T_strs res;
+  if (bid < 0) return res;
+
   for (auto& id: ram->books.at(bid)->page_ids) {
     res << ram->pages.at(id)->label;
   }
@@ -299,6 +303,8 @@ bool UpdatePageModified(Ram* ram, T_id pid, bool modified)
 
 bool AddBook(Ram* ram, T_id bid, const T_str& name)
 {
+  if (bid < 0) return false;
+
   if (bid < ram->books.size()) {
     ram->books.at(bid)->Refresh(name);
   } else {
@@ -324,6 +330,30 @@ bool AddPage(Ram* ram, T_id pid, const T_str& name, const T_str& text)
   } else {
     ram->pages.append(new Page(name, text));
   }
+  return true;
+}
+
+bool AppendBookIds(Ram* ram, T_id fid, T_id bid)
+{
+  if (ram->files.at(fid)->book_ids.contains(bid)) return false;
+
+  ram->files.at(fid)->book_ids.append(bid);
+  return true;
+}
+
+bool AppendFileIds(Ram* ram, T_id fid)
+{
+  if (ram->file_ids.contains(fid)) return false;
+
+  ram->file_ids.append(fid);
+  return true;
+}
+
+bool AppendPageIds(Ram* ram, T_id bid, T_id pid)
+{
+  if (ram->books.at(bid)->page_ids.contains(pid)) return false;
+
+  ram->books.at(bid)->page_ids.append(pid);
   return true;
 }
 
@@ -353,6 +383,27 @@ bool MovePage(Ram* ram, T_id bid, T_index from, T_index to)
 bool RemoveBook(Ram* ram, T_id fid, T_id bid)
 {
   return ram->files.at(fid)->book_ids.removeOne(bid);
+}
+
+bool RemoveBookIds(Ram* ram, T_id fid, T_id bid)
+{
+  if (!ram->files.at(fid)->book_ids.contains(bid)) return false;
+
+  return ram->files.at(fid)->book_ids.removeOne(bid);
+}
+
+bool RemoveFileIds(Ram* ram, T_id fid)
+{
+  if (!ram->file_ids.contains(fid)) return false;
+
+  return ram->file_ids.removeOne(fid);
+}
+
+bool RemovePageIds(Ram* ram, T_id bid, T_id pid)
+{
+  if (!ram->books.at(bid)->page_ids.contains(pid)) return false;
+
+  return ram->books.at(bid)->page_ids.removeOne(pid);
 }
 
 bool RemovePage(Ram* ram, T_id bid, T_id pid)

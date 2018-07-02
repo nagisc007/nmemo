@@ -55,11 +55,13 @@ namespace CPU {
 
 enum class Addr {
   NOP,
+  FILE_NEW,
   FILE_OPEN,
   FILE_CLOSE,
   FILE_CHANGE,
   FILE_SAVE,
   FILE_SAVEAS,
+  FILE_MOVE,
   FILE_RENAME,
   BOOK_ADD,
   BOOK_DELETE,

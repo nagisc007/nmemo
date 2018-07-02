@@ -45,8 +45,7 @@ T_strs _dataEncoded()
 T_submits _submitsOf(T_cpu_addr addr)
 {
   switch (addr) {
-  case Addr::BOOK_ADD:
-    return 0;
+  case Addr::BOOK_ADD: return 0;
   case Addr::BOOK_CHANGE: return 0;
   case Addr::BOOK_DELETE: return 0;
   case Addr::BOOK_MOVE: return 0;
@@ -54,7 +53,9 @@ T_submits _submitsOf(T_cpu_addr addr)
   case Addr::BOOK_SORT: return 0;
   case Addr::FILE_CHANGE: return 0;
   case Addr::FILE_CLOSE: return 0;
+  case Addr::FILE_NEW: return 0;
   case Addr::FILE_OPEN: return 0;
+  case Addr::FILE_MOVE: return 0;
   case Addr::FILE_RENAME: return 0;
   case Addr::FILE_SAVE: return 0;
   case Addr::FILE_SAVEAS: return 0;
@@ -154,7 +155,8 @@ T_cpu_result Core::ToAddBook(T_id fid, const T_str& name)
   auto bid = PopId(&ram, IdAddr::BOOK);
   if (!IsValidName(name)) return Result::INVALID_NAME;
 
-  if (!AddBook(&ram, bid, name) &&
+  if (!AddBook(&ram, bid, name) ||
+      !AppendBookIds(&ram, fid, bid) ||
       !UpdateCurrentBookId(&ram, fid, bid)) return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
@@ -168,7 +170,7 @@ T_cpu_result Core::ToAddPage(T_id fid, T_id bid, const T_str& name, const T_str&
   auto pid = PopId(&ram, IdAddr::PAGE);
   if (!IsValidName(name)) return Result::INVALID_NAME;
 
-  if (!AddPage(&ram, pid, name, text) &&
+  if (!AddPage(&ram, pid, name, text) ||
       !UpdateCurrentPageId(&ram, bid, pid)) return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
@@ -201,7 +203,7 @@ T_cpu_result Core::ToChangePage(T_id fid, T_id bid, T_index idx)
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   if (!IsValidBookId(&ram, fid, bid)) return Result::INVALID_BOOKID;
 
-  auto pid = pageIdOf(&ram, fid, bid, idx);
+  auto pid = pageIdOf(&ram, bid, idx);
   if (!IsValidPageId(&ram, bid, pid)) return Result::INVALID_PAGEID;
 
   if (!UpdateCurrentPageId(&ram, bid, pid)) return Result::INVALID_OPERATION;
@@ -214,10 +216,13 @@ T_cpu_result Core::ToCloseFile(T_index idx)
   auto fid = fileIdOf(&ram, idx);
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
 
-  if (!CloseFile(&ram, fid)) return Result::INVALID_OPERATION;
+  if (!CloseFile(&ram, fid) ||
+      !RemoveFileIds(&ram, fid)) return Result::INVALID_OPERATION;
 
-  if (!IsValidFileId(&ram, currentFileId(&ram)) &&
-      !UpdateCurrentFileId(&ram, fileIdOf(&ram, idx - 1))) return Result::INVALID_OPERATION;
+  if (!IsValidFileId(&ram, currentFileId(&ram))) {
+    if (!UpdateCurrentFileId(&ram, fileIdOf(&ram, idx - 1)))
+      return Result::INVALID_OPERATION;
+  }
   PushId(&ram, IdAddr::FILE, fid);
 
   return Result::SUCCESS;
@@ -229,8 +234,9 @@ T_cpu_result Core::ToCreateFile(const T_str& name)
 
   auto fid = PopId(&ram, IdAddr::FILE);
 
-  if (!AddFile(&ram, fid, name) &&
-      UpdateCurrentFileId(&ram, fid)) return Result::INVALID_OPERATION;
+  if (!AddFile(&ram, fid, name) ||
+      !AppendFileIds(&ram, fid) ||
+      !UpdateCurrentFileId(&ram, fid)) return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
 }
@@ -242,9 +248,10 @@ T_cpu_result Core::ToDeleteBook(T_id fid, T_index idx)
   auto bid = bookIdOf(&ram, fid, idx);
   if (!IsValidBookId(&ram, fid, bid)) return Result::INVALID_BOOKID;
 
-  if (!RemoveBook(&ram, fid, bid)) return Result::INVALID_OPERATION;
+  if (!RemoveBook(&ram, fid, bid) ||
+      !RemoveBookIds(&ram, fid, bid)) return Result::INVALID_OPERATION;
 
-  if (!IsValidBookId(&ram, fid, currentBookId(&ram)) &&
+  if (!IsValidBookId(&ram, fid, currentBookId(&ram)) ||
       !UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, idx - 1)))
     return Result::INVALID_OPERATION;
   PushId(&ram, IdAddr::BOOK, bid);
@@ -257,13 +264,13 @@ T_cpu_result Core::ToDeletePage(T_id fid, T_id bid, T_index idx)
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   if (!IsValidBookId(&ram, fid, bid)) return Result::INVALID_BOOKID;
 
-  auto pid = pageIdOf(&ram, fid, bid, idx);
+  auto pid = pageIdOf(&ram, bid, idx);
   if (!IsValidPageId(&ram, bid, pid)) return Result::INVALID_PAGEID;
 
   if (!RemovePage(&ram, bid, pid)) return Result::INVALID_OPERATION;
 
-  if (!IsValidPageId(&ram, bid, currentPageId(&ram)) &&
-      !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, fid, bid, idx - 1)))
+  if (!IsValidPageId(&ram, bid, currentPageId(&ram)) ||
+      !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, bid, idx - 1)))
     return Result::INVALID_OPERATION;
   PushId(&ram, IdAddr::PAGE, pid);
 
@@ -331,7 +338,7 @@ T_cpu_result Core::ToGpuDataOfBookTab(T_submits submits)
 T_cpu_result Core::ToGpuDataOfEditor(T_submits submits)
 {
   T_str text;
-  bool is_ro;
+  bool is_ro = true;
   if (_IsExistsSubmit(submits, GPU::Addr::EDITOR_TEXT))
     text = pageTextOf(&ram, currentPageId(&ram));
   if (_IsExistsSubmit(submits, GPU::Addr::EDITOR_READONLY))
@@ -410,7 +417,7 @@ T_cpu_result Core::ToMoveBook(T_id fid, T_index from, T_index to)
       !IsValidBookId(&ram, fid, bookIdOf(&ram, fid, to)))
     return Result::INVALID_BOOKID;
 
-  if (!MoveBook(&ram, fid, from, to) &&
+  if (!MoveBook(&ram, fid, from, to) ||
       !UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, to)))
     return Result::INVALID_OPERATION;
 
@@ -422,7 +429,7 @@ T_cpu_result Core::ToMoveFile(T_index from, T_index to)
   if (!IsValidFileIndex(&ram, from) || !IsValidFileIndex(&ram, to))
     return Result::INVALID_FILEINDEX;
 
-  if (!MoveFile(&ram, from, to) &&
+  if (!MoveFile(&ram, from, to) ||
       !UpdateCurrentFileId(&ram, fileIdOf(&ram, to)))
     return Result::INVALID_OPERATION;
 
@@ -437,12 +444,12 @@ T_cpu_result Core::ToMovePage(T_id fid, T_id bid, T_index from, T_index to)
   if (!IsValidPageIndex(&ram, bid, from) || !IsValidPageIndex(&ram, bid, to))
     return Result::INVALID_PAGEINDEX;
 
-  if (!IsValidPageId(&ram, bid, pageIdOf(&ram, fid, bid, from)) ||
-      !IsValidPageId(&ram, bid, pageIdOf(&ram, fid, bid, to)))
+  if (!IsValidPageId(&ram, bid, pageIdOf(&ram, bid, from)) ||
+      !IsValidPageId(&ram, bid, pageIdOf(&ram, bid, to)))
     return Result::INVALID_PAGEID;
 
-  if (!MovePage(&ram, bid, from, to) &&
-      !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, fid, bid, to)))
+  if (!MovePage(&ram, bid, from, to) ||
+      !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, bid, to)))
     return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
@@ -479,9 +486,9 @@ T_cpu_result Core::ToOpenFile(const T_str& path)
       if (result != Result::SUCCESS) return result;
     }
   }
-  if (!UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, 0)) &&
+  if (!UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, 0)) ||
       !UpdateCurrentPageId(&ram, currentBookId(&ram),
-                           pageIdOf(&ram, fid, currentBookId(&ram), 0)))
+                           pageIdOf(&ram, currentBookId(&ram), 0)))
     return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
@@ -498,7 +505,9 @@ T_cpu_result Core::ToProcess(T_cpu_addr addr, int i, const T_str& s)
   case Addr::BOOK_SORT: return ToSortBooks(currentFileId(&ram), static_cast<Qt::SortOrder>(i));
   case Addr::FILE_CHANGE: return ToChangeFile(i);
   case Addr::FILE_CLOSE: return ToCloseFile(i);
+  case Addr::FILE_NEW: return ToCreateFile(DEFAULT::FILE_TITLE);
   case Addr::FILE_OPEN: return ToOpenFile(s);
+  case Addr::FILE_MOVE: return ToMoveFile(_fromIndex(i), _toIndex(i));
   case Addr::FILE_RENAME: return ToRenameFile(i, s);
   case Addr::FILE_SAVE: return ToSaveFile(i, s);
   case Addr::FILE_SAVEAS: return ToSaveFile(i, s);
@@ -548,7 +557,7 @@ T_cpu_result Core::ToRenamePage(T_id fid, T_id bid, T_index idx, const T_str& na
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   if (!IsValidBookId(&ram, fid, bid)) return Result::INVALID_BOOKID;
 
-  auto pid = pageIdOf(&ram, fid, bid, idx);
+  auto pid = pageIdOf(&ram, bid, idx);
   if (!IsValidPageId(&ram, bid, pid)) return Result::INVALID_PAGEID;
 
   if (!IsValidName(name)) return Result::INVALID_NAME;
@@ -579,7 +588,7 @@ T_cpu_result Core::ToSortBooks(T_id fid, T_order order)
 {
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
 
-  if (!SortBooks(&ram, fid, order) &&
+  if (!SortBooks(&ram, fid, order) ||
       !UpdateCurrentBookId(&ram, fid, currentBookId(&ram)))
     return Result::INVALID_OPERATION;
 
@@ -591,7 +600,7 @@ T_cpu_result Core::ToSortPages(T_id fid, T_id bid, T_order order)
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   if (!IsValidBookId(&ram, fid, bid)) return Result::INVALID_BOOKID;
 
-  if (!SortPages(&ram, bid, order) &&
+  if (!SortPages(&ram, bid, order) ||
       !UpdateCurrentPageId(&ram, bid, currentPageId(&ram)))
     return Result::INVALID_OPERATION;
 
