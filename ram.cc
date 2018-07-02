@@ -94,7 +94,8 @@ void Ram::Reset()
 // controls
 T_id bookIdOf(const Ram* ram, T_id fid, T_index idx)
 {
-  return ram->files.at(fid)->book_ids.at(idx);
+  return fid >= 0 && idx < ram->files.at(fid)->book_ids.size() ?
+        ram->files.at(fid)->book_ids.at(idx): -1;
 }
 
 T_index bookIndexOf(const Ram* ram, T_id fid, T_id bid)
@@ -115,6 +116,8 @@ T_strs bookLabelsOf(const Ram* ram, T_id fid)
 
 T_states bookStatesOf(const Ram* ram, T_id fid)
 {
+  if (fid < 0) return T_states();
+
   T_states res(ram->files.at(fid)->book_ids.size());
   int idx = 0;
   for (auto& id: ram->files.at(fid)->book_ids) {
@@ -172,7 +175,8 @@ T_states fileStatesOf(const Ram* ram)
 
 T_id pageIdOf(const Ram* ram, T_id bid, T_index idx)
 {
-  return ram->books.at(bid)->page_ids.at(idx);
+  return bid >= 0 && idx < ram->books.at(bid)->page_ids.size() ?
+        ram->books.at(bid)->page_ids.at(idx): -1;
 }
 
 T_index pageIndexOf(const Ram* ram, T_id bid, T_id pid)
@@ -193,6 +197,8 @@ T_strs pageLabelsOf(const Ram* ram, T_id bid)
 
 T_states pageStatesOf(const Ram* ram, T_id bid)
 {
+  if (bid < 0) return T_states();
+
   T_states res(ram->books.at(bid)->page_ids.size());
   int idx = 0;
   for (auto& id: ram->books.at(bid)->page_ids) {
@@ -357,11 +363,6 @@ bool AppendPageIds(Ram* ram, T_id bid, T_id pid)
   return true;
 }
 
-bool CloseFile(Ram* ram, T_id fid)
-{
-  return ram->file_ids.removeOne(fid);
-}
-
 bool MoveBook(Ram* ram, T_id fid, T_index from, T_index to)
 {
   ram->files.at(fid)->book_ids.move(from, to);
@@ -378,11 +379,6 @@ bool MovePage(Ram* ram, T_id bid, T_index from, T_index to)
 {
   ram->books.at(bid)->page_ids.move(from, to);
   return true;
-}
-
-bool RemoveBook(Ram* ram, T_id fid, T_id bid)
-{
-  return ram->files.at(fid)->book_ids.removeOne(bid);
 }
 
 bool RemoveBookIds(Ram* ram, T_id fid, T_id bid)
@@ -403,11 +399,6 @@ bool RemovePageIds(Ram* ram, T_id bid, T_id pid)
 {
   if (!ram->books.at(bid)->page_ids.contains(pid)) return false;
 
-  return ram->books.at(bid)->page_ids.removeOne(pid);
-}
-
-bool RemovePage(Ram* ram, T_id bid, T_id pid)
-{
   return ram->books.at(bid)->page_ids.removeOne(pid);
 }
 

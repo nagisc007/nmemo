@@ -216,8 +216,7 @@ T_cpu_result Core::ToCloseFile(T_index idx)
   auto fid = fileIdOf(&ram, idx);
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
 
-  if (!CloseFile(&ram, fid) ||
-      !RemoveFileIds(&ram, fid)) return Result::INVALID_OPERATION;
+  if (!RemoveFileIds(&ram, fid)) return Result::INVALID_OPERATION;
 
   if (!IsValidFileId(&ram, currentFileId(&ram))) {
     if (!UpdateCurrentFileId(&ram, fileIdOf(&ram, idx - 1)))
@@ -248,12 +247,12 @@ T_cpu_result Core::ToDeleteBook(T_id fid, T_index idx)
   auto bid = bookIdOf(&ram, fid, idx);
   if (!IsValidBookId(&ram, fid, bid)) return Result::INVALID_BOOKID;
 
-  if (!RemoveBook(&ram, fid, bid) ||
-      !RemoveBookIds(&ram, fid, bid)) return Result::INVALID_OPERATION;
+  if (!RemoveBookIds(&ram, fid, bid)) return Result::INVALID_OPERATION;
 
-  if (!IsValidBookId(&ram, fid, currentBookId(&ram)) ||
-      !UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, idx - 1)))
-    return Result::INVALID_OPERATION;
+  if (!IsValidBookId(&ram, fid, currentBookId(&ram))) {
+    if (!UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, idx - 1)))
+      return Result::INVALID_OPERATION;
+  }
   PushId(&ram, IdAddr::BOOK, bid);
 
   return Result::SUCCESS;
@@ -267,7 +266,7 @@ T_cpu_result Core::ToDeletePage(T_id fid, T_id bid, T_index idx)
   auto pid = pageIdOf(&ram, bid, idx);
   if (!IsValidPageId(&ram, bid, pid)) return Result::INVALID_PAGEID;
 
-  if (!RemovePage(&ram, bid, pid)) return Result::INVALID_OPERATION;
+  if (!RemovePageIds(&ram, bid, pid)) return Result::INVALID_OPERATION;
 
   if (!IsValidPageId(&ram, bid, currentPageId(&ram)) ||
       !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, bid, idx - 1)))

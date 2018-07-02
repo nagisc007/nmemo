@@ -80,14 +80,24 @@ private Q_SLOTS:
   void cleanupTestCase();
   void testCaseFileNew1();
   void testCaseFileOpen1();
+  void testCaseFileClose0();
   void testCaseFileClose1();
+  void testCaseFileChange0();
   void testCaseFileChange1();
   void testCaseFileMove0();
   void testCaseFileMove1();
+  void testCaseFileRename0();
   void testCaseFileRename1();
   void testCaseBookAdd0();
   void testCaseBookAdd1();
+  void testCaseBookDelete0();
   void testCaseBookDelete1();
+  void testCaseBookChange0();
+  void testCaseBookChange1();
+  void testCaseBookMove0();
+  void testCaseBookMove1();
+  void testCaseBookRename0();
+  void testCaseBookRename1();
 };
 
 CpuTest::CpuTest():
@@ -133,6 +143,15 @@ void CpuTest::testCaseFileOpen1()
   QSKIP("currently skipped");
 }
 
+void CpuTest::testCaseFileClose0()
+{
+  dev_in->CloseFile(0);
+  VerifyFileIndex(-1);
+  VerifyFileLabels(T_strs());
+  VerifyFileSize(0);
+  VerifyFileStates(T_states());
+}
+
 void CpuTest::testCaseFileClose1()
 {
   dev_in->NewFile();
@@ -142,6 +161,13 @@ void CpuTest::testCaseFileClose1()
   VerifyFileLabels(T_strs());
   T_states states(0);
   VerifyFileStates(states);
+}
+
+void CpuTest::testCaseFileChange0()
+{
+  dev_in->ChangeFile(10);
+  VerifyFileIndex(-1);
+  VerifyFileSize(0);
 }
 
 void CpuTest::testCaseFileChange1()
@@ -170,6 +196,14 @@ void CpuTest::testCaseFileMove1()
   T_states states(3);
   states.fill(true);
   VerifyFileStates(states);
+}
+
+void CpuTest::testCaseFileRename0()
+{
+  dev_in->RenameFile(10, "test10");
+  VerifyFileIndex(-1);
+  VerifyFileLabels(T_strs());
+  VerifyFileSize(0);
 }
 
 void CpuTest::testCaseFileRename1()
@@ -201,6 +235,15 @@ void CpuTest::testCaseBookAdd1()
   VerifyBookStates(st);
 }
 
+void CpuTest::testCaseBookDelete0()
+{
+  dev_in->DeleteBook(0);
+  VerifyBookIndex(-1);
+  VerifyBookLabels(T_strs());
+  VerifyBookSize(0);
+  VerifyBookStates(T_states());
+}
+
 void CpuTest::testCaseBookDelete1()
 {
   dev_in->NewFile();
@@ -209,6 +252,84 @@ void CpuTest::testCaseBookDelete1()
   dev_in->DeleteBook(0);
   VerifyBookIndex(0);
   VerifyBookLabels(T_strs{"test2"});
+  VerifyBookSize(1);
+  T_states st(1, true);
+  VerifyBookStates(st);
+}
+
+void CpuTest::testCaseBookChange0()
+{
+  dev_in->ChangeBook(0);
+  VerifyBookIndex(-1);
+  VerifyBookSize(0);
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->ChangeBook(100);
+  VerifyBookIndex(0);
+  VerifyBookSize(1);
+}
+
+void CpuTest::testCaseBookChange1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->AddBook("test2");
+  VerifyBookIndex(1);
+  VerifyBookLabels(T_strs{"test1", "test2"});
+  VerifyBookSize(2);
+  T_states st(2, true);
+  VerifyBookStates(st);
+  dev_in->ChangeBook(0);
+  VerifyBookIndex(0);
+}
+
+void CpuTest::testCaseBookMove0()
+{
+  dev_in->MoveBook(0, 1);
+  VerifyBookIndex(-1);
+  VerifyBookSize(0);
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->MoveBook(100, 10);
+  VerifyBookIndex(0);
+  VerifyBookSize(1);
+}
+
+void CpuTest::testCaseBookMove1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->AddBook("test2");
+  dev_in->AddBook("test3");
+  dev_in->MoveBook(0, 1);
+  VerifyBookIndex(1);
+  VerifyBookLabels(T_strs{"test2", "test1", "test3"});
+  VerifyBookSize(3);
+  T_states st(3, true);
+  VerifyBookStates(st);
+}
+
+void CpuTest::testCaseBookRename0()
+{
+  dev_in->RenameBook(0, "tested");
+  VerifyBookIndex(-1);
+  VerifyBookLabels(T_strs());
+  VerifyBookSize(0);
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->RenameBook(100, "tested");
+  VerifyBookIndex(0);
+  VerifyBookLabels(T_strs{"test1"});
+  VerifyBookSize(1);
+}
+
+void CpuTest::testCaseBookRename1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->RenameBook(0, "tested");
+  VerifyBookIndex(0);
+  VerifyBookLabels(T_strs{"tested"});
   VerifyBookSize(1);
   T_states st(1, true);
   VerifyBookStates(st);
