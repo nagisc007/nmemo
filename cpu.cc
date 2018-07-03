@@ -17,6 +17,12 @@ namespace CPU {
 
 namespace {
 
+T_str _filePathValidated(T_str path)
+{
+  return QFileInfo(path).suffix() == COMMON::FILE_EXTENSION ?
+        path: QString("%1.%2").arg(path).arg(COMMON::FILE_EXTENSION);
+}
+
 int _fromIndex(int i)
 {
   return (i >> 8) & 0xff;
@@ -27,19 +33,65 @@ int _toIndex(int i)
   return i & 0xff;
 }
 
-QPair<T_strs, T_strs> _dataDecoded()
+QPair<T_strs, T_strs> _fileDataDecoded(T_strs data)
 {
-  return qMakePair(T_strs(), T_strs());
+  T_strs booklabels;
+  T_strs bookdatalist;
+  bool is_oldversion = false;
+  // version check
+  if (data.at(0) == COMMON::FILE_PREFIX) {
+    auto version = data.at(1).toInt();
+    is_oldversion = version < COMMON::FILE_VERSION.toInt();
+  } else {
+    is_oldversion = true;
+  }
+  // data decode
+  QStringList::const_iterator it;
+  for (it = data.constBegin(); it != data.constEnd(); ++it) {
+    if (!is_oldversion) {
+      ++it;
+      ++it;
+      is_oldversion = true;
+    }
+    booklabels << *it;
+    ++it;
+    bookdatalist << *it;
+  }
+  return qMakePair(booklabels, bookdatalist);
 }
 
-QPair<T_strs, T_strs> _pageDataDecoded()
+QPair<T_strs, T_strs> _bookDataDecoded(T_str bookdata)
 {
-  return qMakePair(T_strs(), T_strs());
+  auto data = bookdata.split(COMMON::SPLITTER);
+  T_strs labels;
+  T_strs texts;
+  // data decode
+  QStringList::const_iterator it;
+  for (it = data.constBegin(); it != data.constEnd(); ++it) {
+    labels << *it;
+    ++it;
+    texts << *it;
+  }
+  return qMakePair(labels, texts);
 }
 
-T_strs _dataEncoded()
+T_str _bookDataEncoded(T_strs labels, T_strs texts)
 {
-  return T_strs();
+  T_strs res;
+  for (int i = 0; i < labels.size(); ++i) {
+    res << labels.at(i) << texts.at(i);
+  }
+  return res.join(COMMON::SPLITTER);
+}
+
+T_strs _fileDataEncoded(T_strs labels, T_strs bookDataList)
+{
+  T_strs res;
+  res << COMMON::FILE_PREFIX << COMMON::FILE_VERSION;
+  for (int i = 0; i < labels.size(); ++i) {
+    res << labels.at(i) << bookDataList.at(i);
+  }
+  return res;
 }
 
 T_submits _submitsOf(T_cpu_addr addr)
@@ -467,30 +519,72 @@ T_cpu_result Core::ToOpenFile(const T_str& path)
   T_strs data_loaded;
   in >> data_loaded;
   if (data_loaded.count() < 2) return Result::ERR_FILE_VERSION_MISMATCH;
+  if (data_loaded.at(0) != COMMON::FILE_PREFIX) return Result::ERR_FILE_DATAHEAD;
 
-  auto decoded = _dataDecoded();
-  auto book_labels = decoded.first;
-  auto page_data = decoded.second;
-  auto result = ToCreateFile(path);
-  if (result != Result::SUCCESS) return result;
-
-  auto fid = currentFileId(&ram);
-  for (int i = 0; i < book_labels.size(); ++i) {
-    result = ToAddBook(fid, book_labels.at(i));
+  // version check
+  T_id fid = -1;
+  T_id bid = -1;
+  if (data_loaded.at(1).toInt() == COMMON::FILE_VERSION.toInt()) {
+    // current version
+    auto decoded = _fileDataDecoded(data_loaded);
+    auto booklabels = decoded.first;
+    auto bookdatalist = decoded.second;
+    auto result = ToCreateFile(path);
     if (result != Result::SUCCESS) return result;
-    auto pdata_decoded = _pageDataDecoded();
-    auto page_labels = pdata_decoded.first;
-    auto texts = pdata_decoded.second;
-    auto bid = currentBookId(&ram);
-    for (int j = 0; j < page_labels.size(); ++j) {
-      result = ToAddPage(fid, bid, page_labels.at(i), texts.at(i));
+
+    auto fid = currentFileId(&ram);
+    for (int i = 0; i < booklabels.size(); ++i) {
+      result = ToAddBook(fid, booklabels.at(i));
+      if (result != Result::SUCCESS) {
+        qDebug() << "add book invalid";
+        return result;
+      }
+
+      auto bookdata = _bookDataDecoded(bookdatalist.at(i));
+      auto pagelabels = bookdata.first;
+      auto texts = bookdata.second;
+      bid = currentBookId(&ram);
+      for (int j = 0; j < pagelabels.size(); ++j) {
+        result = ToAddPage(fid, bid, pagelabels.at(j), texts.at(j));
+        if (result != Result::SUCCESS) {
+          qDebug() << "add page invalid";
+          return result;
+        }
+      }
+    }
+  } else {
+    // old version
+    auto decoded = _fileDataDecoded(data_loaded);
+    auto pagelabels = decoded.first;
+    auto texts = decoded.second;
+    auto result = ToCreateFile(path);
+    if (result != Result::SUCCESS) return result;
+
+    result = ToAddBook(currentFileId(&ram), DEFAULT::BOOK_TITLE);
+    if (result != Result::SUCCESS) return result;
+
+    fid = currentFileId(&ram);
+    bid = currentBookId(&ram);
+    for (int i = 0; i < pagelabels.size(); ++i) {
+      result = ToAddPage(fid, bid, pagelabels.at(i), texts.at(i));
       if (result != Result::SUCCESS) return result;
     }
   }
-  if (!UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, 0)) ||
-      !UpdateCurrentPageId(&ram, currentBookId(&ram),
-                           pageIdOf(&ram, currentBookId(&ram), 0)))
+
+  fid = currentFileId(&ram);
+  bid = bookIdOf(&ram, fid, 0);
+  if (!UpdateCurrentBookId(&ram, fid, bid) ||
+      !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, bid, 0)))
     return Result::INVALID_OPERATION;
+
+  // update modified
+  for (auto& id: bookIdsOf(&ram, fid)) {
+    UpdateBookModified(&ram, id, false);
+    for (auto& pid: pageIdsOf(&ram, id)) {
+      UpdatePageModified(&ram, pid, false);
+    }
+  }
+  UpdateFileModified(&ram, fid, false);
 
   return Result::SUCCESS;
 }
@@ -572,15 +666,31 @@ T_cpu_result Core::ToSaveFile(T_index idx, const T_str& path)
 {
   auto fid = fileIdOf(&ram, idx);
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
-  if (!IsValidPath(path)) return Result::INVALID_PATH;
+  auto va_path = _filePathValidated(path);
+  if (!IsValidPath(va_path)) return Result::INVALID_PATH;
 
-  auto encoded = _dataEncoded();
-  QFile file(path);
+  T_strs bookdatalist;
+  for (auto& id: bookIdsOf(&ram, fid)) {
+    bookdatalist << _bookDataEncoded(pageLabelsOf(&ram, id), pageTextsOf(&ram, id));
+  }
+  auto encoded = _fileDataEncoded(bookLabelsOf(&ram, fid), bookdatalist);
+
+  QFile file(va_path);
   if (!file.open(QIODevice::WriteOnly)) return Result::ERR_NOTOPEN_FILE;
 
   QDataStream out(&file);
   out.setVersion(QDataStream::Qt_5_11);
   out << (encoded);
+
+  if (!UpdateFilePath(&ram, fid, va_path)) return Result::INVALID_OPERATION;
+
+  for (auto& id: bookIdsOf(&ram, fid)) {
+    UpdateBookModified(&ram, id, false);
+    for (auto& pid: pageIdsOf(&ram, id)) {
+      UpdatePageModified(&ram, pid, false);
+    }
+  }
+  UpdateFileModified(&ram, fid, false);
 
   return Result::SUCCESS;
 }

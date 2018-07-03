@@ -96,6 +96,7 @@ enum class Result {
   INVALID_OPERATION,
   ERR_NOTOPEN_FILE,
   ERR_FILE_VERSION_MISMATCH,
+  ERR_FILE_DATAHEAD,
   ERR_UNKNOWN,
 };
 
@@ -160,6 +161,7 @@ using T_gpu_addr = GPU::Addr;
 using T_gpu_irq = GPU::Irq;
 using T_gpu_result = GPU::Result;
 using T_id = int;
+using T_ids = QVector<T_id>;
 using T_index = int;
 using T_ivec = QVector<int>;
 using T_order = Qt::SortOrder;

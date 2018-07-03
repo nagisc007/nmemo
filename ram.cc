@@ -98,6 +98,11 @@ T_id bookIdOf(const Ram* ram, T_id fid, T_index idx)
         ram->files.at(fid)->book_ids.at(idx): -1;
 }
 
+T_ids bookIdsOf(const Ram* ram, T_id fid)
+{
+  return fid >= 0 ? ram->files.at(fid)->book_ids: T_ids();
+}
+
 T_index bookIndexOf(const Ram* ram, T_id fid, T_id bid)
 {
   return fid >= 0 ? ram->files.at(fid)->book_ids.indexOf(bid): -1;
@@ -177,6 +182,11 @@ T_id pageIdOf(const Ram* ram, T_id bid, T_index idx)
 {
   return bid >= 0 && idx >= 0 && idx < ram->books.at(bid)->page_ids.size() ?
         ram->books.at(bid)->page_ids.at(idx): -1;
+}
+
+T_ids pageIdsOf(const Ram* ram, T_id bid)
+{
+  return bid >= 0 ? ram->books.at(bid)->page_ids: T_ids();
 }
 
 T_index pageIndexOf(const Ram* ram, T_id bid, T_id pid)
@@ -268,7 +278,7 @@ bool IsValidPageIndex(const Ram* ram, T_id bid, T_index idx)
 
 bool IsValidPath(const T_str& path)
 {
-  return IsValidName(path);
+  return IsValidName(path) && QFileInfo(path).suffix() == COMMON::FILE_EXTENSION;
 }
 
 bool UpdateBookModified(Ram* ram, T_id bid, bool modified)
@@ -302,6 +312,14 @@ bool UpdateCurrentPageId(Ram* ram, T_id bid, T_id pid)
 bool UpdateFileModified(Ram* ram, T_id fid, bool modified)
 {
   ram->files.at(fid)->modified = modified;
+  return true;
+}
+
+bool UpdateFilePath(Ram* ram, T_id fid, const T_str& path)
+{
+  if (fid < 0) return false;
+
+  ram->files.at(fid)->path = path;
   return true;
 }
 

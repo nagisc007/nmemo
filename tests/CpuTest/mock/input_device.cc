@@ -101,4 +101,9 @@ void Input::RenamePage(T_index i, T_str s)
   emit ToCpu(CPU::Addr::PAGE_RENAME, i, s);
 }
 
+void Input::SaveAsFile(T_str path)
+{
+  emit ToCpu(CPU::Addr::FILE_SAVEAS, 0, path);
+}
+
 }  // ns DEV

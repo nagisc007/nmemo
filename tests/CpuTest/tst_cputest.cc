@@ -79,7 +79,6 @@ private Q_SLOTS:
   void initTestCase();
   void cleanupTestCase();
   void testCaseFileNew1();
-  void testCaseFileOpen1();
   void testCaseFileClose0();
   void testCaseFileClose1();
   void testCaseFileChange0();
@@ -108,6 +107,9 @@ private Q_SLOTS:
   void testCasePageMove1();
   void testCasePageRename0();
   void testCasePageRename1();
+  void testCaseFileOpen1();
+  void testCaseFileSave1();
+  void testCaseFileOpen2();
 };
 
 CpuTest::CpuTest():
@@ -150,7 +152,38 @@ void CpuTest::testCaseFileNew1()
 
 void CpuTest::testCaseFileOpen1()
 {
-  QSKIP("currently skipped");
+  dev_in->OpenFile("test_memo1.memo");
+  VerifyFileIndex(0);
+  VerifyFileLabels(T_strs{"test_memo1.memo"});
+  VerifyFileSize(1);
+  T_states st(1, false);
+  VerifyFileStates(st);
+}
+
+void CpuTest::testCaseFileOpen2()
+{
+  dev_in->OpenFile("test_memo.memo");
+  VerifyFileIndex(0);
+  VerifyFileLabels(T_strs{"test_memo.memo"});
+  VerifyFileSize(1);
+  T_states st(1, false);
+  VerifyFileStates(st);
+  VerifyBookIndex(0);
+  VerifyBookLabels(T_strs{"testbook"});
+  VerifyBookSize(1);
+  VerifyBookStates(st);
+  VerifyPageIndex(0);
+  VerifyPageLabels(T_strs{"testpage"});
+  VerifyPageSize(1);
+  VerifyPageStates(st);
+}
+
+void CpuTest::testCaseFileSave1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("testpage");
+  dev_in->SaveAsFile("test_memo");
 }
 
 void CpuTest::testCaseFileClose0()
