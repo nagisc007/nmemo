@@ -17,6 +17,11 @@ namespace CPU {
 
 namespace {
 
+T_gpu_addr _gpuAddrFetched(T_submits submits, T_gpu_addr addr)
+{
+  return static_cast<T_gpu_addr>(static_cast<int>(submits) & static_cast<int>(addr));
+}
+
 T_str _filePathValidated(T_str path)
 {
   return QFileInfo(path).suffix() == COMMON::FILE_EXTENSION ?
@@ -94,30 +99,106 @@ T_strs _fileDataEncoded(T_strs labels, T_strs bookDataList)
   return res;
 }
 
+T_submits _submitsCombined(T_gpu_addr a0, T_gpu_addr a1 = GPU::Addr::NOP,
+                           T_gpu_addr a2 = GPU::Addr::NOP,
+                           T_gpu_addr a3 = GPU::Addr::NOP,
+                           T_gpu_addr a4 = GPU::Addr::NOP,
+                           T_gpu_addr a5 = GPU::Addr::NOP)
+{
+  return static_cast<T_submits>(static_cast<int>(a0) |
+      static_cast<int>(a1) |
+      static_cast<int>(a2) |
+      static_cast<int>(a3) |
+      static_cast<int>(a4) |
+      static_cast<int>(a5));
+}
+
 T_submits _submitsOf(T_cpu_addr addr)
 {
   switch (addr) {
-  case Addr::BOOK_ADD: return 0;
-  case Addr::BOOK_CHANGE: return 0;
-  case Addr::BOOK_DELETE: return 0;
-  case Addr::BOOK_MOVE: return 0;
-  case Addr::BOOK_RENAME: return 0;
-  case Addr::BOOK_SORT: return 0;
-  case Addr::FILE_CHANGE: return 0;
-  case Addr::FILE_CLOSE: return 0;
-  case Addr::FILE_NEW: return 0;
-  case Addr::FILE_OPEN: return 0;
-  case Addr::FILE_MOVE: return 0;
-  case Addr::FILE_RENAME: return 0;
-  case Addr::FILE_SAVE: return 0;
-  case Addr::FILE_SAVEAS: return 0;
-  case Addr::PAGE_ADD: return 0;
-  case Addr::PAGE_CHANGE: return 0;
-  case Addr::PAGE_DELETE: return 0;
-  case Addr::PAGE_MOVE: return 0;
-  case Addr::PAGE_RENAME: return 0;
-  case Addr::PAGE_SORT: return 0;
-  case Addr::TEXT_MODIFY: return 0;
+  case Addr::BOOK_ADD:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_ALL,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::BOOK_CHANGE:
+    return _submitsCombined(GPU::Addr::BOOKTAB_INDEX,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::BOOK_DELETE:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_ALL,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::BOOK_MOVE:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_ALL);
+  case Addr::BOOK_RENAME:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_LABELS);
+  case Addr::BOOK_SORT:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_ALL);
+  case Addr::FILE_CHANGE:
+    return _submitsCombined(GPU::Addr::FILETAB_INDEX,
+                            GPU::Addr::BOOKTAB_ALL,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::FILE_CLOSE:
+    return _submitsCombined(GPU::Addr::FILETAB_ALL,
+                            GPU::Addr::BOOKTAB_ALL,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::FILE_NEW:
+    return _submitsCombined(GPU::Addr::FILETAB_ALL,
+                            GPU::Addr::BOOKTAB_ALL,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::FILE_OPEN:
+    return _submitsCombined(GPU::Addr::FILETAB_ALL,
+                            GPU::Addr::BOOKTAB_ALL,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::FILE_MOVE:
+    return _submitsCombined(GPU::Addr::FILETAB_ALL);
+  case Addr::FILE_RENAME:
+    return _submitsCombined(GPU::Addr::FILETAB_LABELS);
+  case Addr::FILE_SAVE:
+  case Addr::FILE_SAVEAS:
+    return _submitsCombined(GPU::Addr::FILETAB_LABELS,
+                            GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_STATES,
+                            GPU::Addr::PAGELIST_STATES);
+  case Addr::PAGE_ADD:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_STATES,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::PAGE_CHANGE:
+    return _submitsCombined(GPU::Addr::PAGELIST_INDEX,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::PAGE_DELETE:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_STATES,
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::EDITOR_ALL);
+  case Addr::PAGE_MOVE:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_STATES,
+                            GPU::Addr::PAGELIST_ALL);
+  case Addr::PAGE_RENAME:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_STATES,
+                            GPU::Addr::PAGELIST_LABELS);
+  case Addr::PAGE_SORT:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_STATES,
+                            GPU::Addr::PAGELIST_ALL);
+  case Addr::TEXT_MODIFY:
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+                            GPU::Addr::BOOKTAB_STATES,
+                            GPU::Addr::PAGELIST_STATES,
+                            GPU::Addr::EDITOR_TEXT);
   case Addr::NOP: return 0;
   }
 }
@@ -153,11 +234,36 @@ T_strs _strsPacked(const T_str& s)
 
 T_str _statusMessageOf(T_cpu_addr addr)
 {
-  return T_str();
+  switch (addr) {
+  case Addr::BOOK_ADD: return MSG::BOOK_ADDED;
+  case Addr::BOOK_CHANGE: return MSG::BOOK_CHANGED;
+  case Addr::BOOK_DELETE: return MSG::BOOK_DELETED;
+  case Addr::BOOK_MOVE: return MSG::BOOK_MOVED;
+  case Addr::BOOK_RENAME: return MSG::BOOK_RENAMED;
+  case Addr::BOOK_SORT: return MSG::BOOKS_SORTED;
+  case Addr::FILE_CHANGE: return MSG::FILE_CHANGED;
+  case Addr::FILE_CLOSE: return MSG::FILE_CLOSED;
+  case Addr::FILE_MOVE: return MSG::FILE_MOVED;
+  case Addr::FILE_NEW: return MSG::FILE_CREATED;
+  case Addr::FILE_OPEN: return MSG::FILE_OPENED;
+  case Addr::FILE_RENAME: return MSG::FILE_RENAMED;
+  case Addr::FILE_SAVE: return MSG::FILE_SAVED;
+  case Addr::FILE_SAVEAS: return MSG::FILE_SAVED;
+  case Addr::PAGE_ADD: return MSG::PAGE_ADDED;
+  case Addr::PAGE_CHANGE: return MSG::PAGE_DELETED;
+  case Addr::PAGE_DELETE: return MSG::PAGE_DELETED;
+  case Addr::PAGE_MOVE: return MSG::PAGE_MOVED;
+  case Addr::PAGE_RENAME: return MSG::PAGE_RENAMED;
+  case Addr::PAGE_SORT: return MSG::PAGES_SORTED;
+  case Addr::TEXT_MODIFY:
+  case Addr::NOP:
+    return T_str();
+  }
 }
 
-T_str _titleOf()
+T_str _titleOf(const T_str& path)
 {
+  Q_UNUSED(path);
   return DEFAULT::WINDOW_TITLE;
 }
 
@@ -388,18 +494,19 @@ T_cpu_result Core::ToGpuDataOfBookTab(T_submits submits)
   T_states states;
   auto fid = currentFileId(&ram);
   // NOTE: when invalid fid, show default booktab
-  if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
+  bool is_default = !IsValidFileId(&ram, fid);
 
-  if (_IsExistsSubmit(submits, GPU::Addr::BOOKTAB_INDEX)) {
+  if (!is_default && _IsExistsSubmit(submits, GPU::Addr::BOOKTAB_INDEX)) {
     auto bid = currentBookId(&ram, fid, true);
-    if (!IsValidBookId(&ram, fid, bid, true)) return Result::INVALID_BOOKID;
-    idx = bookIndexOf(&ram, fid, currentBookId(&ram, fid, true), true);
+    if (IsValidBookId(&ram, fid, bid, true))
+      idx = bookIndexOf(&ram, fid, currentBookId(&ram, fid, true), true);
   }
-  if (_IsExistsSubmit(submits, GPU::Addr::BOOKTAB_LABELS))
+  if (!is_default && _IsExistsSubmit(submits, GPU::Addr::BOOKTAB_LABELS))
     labels = bookLabelsOf(&ram, fid, true);
-  if (_IsExistsSubmit(submits, GPU::Addr::BOOKTAB_STATES))
+  if (!is_default && _IsExistsSubmit(submits, GPU::Addr::BOOKTAB_STATES))
     states = bookStatesOf(&ram, fid, true);
-  emit ToGpu(GPU::Addr::BOOKTAB,
+
+  emit ToGpu(_gpuAddrFetched(submits, GPU::Addr::BOOKTAB_ALL),
              _ivecCompressred(idx, states), labels);
   return Result::SUCCESS;
 }
@@ -409,22 +516,20 @@ T_cpu_result Core::ToGpuDataOfEditor(T_submits submits)
   T_str text;
   bool is_ro = true;
   auto fid = currentFileId(&ram);
+  auto bid = currentBookId(&ram, fid, false);
   // NOTE: when invalid fid, show default editor and message
-  if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
+  auto pid = currentPageId(&ram, bid, false, fid);
+  is_ro = !IsValidPageId(&ram, bid, pid, false, fid);
 
-  auto bid = currentBookId(&ram, fid, true);
-  if (!IsValidBookId(&ram, fid, bid, true)) return Result::INVALID_BOOKID;
-
-  auto pid = currentPageId(&ram, bid, true);
-  is_ro = !IsValidPageId(&ram, bid, pid, true);
-
-  if (_IsExistsSubmit(submits, GPU::Addr::EDITOR_TEXT)) {
-    text = !is_ro ? pageTextOf(&ram, pid, false, fid, bid): DEFAULT::PAGE_TEXT;
+  if (is_ro) {
+    text = DEFAULT::PAGE_CAUTION_TEXT;
+  } else if (_IsExistsSubmit(submits, GPU::Addr::EDITOR_TEXT)) {
+    text = pageTextOf(&ram, pid, false, fid, bid);
   }
   if (_IsExistsSubmit(submits, GPU::Addr::EDITOR_READONLY)) {
     // NOTE: use to force readonly setting
   }
-  emit ToGpu(GPU::Addr::EDITOR,
+  emit ToGpu(_gpuAddrFetched(submits, GPU::Addr::EDITOR_ALL),
              _ivecPacked(is_ro), _strsPacked(text));
   return Result::SUCCESS;
 }
@@ -442,7 +547,8 @@ T_cpu_result Core::ToGpuDataOfFileTab(T_submits submits)
     labels = fileLabelsOf(&ram);
   if (_IsExistsSubmit(submits, GPU::Addr::FILETAB_STATES))
     states = fileStatesOf(&ram);
-  emit ToGpu(GPU::Addr::FILETAB,
+
+  emit ToGpu(_gpuAddrFetched(submits, GPU::Addr::FILETAB_ALL),
              _ivecCompressred(idx, states), labels);
   return Result::SUCCESS;
 }
@@ -463,7 +569,8 @@ T_cpu_result Core::ToGpuDataOfPageList(T_submits submits)
     labels = pageLabelsOf(&ram, bid, false, fid);
   if (_IsExistsSubmit(submits, GPU::Addr::PAGELIST_STATES))
     states = pageStatesOf(&ram, bid, false, fid);
-  emit ToGpu(GPU::Addr::PAGELIST,
+
+  emit ToGpu(_gpuAddrFetched(submits, GPU::Addr::PAGELIST),
              _ivecCompressred(idx, states), labels);
   return Result::SUCCESS;
 }
@@ -473,13 +580,15 @@ T_cpu_result Core::ToGpuDataOfStatusBar(T_submits submits, T_cpu_addr addr)
   T_str msg;
   if (_IsExistsSubmit(submits, GPU::Addr::STATUS_MESSAGE))
     msg = _statusMessageOf(addr);
-  emit ToGpu(GPU::Addr::STATUS_MESSAGE,
+
+  emit ToGpu(_gpuAddrFetched(submits, GPU::Addr::STATUSBAR_ALL),
              T_ivec(), _strsPacked(msg));
   return Result::SUCCESS;
 }
 
 T_cpu_result Core::ToGpuDataOfToolBar(T_submits submits)
 {
+  Q_UNUSED(submits);
   qInfo() << "Gpu to toolbar data not implemented currently";
   return Result::SUCCESS;
 }
@@ -487,9 +596,11 @@ T_cpu_result Core::ToGpuDataOfToolBar(T_submits submits)
 T_cpu_result Core::ToGpuDataOfWindow(T_submits submits)
 {
   T_str title;
+  auto fid = currentFileId(&ram);
   if (_IsExistsSubmit(submits, GPU::Addr::WINDOW_TITLE))
-    title = _titleOf();
-  emit ToGpu(GPU::Addr::WINDOW,
+    title = _titleOf(filePathOf(&ram, fid, false));
+
+  emit ToGpu(_gpuAddrFetched(submits, GPU::Addr::WINDOW_ALL),
              T_ivec(), _strsPacked(title));
   return Result::SUCCESS;
 }

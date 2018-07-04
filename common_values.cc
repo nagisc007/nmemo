@@ -52,6 +52,7 @@ const QString FILE_CHANGED = "The file changed ...";
 const QString FILE_CLOSED = "The file closed ...";
 const QString FILE_CREATED = "New file created ...";
 const QString FILE_OPENED = "The file opened ...";
+const QString FILE_MOVED = "The file moved ...";
 const QString FILE_RENAMED = "The file renamed ...";
 const QString FILE_SAVED = "The file saved ...";
 const QString BOOKS_SORTED = "Books sorted ...";

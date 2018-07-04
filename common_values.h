@@ -51,6 +51,7 @@ namespace MSG {
 extern const QString FILE_CHANGED;
 extern const QString FILE_CLOSED;
 extern const QString FILE_CREATED;
+extern const QString FILE_MOVED;
 extern const QString FILE_OPENED;
 extern const QString FILE_RENAMED;
 extern const QString FILE_SAVED;
