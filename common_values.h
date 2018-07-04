@@ -41,6 +41,7 @@ extern const QString FILE_TITLE;
 extern const QString BOOK_TITLE;
 extern const QString PAGE_TITLE;
 extern const QString PAGE_TEXT;
+extern const QString PAGE_CAUTION_TEXT;
 extern const int STATUS_MESSAGE_TIME;
 
 }  // ns DEFAULT

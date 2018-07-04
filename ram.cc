@@ -212,9 +212,9 @@ T_id currentPageId(const Ram* ram, T_id bid, bool is_validated, T_id fid)
         ram->books.at(bid)->current_pageid: -1;
 }
 
-T_id fileIdOf(const Ram* ram, T_index idx, bool is_validated)
+T_id fileIdOf(const Ram* ram, T_index idx)
 {
-  return is_validated || IsValidFileIndex(ram, idx) ? ram->file_ids.at(idx): -1;
+  return IsValidFileIndex(ram, idx) ? ram->file_ids.at(idx): -1;
 }
 
 T_index fileIndexOf(const Ram* ram, T_id fid)

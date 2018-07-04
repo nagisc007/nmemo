@@ -30,43 +30,53 @@ public:
   void VerifyBookSize(int i) {
     auto fid = CPU::currentFileId(&cpu->ram);
     if (fid >= 0) {
-      QCOMPARE(cpu->ram.files.at(CPU::currentFileId(&cpu->ram))->book_ids.size(), i);
+      QCOMPARE(cpu->ram.files.at(fid)->book_ids.size(), i);
     }
   }
   void VerifyPageSize(int i) {
-    auto bid = CPU::currentBookId(&cpu->ram);
+    auto fid = CPU::currentFileId(&cpu->ram);
+    auto bid = CPU::currentBookId(&cpu->ram, fid, false);
     if (bid >= 0) {
-      QCOMPARE(cpu->ram.books.at(CPU::currentBookId(&cpu->ram))->page_ids.size(), i);
+      QCOMPARE(cpu->ram.books.at(bid)->page_ids.size(), i);
     }
   }
   void VerifyFileIndex(int i) {
     QCOMPARE(CPU::fileIndexOf(&cpu->ram, CPU::currentFileId(&cpu->ram)), i);
   }
   void VerifyBookIndex(int i) {
-    QCOMPARE(CPU::bookIndexOf(&cpu->ram, CPU::currentFileId(&cpu->ram),
-                              CPU::currentBookId(&cpu->ram)), i);
+    auto fid = CPU::currentFileId(&cpu->ram);
+    auto bid = CPU::currentBookId(&cpu->ram, fid, false);
+    QCOMPARE(CPU::bookIndexOf(&cpu->ram, fid, bid, false), i);
   }
   void VerifyPageIndex(int i) {
-    QCOMPARE(CPU::pageIndexOf(&cpu->ram, CPU::currentBookId(&cpu->ram),
-                              CPU::currentPageId(&cpu->ram)), i);
+    auto fid = CPU::currentFileId(&cpu->ram);
+    auto bid = CPU::currentBookId(&cpu->ram, fid, false);
+    auto pid = CPU::currentPageId(&cpu->ram, bid, false, fid);
+    QCOMPARE(CPU::pageIndexOf(&cpu->ram, bid, pid, false, fid), i);
   }
   void VerifyFileLabels(T_strs labels) {
     QCOMPARE(CPU::fileLabelsOf(&cpu->ram), labels);
   }
   void VerifyBookLabels(T_strs labels) {
-    QCOMPARE(CPU::bookLabelsOf(&cpu->ram, CPU::currentFileId(&cpu->ram)), labels);
+    auto fid = CPU::currentFileId(&cpu->ram);
+    QCOMPARE(CPU::bookLabelsOf(&cpu->ram, fid, false), labels);
   }
   void VerifyPageLabels(T_strs labels) {
-    QCOMPARE(CPU::pageLabelsOf(&cpu->ram, CPU::currentBookId(&cpu->ram)), labels);
+    auto fid = CPU::currentFileId(&cpu->ram);
+    auto bid = CPU::currentBookId(&cpu->ram, fid, false);
+    QCOMPARE(CPU::pageLabelsOf(&cpu->ram, bid, false, fid), labels);
   }
   void VerifyFileStates(T_states states) {
     QCOMPARE(CPU::fileStatesOf(&cpu->ram), states);
   }
   void VerifyBookStates(T_states states) {
-    QCOMPARE(CPU::bookStatesOf(&cpu->ram, CPU::currentFileId(&cpu->ram)), states);
+    auto fid = CPU::currentFileId(&cpu->ram);
+    QCOMPARE(CPU::bookStatesOf(&cpu->ram, fid, false), states);
   }
   void VerifyPageStates(T_states states) {
-    QCOMPARE(CPU::pageStatesOf(&cpu->ram, CPU::currentBookId(&cpu->ram)), states);
+    auto fid = CPU::currentFileId(&cpu->ram);
+    auto bid = CPU::currentBookId(&cpu->ram, fid, false);
+    QCOMPARE(CPU::pageStatesOf(&cpu->ram, bid, false, fid), states);
   }
 
 public slots:

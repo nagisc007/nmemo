@@ -95,7 +95,7 @@ bool IsValidName(const T_str&);
 T_id currentFileId(const Ram*);
 T_id currentBookId(const Ram*, T_id, bool is_validated = true);
 T_id currentPageId(const Ram*, T_id, bool is_validated = true, T_id fid = -1);
-T_id fileIdOf(const Ram*, T_index, bool is_validated = true);
+T_id fileIdOf(const Ram*, T_index);
 T_id bookIdOf(const Ram*, T_id, T_index, bool is_validated = true);
 T_id pageIdOf(const Ram*, T_id, T_index, bool is_validated = true, T_id fid = -1);
 T_ids bookIdsOf(const Ram*, T_id, bool is_validated = true);

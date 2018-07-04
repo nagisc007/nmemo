@@ -41,6 +41,7 @@ const QString FILE_TITLE = "NewFile";
 const QString BOOK_TITLE = "NewBook";
 const QString PAGE_TITLE = "NewPage";
 const QString PAGE_TEXT = "New memo";
+const QString PAGE_CAUTION_TEXT = "(Please create a new page!!)";
 const int STATUS_MESSAGE_TIME = 3000;  // ms
 
 }  // ns DEFAULT
