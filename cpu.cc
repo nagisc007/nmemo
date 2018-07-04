@@ -604,7 +604,10 @@ T_cpu_result Core::ToProcess(T_cpu_addr addr, int i, const T_str& s)
   case Addr::FILE_OPEN: return ToOpenFile(s);
   case Addr::FILE_MOVE: return ToMoveFile(_fromIndex(i), _toIndex(i));
   case Addr::FILE_RENAME: return ToRenameFile(i, s);
-  case Addr::FILE_SAVE: return ToSaveFile(i, s);
+  case Addr::FILE_SAVE: {
+    auto path = filePathOf(&ram, fileIdOf(&ram, i));
+    return ToSaveFile(i, path);
+  }
   case Addr::FILE_SAVEAS: return ToSaveFile(i, s);
   case Addr::PAGE_ADD:
     return ToAddPage(currentFileId(&ram), currentBookId(&ram), s, DEFAULT::PAGE_TEXT);
@@ -667,7 +670,10 @@ T_cpu_result Core::ToSaveFile(T_index idx, const T_str& path)
   auto fid = fileIdOf(&ram, idx);
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   auto va_path = _filePathValidated(path);
-  if (!IsValidPath(va_path)) return Result::INVALID_PATH;
+  if (!IsValidPath(va_path)) {
+    emit RequestFileName();
+    return Result::INVALID_PATH;
+  }
 
   T_strs bookdatalist;
   for (auto& id: bookIdsOf(&ram, fid)) {

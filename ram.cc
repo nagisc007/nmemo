@@ -167,6 +167,11 @@ T_strs fileLabelsOf(const Ram* ram)
   return res;
 }
 
+T_str filePathOf(const Ram* ram, T_id fid)
+{
+  return fid >= 0 ? ram->files.at(fid)->path: T_str();
+}
+
 T_states fileStatesOf(const Ram* ram)
 {
   T_states res(ram->file_ids.size());

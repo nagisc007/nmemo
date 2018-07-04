@@ -28,7 +28,8 @@ public:
   void ChangeFile(T_index);
   void MoveFile(T_index, T_index);
   void RenameFile(T_index, T_str);
-  void SaveAsFile(T_str);
+  void SaveFile(T_index);
+  void SaveAsFile(T_index, T_str);
   void AddBook(T_str);
   void DeleteBook(T_index);
   void ChangeBook(T_index);

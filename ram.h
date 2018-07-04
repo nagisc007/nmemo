@@ -98,6 +98,7 @@ T_strs fileLabelsOf(const Ram*);
 T_strs bookLabelsOf(const Ram*, T_id);
 T_strs pageLabelsOf(const Ram*, T_id);
 T_strs pageTextsOf(const Ram*, T_id);
+T_str filePathOf(const Ram*, T_id);
 T_str pageTextOf(const Ram*, T_id);
 T_states fileStatesOf(const Ram*);
 T_states bookStatesOf(const Ram*, T_id);

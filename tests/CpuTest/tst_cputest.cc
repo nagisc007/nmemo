@@ -107,6 +107,8 @@ private Q_SLOTS:
   void testCasePageMove1();
   void testCasePageRename0();
   void testCasePageRename1();
+  void testCaseFileOpen0();
+  void testCaseFileSave0();
   void testCaseFileOpen1();
   void testCaseFileSave1();
   void testCaseFileOpen2();
@@ -150,6 +152,13 @@ void CpuTest::testCaseFileNew1()
   VerifyFileStates(states);
 }
 
+void CpuTest::testCaseFileOpen0()
+{
+  dev_in->OpenFile("nothing_file");
+  VerifyFileIndex(-1);
+  VerifyFileSize(0);
+}
+
 void CpuTest::testCaseFileOpen1()
 {
   dev_in->OpenFile("test_memo1.memo");
@@ -178,12 +187,33 @@ void CpuTest::testCaseFileOpen2()
   VerifyPageStates(st);
 }
 
+void CpuTest::testCaseFileSave0()
+{
+  dev_in->SaveFile(0);
+  dev_in->SaveAsFile(0, "test");
+  VerifyFileIndex(-1);
+  VerifyFileSize(0);
+}
+
 void CpuTest::testCaseFileSave1()
 {
   dev_in->NewFile();
   dev_in->AddBook("testbook");
   dev_in->AddPage("testpage");
-  dev_in->SaveAsFile("test_memo");
+  dev_in->SaveAsFile(0, "test_memo");
+  VerifyFileIndex(0);
+  VerifyFileLabels(T_strs{"test_memo.memo"});
+  VerifyFileSize(1);
+  T_states st(1, false);
+  VerifyFileStates(st);
+  VerifyBookIndex(0);
+  VerifyBookLabels(T_strs{"testbook"});
+  VerifyBookSize(1);
+  VerifyBookStates(st);
+  VerifyPageIndex(0);
+  VerifyPageLabels(T_strs{"testpage"});
+  VerifyPageSize(1);
+  VerifyPageStates(st);
 }
 
 void CpuTest::testCaseFileClose0()
