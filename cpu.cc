@@ -327,7 +327,14 @@ void Core::FromIrq(T_cpu_irq irq)
 // streams
 void Core::ToReset()
 {
+  emit ToGpuIrq(GPU::Irq::RESET);
   ram.Reset();
+  ToGpuDataOfFileTab(_submitsCombined(GPU::Addr::FILETAB_ALL));
+  ToGpuDataOfBookTab(_submitsCombined(GPU::Addr::BOOKTAB_ALL));
+  ToGpuDataOfPageList(_submitsCombined(GPU::Addr::PAGELIST_ALL));
+  ToGpuDataOfEditor(_submitsCombined(GPU::Addr::EDITOR_ALL));
+  ToGpuDataOfWindow(_submitsCombined(GPU::Addr::WINDOW_ALL));
+  emit ToGpu(GPU::Addr::FLUSH);
 }
 
 T_cpu_result Core::ToAddBook(T_id fid, const T_str& name)

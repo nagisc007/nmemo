@@ -59,6 +59,7 @@ public:
 signals:
   void ToError(T_cpu_result);
   void ToGpu(T_gpu_addr, T_ivec i = T_ivec(), T_strs s = T_strs());
+  void ToGpuIrq(T_gpu_irq);
   void RequestFileName();
 
 public slots:

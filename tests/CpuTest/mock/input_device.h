@@ -44,7 +44,6 @@ public:
 signals:
   void ToCpu(T_cpu_addr, int, T_str);
   void ToCpuIrq(T_cpu_irq);
-  void ToGpuIrq(T_gpu_irq);
 };
 
 }  // ns DEV

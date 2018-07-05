@@ -155,6 +155,14 @@ private Q_SLOTS:
   void initTestCase();
   void cleanupTestCase();
   void testCaseFileNew1();
+  void testCaseFileClose0();
+  void testCaseFileClose1();
+  void testCaseFileChange0();
+  void testCaseFileChange1();
+  void testCaseFileMove0();
+  void testCaseFileMove1();
+  void testCaseFileRename0();
+  void testCaseFileRename1();
   void testCaseBookAdd1();
   void testCaseBookDelete1();
   void testCaseBookChange1();
@@ -184,7 +192,7 @@ GpuTest::GpuTest():
   connect(dev_in.data(), &DEV::Input::ToCpu, cpu.data(), &CPU::Core::FromDev);
   connect(dev_in.data(), &DEV::Input::ToCpuIrq, cpu.data(), &CPU::Core::FromIrq);
   connect(cpu.data(), &CPU::Core::ToGpu, gpu.data(), &GPU::Core::FromCpu);
-  connect(dev_in.data(), &DEV::Input::ToGpuIrq, gpu.data(), &GPU::Core::FromIrq);
+  connect(cpu.data(), &CPU::Core::ToGpuIrq, gpu.data(), &GPU::Core::FromIrq);
   connect(gpu.data(), &GPU::Core::ToDev, this, &GpuTest::FromGpu);
   connect(cpu.data(), &CPU::Core::ToError, this, &GpuTest::FromCpuError);
   connect(gpu.data(), &GPU::Core::ToError, this, &GpuTest::FromGpuError);
@@ -192,6 +200,14 @@ GpuTest::GpuTest():
 
 void GpuTest::init()
 {
+  while (filetab->count() > 0)
+    filetab->removeTab(0);
+  while (booktab->count() > 0)
+    booktab->removeTab(0);
+  pagelist->clear();
+  editor->setText("");
+  statusbar->showMessage("");
+  window->setTitle("");
   dev_in->Reset();
 }
 
@@ -216,6 +232,44 @@ void GpuTest::testCaseFileNew1()
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
   T_states st(1, true);
+  VerifyFileColors(st);
+  VerifyBookTabLabels(T_strs());
+  VerifyBookTabIndex(-1);
+  T_states bst(0);
+  VerifyBookColors(bst);
+  VerifyPageListLabels(T_strs());
+  VerifyPageListIndex(-1);
+  T_states pst(0);
+  VerifyPageListColors(pst);
+}
+
+void GpuTest::testCaseFileClose0()
+{
+  dev_in->CloseFile(0);
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyFileTabLabels(T_strs());
+  VerifyFileIndex(-1);
+  T_states st(0);
+  VerifyFileColors(st);
+  VerifyBookTabLabels(T_strs());
+  VerifyBookTabIndex(-1);
+  T_states bst(0);
+  VerifyBookColors(bst);
+  VerifyPageListLabels(T_strs());
+  VerifyPageListIndex(-1);
+  T_states pst(0);
+  VerifyPageListColors(pst);
+}
+
+void GpuTest::testCaseFileClose1()
+{
+  dev_in->NewFile();
+  dev_in->CloseFile(0);
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::FILE_CLOSED);
+  VerifyFileTabLabels(T_strs());
+  VerifyFileIndex(-1);
+  T_states st(0);
   VerifyFileColors(st);
   VerifyBookTabLabels(T_strs());
   VerifyBookTabIndex(-1);
@@ -266,6 +320,36 @@ void GpuTest::testCaseFileSave1()
   VerifyPageListIndex(0);
   T_states pst(1, false);
   VerifyPageListColors(pst);
+}
+
+void GpuTest::testCaseFileChange0()
+{
+
+}
+
+void GpuTest::testCaseFileChange1()
+{
+
+}
+
+void GpuTest::testCaseFileMove0()
+{
+
+}
+
+void GpuTest::testCaseFileMove1()
+{
+
+}
+
+void GpuTest::testCaseFileRename0()
+{
+
+}
+
+void GpuTest::testCaseFileRename1()
+{
+
 }
 
 void GpuTest::testCaseBookAdd1()

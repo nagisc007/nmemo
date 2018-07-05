@@ -19,7 +19,6 @@ Input::Input(QObject *parent) : QObject(parent)
 void Input::Reset()
 {
   emit ToCpuIrq(CPU::Irq::RESET);
-  emit ToGpuIrq(GPU::Irq::RESET);
 }
 
 void Input::AddBook(T_str s)
