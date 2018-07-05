@@ -43,8 +43,6 @@ void ResetBReg(Vram* vram)
 
 bool UpdateBookIndex(Vram* vram, T_index idx)
 {
-  if (vram->ireg.at(static_cast<int>(IRegAddr::BOOK_INDEX)) == idx) return false;
-
   vram->ireg[static_cast<int>(IRegAddr::BOOK_INDEX)] = idx;
   vram->breg.setBit(static_cast<int>(BRegAddr::BOOK_INDEX));
   return true;
@@ -52,8 +50,6 @@ bool UpdateBookIndex(Vram* vram, T_index idx)
 
 bool UpdateBookLabels(Vram* vram, T_strs labels)
 {
-  if (vram->book_labels == labels) return false;
-
   vram->book_labels = labels;
   vram->breg.setBit(static_cast<int>(BRegAddr::BOOK_LABELS));
   return true;
@@ -61,8 +57,6 @@ bool UpdateBookLabels(Vram* vram, T_strs labels)
 
 bool UpdateBookStates(Vram* vram, T_states states)
 {
-  if (vram->book_states == states) return false;
-
   vram->book_states = states;
   vram->breg.setBit(static_cast<int>(BRegAddr::BOOK_STATES));
   return true;
@@ -70,9 +64,6 @@ bool UpdateBookStates(Vram* vram, T_states states)
 
 bool UpdateEditorReadOnly(Vram* vram, bool is_ro)
 {
-  if (vram->ireg.at(static_cast<int>(IRegAddr::TEXT_READONLY)) == is_ro)
-    return false;
-
   vram->ireg[static_cast<int>(IRegAddr::TEXT_READONLY)] = is_ro;
   vram->breg.setBit(static_cast<int>(BRegAddr::EDITOR_READONLY));
   return true;
@@ -80,8 +71,6 @@ bool UpdateEditorReadOnly(Vram* vram, bool is_ro)
 
 bool UpdateEditorText(Vram* vram, const T_str& text)
 {
-  if (vram->sreg.at(static_cast<int>(SRegAddr::TEXT)) == text) return false;
-
   vram->sreg[static_cast<int>(SRegAddr::TEXT)] = text;
   vram->breg.setBit(static_cast<int>(BRegAddr::EDITOR_TEXT));
   return true;
@@ -89,8 +78,6 @@ bool UpdateEditorText(Vram* vram, const T_str& text)
 
 bool UpdateFileIndex(Vram* vram, T_index idx)
 {
-  if (vram->ireg.at(static_cast<int>(IRegAddr::FILE_INDEX)) == idx) return false;
-
   vram->ireg[static_cast<int>(IRegAddr::FILE_INDEX)] = idx;
   vram->breg.setBit(static_cast<int>(BRegAddr::FILE_INDEX));
   return true;
@@ -98,8 +85,6 @@ bool UpdateFileIndex(Vram* vram, T_index idx)
 
 bool UpdateFileLabels(Vram* vram, T_strs labels)
 {
-  if (vram->file_labels == labels) return false;
-
   vram->file_labels = labels;
   vram->breg.setBit(static_cast<int>(BRegAddr::FILE_LABELS));
   return true;
@@ -107,8 +92,6 @@ bool UpdateFileLabels(Vram* vram, T_strs labels)
 
 bool UpdateFileStates(Vram* vram, T_states states)
 {
-  if (vram->file_states == states) return false;
-
   vram->file_states = states;
   vram->breg.setBit(static_cast<int>(BRegAddr::FILE_STATES));
   return true;
@@ -116,8 +99,6 @@ bool UpdateFileStates(Vram* vram, T_states states)
 
 bool UpdatePageIndex(Vram* vram, T_index idx)
 {
-  if (vram->ireg.at(static_cast<int>(IRegAddr::PAGE_INDEX)) == idx) return false;
-
   vram->ireg[static_cast<int>(IRegAddr::PAGE_INDEX)] = idx;
   vram->breg.setBit(static_cast<int>(BRegAddr::PAGE_INDEX));
   return true;
@@ -125,8 +106,6 @@ bool UpdatePageIndex(Vram* vram, T_index idx)
 
 bool UpdatePageLabels(Vram* vram, T_strs labels)
 {
-  if (vram->page_labels == labels) return false;
-
   vram->page_labels = labels;
   vram->breg.setBit(static_cast<int>(BRegAddr::PAGE_LABELS));
   return true;
@@ -134,8 +113,6 @@ bool UpdatePageLabels(Vram* vram, T_strs labels)
 
 bool UpdatePageStates(Vram* vram, T_states states)
 {
-  if (vram->page_states == states) return false;
-
   vram->page_states = states;
   vram->breg.setBit(static_cast<int>(BRegAddr::PAGE_STATES));
   return true;
@@ -150,8 +127,6 @@ bool UpdateStatusMessage(Vram* vram, const T_str& msg)
 
 bool UpdateWindowTitle(Vram* vram, const T_str& title)
 {
-  if (vram->sreg.at(static_cast<int>(SRegAddr::TITLE)) == title) return false;
-
   vram->sreg[static_cast<int>(SRegAddr::TITLE)] = title;
   vram->breg.setBit(static_cast<int>(BRegAddr::WINDOW_TITLE));
   return true;

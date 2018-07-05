@@ -123,6 +123,10 @@ private Q_SLOTS:
   void cleanupTestCase();
   void testCaseFileNew1();
   void testCaseBookAdd1();
+  void testCaseBookDelete1();
+  void testCaseBookChange1();
+  void testCaseBookMove1();
+  void testCaseBookRename1();
 };
 
 GpuTest::GpuTest():
@@ -186,6 +190,71 @@ void GpuTest::testCaseBookAdd1()
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
   VerifyBookTabLabels(T_strs{"test1"});
+  VerifyBookTabIndex(0);
+  VerifyPageListLabels(T_strs());
+  VerifyPageListIndex(-1);
+}
+
+void GpuTest::testCaseBookDelete1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->AddBook("test2");
+  dev_in->DeleteBook(0);
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::BOOK_DELETED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{"test2"});
+  VerifyBookTabIndex(0);
+  VerifyPageListLabels(T_strs());
+  VerifyPageListIndex(-1);
+}
+
+void GpuTest::testCaseBookChange1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->AddBook("test2");
+  dev_in->AddBook("test3");
+  dev_in->ChangeBook(1);
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::BOOK_CHANGED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{"test1", "test2", "test3"});
+  VerifyBookTabIndex(1);
+  VerifyPageListLabels(T_strs());
+  VerifyPageListIndex(-1);
+}
+
+void GpuTest::testCaseBookMove1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->AddBook("test2");
+  dev_in->AddBook("test3");
+  dev_in->MoveBook(0, 1);
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::BOOK_MOVED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{"test2", "test1", "test3"});
+  VerifyBookTabIndex(1);
+  VerifyPageListLabels(T_strs());
+  VerifyPageListIndex(-1);
+}
+
+void GpuTest::testCaseBookRename1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->RenameBook(0, "tested");
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::BOOK_RENAMED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{"tested"});
   VerifyBookTabIndex(0);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);

@@ -56,7 +56,6 @@ void Core::FromCpu(T_gpu_addr addr, T_ivec ivec, T_strs strs)
   auto result = Result::SUCCESS;
 
   if (_IsExistsAddr(addr, Addr::FLUSH)) {
-    qDebug() << "flush";
     result = ToFlushData();
     if (result == Result::SUCCESS) {
       ResetBReg(&vram);
@@ -89,7 +88,6 @@ void Core::FromCpu(T_gpu_addr addr, T_ivec ivec, T_strs strs)
     if (result != Result::SUCCESS) emit ToError(result);
   }
   if (_IsExistsAddr(addr, Addr::WINDOW)) {
-    qDebug() << "window";
     result = ToWindowData(addr, _strOf(strs));
     if (result != Result::SUCCESS) emit ToError(result);
   }
