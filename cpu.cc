@@ -274,7 +274,7 @@ T_str _statusMessageOf(T_cpu_addr addr)
   case Addr::FILE_SAVE: return MSG::FILE_SAVED;
   case Addr::FILE_SAVEAS: return MSG::FILE_SAVED;
   case Addr::PAGE_ADD: return MSG::PAGE_ADDED;
-  case Addr::PAGE_CHANGE: return MSG::PAGE_DELETED;
+  case Addr::PAGE_CHANGE: return MSG::PAGE_CHANGED;
   case Addr::PAGE_DELETE: return MSG::PAGE_DELETED;
   case Addr::PAGE_MOVE: return MSG::PAGE_MOVED;
   case Addr::PAGE_RENAME: return MSG::PAGE_RENAMED;
