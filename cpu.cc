@@ -439,7 +439,7 @@ T_cpu_result Core::ToDeleteBook(T_id fid, T_index idx)
   if (!RemoveBookIds(&ram, fid, bid, true)) return Result::INVALID_OPERATION;
 
   if (!IsValidBookId(&ram, fid, currentBookId(&ram, fid, true), true)) {
-    if (!UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, idx - 1), true))
+    if (!UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, idx - 1, false), true))
       return Result::INVALID_OPERATION;
   }
   if (!PushId(&ram, IdAddr::BOOK, bid)) return Result::INVALID_BOOKID;
@@ -521,8 +521,7 @@ T_cpu_result Core::ToGpuDataOfBookTab(T_submits submits)
 
   if (_IsExistsSubmit(submits, GPU::Addr::BOOKTAB_INDEX)) {
     auto bid = currentBookId(&ram, fid, false);
-    if (IsValidBookId(&ram, fid, bid, false))
-      idx = bookIndexOf(&ram, fid, currentBookId(&ram, fid, false), false);
+    idx = bookIndexOf(&ram, fid, bid, false);
   }
   if (_IsExistsSubmit(submits, GPU::Addr::BOOKTAB_LABELS))
     labels = bookLabelsOf(&ram, fid, false);

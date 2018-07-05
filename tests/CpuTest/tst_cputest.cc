@@ -238,11 +238,12 @@ void CpuTest::testCaseFileClose0()
 void CpuTest::testCaseFileClose1()
 {
   dev_in->NewFile();
+  dev_in->NewFile();
   dev_in->CloseFile(0);
-  VerifyFileSize(0);
-  VerifyFileIndex(-1);
-  VerifyFileLabels(T_strs());
-  T_states states(0);
+  VerifyFileSize(1);
+  VerifyFileIndex(0);
+  VerifyFileLabels(T_strs{DEFAULT::FILE_TITLE});
+  T_states states(1, true);
   VerifyFileStates(states);
 }
 
@@ -451,7 +452,7 @@ void CpuTest::testCasePageDelete1()
   dev_in->AddPage("test1");
   dev_in->AddPage("test2");
   dev_in->DeletePage(0);
-  VerifyPageIndex(-1);
+  VerifyPageIndex(0);
   VerifyPageLabels(T_strs{"test2"});
   VerifyPageSize(1);
   T_states st(1, true);

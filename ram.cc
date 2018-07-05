@@ -137,7 +137,7 @@ bool IsValidName(const T_str& s)
 bool IsValidPageId(const Ram* ram, T_id bid, T_id pid, bool is_validated, T_id fid)
 {
   return (is_validated || IsValidBookId(ram, fid, bid, false)) &&
-      _IsValidIndex(pid, ram->books.at(bid)->page_ids.size()) &&
+      _IsValidIndex(pid, ram->pages.size()) &&
       ram->books.at(bid)->page_ids.contains(pid);
 }
 

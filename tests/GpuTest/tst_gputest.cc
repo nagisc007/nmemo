@@ -74,6 +74,7 @@ public slots:
       booktab->setCurrentIndex(i.at(0));
     }
     if (_IsExists(addr, DEV::Addr::PAGELIST_LABELS)) {
+      pagelist->clear();
       pagelist->addItems(s);
     }
     if (_IsExists(addr, DEV::Addr::PAGELIST_INDEX)) {
@@ -109,6 +110,7 @@ public slots:
     QCOMPARE(booktab->currentIndex(), i);
   }
   void VerifyPageListLabels(T_strs strs) {
+    QCOMPARE(pagelist->count(), strs.size());
     for (int i = 0; i < strs.size(); ++i) {
       QCOMPARE(pagelist->item(i)->text(), strs.at(i));
     }
@@ -127,6 +129,11 @@ private Q_SLOTS:
   void testCaseBookChange1();
   void testCaseBookMove1();
   void testCaseBookRename1();
+  void testCasePageAdd1();
+  void testCasePageDelete1();
+  void testCasePageChange1();
+  void testCasePageMove1();
+  void testCasePageRename1();
 };
 
 GpuTest::GpuTest():
@@ -258,6 +265,53 @@ void GpuTest::testCaseBookRename1()
   VerifyBookTabIndex(0);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);
+}
+
+void GpuTest::testCasePageAdd1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::PAGE_ADDED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{"testbook"});
+  VerifyBookTabIndex(0);
+  VerifyPageListLabels(T_strs{"test1"});
+  VerifyPageListIndex(0);
+}
+
+void GpuTest::testCasePageDelete1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  dev_in->AddPage("test2");
+  dev_in->DeletePage(0);
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::PAGE_DELETED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{"testbook"});
+  VerifyBookTabIndex(0);
+  VerifyPageListLabels(T_strs{"test2"});
+  VerifyPageListIndex(0);
+}
+
+void GpuTest::testCasePageChange1()
+{
+
+}
+
+void GpuTest::testCasePageMove1()
+{
+
+}
+
+void GpuTest::testCasePageRename1()
+{
+
 }
 
 QTEST_MAIN(GpuTest)
