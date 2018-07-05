@@ -319,12 +319,36 @@ void GpuTest::testCasePageChange1()
 
 void GpuTest::testCasePageMove1()
 {
-
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  dev_in->AddPage("test2");
+  dev_in->AddPage("test3");
+  dev_in->MovePage(0, 1);
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::PAGE_MOVED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{"testbook"});
+  VerifyBookTabIndex(0);
+  VerifyPageListLabels(T_strs{"test2", "test1", "test3"});
+  VerifyPageListIndex(1);
 }
 
 void GpuTest::testCasePageRename1()
 {
-
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  dev_in->RenamePage(0, "tested");
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::PAGE_RENAMED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{"testbook"});
+  VerifyBookTabIndex(0);
+  VerifyPageListLabels(T_strs{"tested"});
+  VerifyPageListIndex(0);
 }
 
 QTEST_MAIN(GpuTest)
