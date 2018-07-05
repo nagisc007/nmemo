@@ -134,6 +134,8 @@ private Q_SLOTS:
   void testCasePageChange1();
   void testCasePageMove1();
   void testCasePageRename1();
+  void testCaseFileOpen1();
+  void testCaseFileSave1();
 };
 
 GpuTest::GpuTest():
@@ -186,6 +188,27 @@ void GpuTest::testCaseFileNew1()
   VerifyBookTabIndex(-1);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);
+}
+
+void GpuTest::testCaseFileOpen1()
+{
+  dev_in->OpenFile("test_memo1.memo");
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::FILE_OPENED);
+  VerifyFileTabLabels(T_strs{"test_memo1.memo"});
+  VerifyFileIndex(0);
+  VerifyBookTabLabels(T_strs{DEFAULT::BOOK_TITLE});
+  VerifyBookTabIndex(0);
+  VerifyPageListLabels(T_strs{"test1"});
+  VerifyPageListIndex(0);
+}
+
+void GpuTest::testCaseFileSave1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("testpage");
+  dev_in->SaveAsFile(0, "test_memo");
 }
 
 void GpuTest::testCaseBookAdd1()

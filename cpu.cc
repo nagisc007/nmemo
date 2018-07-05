@@ -46,7 +46,7 @@ QPair<T_strs, T_strs> _fileDataDecoded(T_strs data)
   // version check
   if (data.at(0) == COMMON::FILE_PREFIX) {
     auto version = data.at(1).toInt();
-    is_oldversion = version < COMMON::FILE_VERSION.toInt();
+    is_oldversion = version < COMMON::FILE_BASE_VERSION.toInt();
   } else {
     is_oldversion = true;
   }
