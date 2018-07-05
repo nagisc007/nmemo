@@ -62,6 +62,11 @@ public slots:
     if (_IsExists(addr, DEV::Addr::FILETAB_INDEX)) {
       filetab->setCurrentIndex(i.at(0));
     }
+    if (_IsExists(addr, DEV::Addr::FILETAB_STATES)) {
+      for (int i = 0; i < st.size(); ++i) {
+        filetab->setTabTextColor(i, st.at(i) ? Qt::black: Qt::red);
+      }
+    }
     if (_IsExists(addr, DEV::Addr::BOOKTAB_LABELS)) {
       while (booktab->count() > 0) {
         booktab->removeTab(0);
@@ -73,12 +78,22 @@ public slots:
     if (_IsExists(addr, DEV::Addr::BOOKTAB_INDEX)) {
       booktab->setCurrentIndex(i.at(0));
     }
+    if (_IsExists(addr, DEV::Addr::BOOKTAB_STATES)) {
+      for (int i = 0; i < st.size(); ++i) {
+        booktab->setTabTextColor(i, st.at(i) ? Qt::black: Qt::red);
+      }
+    }
     if (_IsExists(addr, DEV::Addr::PAGELIST_LABELS)) {
       pagelist->clear();
       pagelist->addItems(s);
     }
     if (_IsExists(addr, DEV::Addr::PAGELIST_INDEX)) {
       pagelist->setCurrentRow(i.at(0));
+    }
+    if (_IsExists(addr, DEV::Addr::PAGELIST_STATES)) {
+      for (int i = 0; i < st.size(); ++i) {
+        pagelist->item(i)->setForeground(QBrush(st.at(i) ? Qt::black: Qt::red));
+      }
     }
   }
   void FromCpuError(T_cpu_result r) {
@@ -101,6 +116,11 @@ public slots:
   void VerifyFileIndex(T_index i) {
     QCOMPARE(filetab->currentIndex(), i);
   }
+  void VerifyFileColors(T_states st) {
+    for (int i = 0; i < st.size(); ++i) {
+      QCOMPARE(filetab->tabTextColor(i), QColor(st.at(i) ? Qt::black: Qt::red));
+    }
+  }
   void VerifyBookTabLabels(T_strs strs) {
     for (int i = 0; i < strs.size(); ++i) {
       QCOMPARE(booktab->tabText(i), strs.at(i));
@@ -108,6 +128,11 @@ public slots:
   }
   void VerifyBookTabIndex(T_index i) {
     QCOMPARE(booktab->currentIndex(), i);
+  }
+  void VerifyBookColors(T_states st) {
+    for (int i = 0; i < st.size(); ++i) {
+      QCOMPARE(booktab->tabTextColor(i), QColor(st.at(i) ? Qt::black: Qt::red));
+    }
   }
   void VerifyPageListLabels(T_strs strs) {
     QCOMPARE(pagelist->count(), strs.size());
@@ -117,6 +142,12 @@ public slots:
   }
   void VerifyPageListIndex(T_index i) {
     QCOMPARE(pagelist->currentRow(), i);
+  }
+  void VerifyPageListColors(T_states st) {
+    for (int i = 0; i < st.size(); ++i) {
+      QCOMPARE(pagelist->item(i)->foreground(),
+               QBrush(st.at(i) ? Qt::black: Qt::red));
+    }
   }
 private Q_SLOTS:
   void init();
@@ -184,10 +215,16 @@ void GpuTest::testCaseFileNew1()
   VerifyStatusMessage(MSG::FILE_CREATED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states st(1, true);
+  VerifyFileColors(st);
   VerifyBookTabLabels(T_strs());
   VerifyBookTabIndex(-1);
+  T_states bst(0);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);
+  T_states pst(0);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCaseFileOpen1()
@@ -197,10 +234,16 @@ void GpuTest::testCaseFileOpen1()
   VerifyStatusMessage(MSG::FILE_OPENED);
   VerifyFileTabLabels(T_strs{"test_memo1.memo"});
   VerifyFileIndex(0);
+  T_states fst(1, false);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{DEFAULT::BOOK_TITLE});
   VerifyBookTabIndex(0);
+  T_states bst(1, false);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs{"test1"});
   VerifyPageListIndex(0);
+  T_states pst(1, false);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCaseFileSave1()
@@ -209,6 +252,20 @@ void GpuTest::testCaseFileSave1()
   dev_in->AddBook("testbook");
   dev_in->AddPage("testpage");
   dev_in->SaveAsFile(0, "test_memo");
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::FILE_SAVED);
+  VerifyFileTabLabels(T_strs{"test_memo.memo"});
+  VerifyFileIndex(0);
+  T_states fst(1, false);
+  VerifyFileColors(fst);
+  VerifyBookTabLabels(T_strs{"testbook"});
+  VerifyBookTabIndex(0);
+  T_states bst(1, false);
+  VerifyBookColors(bst);
+  VerifyPageListLabels(T_strs{"testpage"});
+  VerifyPageListIndex(0);
+  T_states pst(1, false);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCaseBookAdd1()
@@ -219,10 +276,16 @@ void GpuTest::testCaseBookAdd1()
   VerifyStatusMessage(MSG::BOOK_ADDED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"test1"});
   VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);
+  T_states pst(0);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCaseBookDelete1()
@@ -235,10 +298,16 @@ void GpuTest::testCaseBookDelete1()
   VerifyStatusMessage(MSG::BOOK_DELETED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"test2"});
   VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);
+  T_states pst(0);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCaseBookChange1()
@@ -252,10 +321,16 @@ void GpuTest::testCaseBookChange1()
   VerifyStatusMessage(MSG::BOOK_CHANGED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"test1", "test2", "test3"});
   VerifyBookTabIndex(1);
+  T_states bst(3, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);
+  T_states pst(0);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCaseBookMove1()
@@ -269,10 +344,16 @@ void GpuTest::testCaseBookMove1()
   VerifyStatusMessage(MSG::BOOK_MOVED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"test2", "test1", "test3"});
   VerifyBookTabIndex(1);
+  T_states bst(3, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);
+  T_states pst(0);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCaseBookRename1()
@@ -284,10 +365,16 @@ void GpuTest::testCaseBookRename1()
   VerifyStatusMessage(MSG::BOOK_RENAMED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"tested"});
   VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs());
   VerifyPageListIndex(-1);
+  T_states pst(0);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCasePageAdd1()
@@ -299,10 +386,16 @@ void GpuTest::testCasePageAdd1()
   VerifyStatusMessage(MSG::PAGE_ADDED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"testbook"});
   VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs{"test1"});
   VerifyPageListIndex(0);
+  T_states pst(1, true);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCasePageDelete1()
@@ -316,10 +409,16 @@ void GpuTest::testCasePageDelete1()
   VerifyStatusMessage(MSG::PAGE_DELETED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"testbook"});
   VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs{"test2"});
   VerifyPageListIndex(0);
+  T_states pst(1, true);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCasePageChange1()
@@ -334,10 +433,16 @@ void GpuTest::testCasePageChange1()
   VerifyStatusMessage(MSG::PAGE_CHANGED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"testbook"});
   VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs{"test1", "test2", "test3"});
   VerifyPageListIndex(1);
+  T_states pst(3, true);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCasePageMove1()
@@ -352,10 +457,16 @@ void GpuTest::testCasePageMove1()
   VerifyStatusMessage(MSG::PAGE_MOVED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"testbook"});
   VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs{"test2", "test1", "test3"});
   VerifyPageListIndex(1);
+  T_states pst(3, true);
+  VerifyPageListColors(pst);
 }
 
 void GpuTest::testCasePageRename1()
@@ -368,10 +479,16 @@ void GpuTest::testCasePageRename1()
   VerifyStatusMessage(MSG::PAGE_RENAMED);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
   VerifyBookTabLabels(T_strs{"testbook"});
   VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
   VerifyPageListLabels(T_strs{"tested"});
   VerifyPageListIndex(0);
+  T_states pst(1, true);
+  VerifyPageListColors(pst);
 }
 
 QTEST_MAIN(GpuTest)
