@@ -120,80 +120,104 @@ T_submits _submitsOf(T_cpu_addr addr)
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::BOOK_CHANGE:
     return _submitsCombined(GPU::Addr::BOOKTAB_INDEX,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::BOOK_DELETE:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::BOOK_MOVE:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
-                            GPU::Addr::BOOKTAB_ALL);
+                            GPU::Addr::BOOKTAB_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::BOOK_RENAME:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
-                            GPU::Addr::BOOKTAB_LABELS);
+                            GPU::Addr::BOOKTAB_LABELS,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::BOOK_SORT:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
-                            GPU::Addr::BOOKTAB_ALL);
+                            GPU::Addr::BOOKTAB_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_CHANGE:
     return _submitsCombined(GPU::Addr::FILETAB_INDEX,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::WINDOW_TITLE,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_CLOSE:
     return _submitsCombined(GPU::Addr::FILETAB_ALL,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::WINDOW_TITLE,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_NEW:
     return _submitsCombined(GPU::Addr::FILETAB_ALL,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::WINDOW_TITLE,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_OPEN:
     return _submitsCombined(GPU::Addr::FILETAB_ALL,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::WINDOW_TITLE,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_MOVE:
-    return _submitsCombined(GPU::Addr::FILETAB_ALL);
+    return _submitsCombined(GPU::Addr::FILETAB_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_RENAME:
-    return _submitsCombined(GPU::Addr::FILETAB_LABELS);
+    return _submitsCombined(GPU::Addr::FILETAB_LABELS,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_SAVE:
   case Addr::FILE_SAVEAS:
     return _submitsCombined(GPU::Addr::FILETAB_LABELS,
                             GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
-                            GPU::Addr::PAGELIST_STATES);
+                            GPU::Addr::PAGELIST_STATES,
+                            GPU::Addr::WINDOW_TITLE,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_ADD:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_CHANGE:
     return _submitsCombined(GPU::Addr::PAGELIST_INDEX,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_DELETE:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL);
+                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_MOVE:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
-                            GPU::Addr::PAGELIST_ALL);
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_RENAME:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
-                            GPU::Addr::PAGELIST_LABELS);
+                            GPU::Addr::PAGELIST_LABELS,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_SORT:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
-                            GPU::Addr::PAGELIST_ALL);
+                            GPU::Addr::PAGELIST_ALL,
+                            GPU::Addr::STATUS_MESSAGE);
   case Addr::TEXT_MODIFY:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
@@ -494,17 +518,16 @@ T_cpu_result Core::ToGpuDataOfBookTab(T_submits submits)
   T_states states;
   auto fid = currentFileId(&ram);
   // NOTE: when invalid fid, show default booktab
-  bool is_default = !IsValidFileId(&ram, fid);
 
-  if (!is_default && _IsExistsSubmit(submits, GPU::Addr::BOOKTAB_INDEX)) {
-    auto bid = currentBookId(&ram, fid, true);
-    if (IsValidBookId(&ram, fid, bid, true))
-      idx = bookIndexOf(&ram, fid, currentBookId(&ram, fid, true), true);
+  if (_IsExistsSubmit(submits, GPU::Addr::BOOKTAB_INDEX)) {
+    auto bid = currentBookId(&ram, fid, false);
+    if (IsValidBookId(&ram, fid, bid, false))
+      idx = bookIndexOf(&ram, fid, currentBookId(&ram, fid, false), false);
   }
-  if (!is_default && _IsExistsSubmit(submits, GPU::Addr::BOOKTAB_LABELS))
-    labels = bookLabelsOf(&ram, fid, true);
-  if (!is_default && _IsExistsSubmit(submits, GPU::Addr::BOOKTAB_STATES))
-    states = bookStatesOf(&ram, fid, true);
+  if (_IsExistsSubmit(submits, GPU::Addr::BOOKTAB_LABELS))
+    labels = bookLabelsOf(&ram, fid, false);
+  if (_IsExistsSubmit(submits, GPU::Addr::BOOKTAB_STATES))
+    states = bookStatesOf(&ram, fid, false);
 
   emit ToGpu(_gpuAddrFetched(submits, GPU::Addr::BOOKTAB_ALL),
              _ivecCompressred(idx, states), labels);

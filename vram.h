@@ -17,7 +17,7 @@ struct Vram
 {
   Vram();
   // members
-  QVector<bool> breg;
+  T_states breg;
   QVector<int> ireg;
   T_strs sreg;
   T_strs file_labels;
@@ -63,6 +63,7 @@ enum class SRegAddr {
 const int SREG_SIZE = 3;
 
 // controls
+void ResetBReg(Vram*);
 bool UpdateFileIndex(Vram*, T_index);
 bool UpdateBookIndex(Vram*, T_index);
 bool UpdatePageIndex(Vram*, T_index);
