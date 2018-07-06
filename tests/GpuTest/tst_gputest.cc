@@ -183,6 +183,7 @@ private Q_SLOTS:
   void testCaseBookDelete1();
   void testCaseBookChange0();
   void testCaseBookChange1();
+  void testCaseBookChange2();
   void testCaseBookMove0();
   void testCaseBookMove1();
   void testCaseBookRename0();
@@ -198,6 +199,7 @@ private Q_SLOTS:
   void testCasePageRename0();
   void testCasePageRename1();
   void testCaseTextModify1();
+  void testCaseTextModify2();
   void testCaseFileOpen1();
   void testCaseFileSave1();
 };
@@ -266,6 +268,8 @@ void GpuTest::testCaseFileNew1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseFileClose0()
@@ -284,6 +288,8 @@ void GpuTest::testCaseFileClose0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseFileClose1()
@@ -304,6 +310,8 @@ void GpuTest::testCaseFileClose1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseFileOpen1()
@@ -323,6 +331,8 @@ void GpuTest::testCaseFileOpen1()
   VerifyPageListIndex(0);
   T_states pst(1, false);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
 }
 
 void GpuTest::testCaseFileSave1()
@@ -345,6 +355,8 @@ void GpuTest::testCaseFileSave1()
   VerifyPageListIndex(0);
   T_states pst(1, false);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
 }
 
 void GpuTest::testCaseFileChange0()
@@ -363,6 +375,8 @@ void GpuTest::testCaseFileChange0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseFileChange1()
@@ -385,6 +399,8 @@ void GpuTest::testCaseFileChange1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseFileMove0()
@@ -403,6 +419,8 @@ void GpuTest::testCaseFileMove0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseFileMove1()
@@ -425,6 +443,8 @@ void GpuTest::testCaseFileMove1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseFileRename0()
@@ -443,6 +463,8 @@ void GpuTest::testCaseFileRename0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseFileRename1()
@@ -463,6 +485,8 @@ void GpuTest::testCaseFileRename1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookAdd0()
@@ -481,6 +505,8 @@ void GpuTest::testCaseBookAdd0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookAdd1()
@@ -501,6 +527,8 @@ void GpuTest::testCaseBookAdd1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookDelete0()
@@ -520,6 +548,8 @@ void GpuTest::testCaseBookDelete0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookDelete1()
@@ -542,6 +572,8 @@ void GpuTest::testCaseBookDelete1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookChange0()
@@ -561,6 +593,8 @@ void GpuTest::testCaseBookChange0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookChange1()
@@ -584,6 +618,48 @@ void GpuTest::testCaseBookChange1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
+}
+
+void GpuTest::testCaseBookChange2()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("test1");
+  dev_in->AddPage("page1-1");
+  dev_in->AddPage("page1-2");
+  dev_in->AddBook("test2");
+  dev_in->AddPage("page2-1");
+  dev_in->AddPage("page2-2");
+  dev_in->AddBook("test3");
+  dev_in->AddPage("page3-1");
+  dev_in->AddPage("page3-2");
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyStatusMessage(MSG::PAGE_ADDED);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
+  VerifyBookTabLabels(T_strs{"test1", "test2", "test3"});
+  VerifyBookTabIndex(2);
+  T_states bst(3, true);
+  VerifyBookColors(bst);
+  VerifyPageListLabels(T_strs{"page3-1", "page3-2"});
+  VerifyPageListIndex(1);
+  T_states pst(2, true);
+  VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
+
+  dev_in->ChangeBook(0);
+  VerifyBookTabLabels(T_strs{"test1", "test2", "test3"});
+  VerifyBookTabIndex(0);
+  VerifyBookColors(bst);
+  VerifyPageListLabels(T_strs{"page1-1", "page1-2"});
+  VerifyPageListIndex(1);
+  VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
 }
 
 void GpuTest::testCaseBookMove0()
@@ -603,6 +679,8 @@ void GpuTest::testCaseBookMove0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookMove1()
@@ -626,6 +704,8 @@ void GpuTest::testCaseBookMove1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookRename0()
@@ -645,6 +725,8 @@ void GpuTest::testCaseBookRename0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCaseBookRename1()
@@ -666,6 +748,8 @@ void GpuTest::testCaseBookRename1()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCasePageAdd0()
@@ -685,6 +769,8 @@ void GpuTest::testCasePageAdd0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCasePageAdd1()
@@ -706,6 +792,8 @@ void GpuTest::testCasePageAdd1()
   VerifyPageListIndex(0);
   T_states pst(1, true);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
 }
 
 void GpuTest::testCasePageDelete0()
@@ -726,6 +814,8 @@ void GpuTest::testCasePageDelete0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCasePageDelete1()
@@ -749,6 +839,8 @@ void GpuTest::testCasePageDelete1()
   VerifyPageListIndex(0);
   T_states pst(1, true);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
 }
 
 void GpuTest::testCasePageChange0()
@@ -769,6 +861,8 @@ void GpuTest::testCasePageChange0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCasePageChange1()
@@ -793,6 +887,8 @@ void GpuTest::testCasePageChange1()
   VerifyPageListIndex(1);
   T_states pst(3, true);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
 }
 
 void GpuTest::testCasePageMove0()
@@ -813,6 +909,8 @@ void GpuTest::testCasePageMove0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCasePageMove1()
@@ -837,6 +935,8 @@ void GpuTest::testCasePageMove1()
   VerifyPageListIndex(1);
   T_states pst(3, true);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
 }
 
 void GpuTest::testCasePageRename0()
@@ -857,6 +957,8 @@ void GpuTest::testCasePageRename0()
   VerifyPageListIndex(-1);
   T_states pst(0);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(true);
+  VerifyEditorText(DEFAULT::PAGE_CAUTION_TEXT);
 }
 
 void GpuTest::testCasePageRename1()
@@ -879,6 +981,8 @@ void GpuTest::testCasePageRename1()
   VerifyPageListIndex(0);
   T_states pst(1, true);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
 }
 
 void GpuTest::testCaseTextModify1()
@@ -900,6 +1004,42 @@ void GpuTest::testCaseTextModify1()
   VerifyPageListIndex(0);
   T_states pst(1, true);
   VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText("testtext");
+
+  dev_in->ModifyText("testtext tested");
+  VerifyEditorReadOnly(false);
+  VerifyEditorText("testtext tested");
+}
+
+void GpuTest::testCaseTextModify2()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("test1");
+  dev_in->AddPage("test2");
+  dev_in->ModifyText("testtext");
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
+  VerifyBookTabLabels(T_strs{"testbook"});
+  VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
+  VerifyPageListLabels(T_strs{"test1", "test2"});
+  VerifyPageListIndex(1);
+  T_states pst(1, true);
+  VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText("testtext");
+
+  dev_in->ChangePage(0);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText(DEFAULT::PAGE_TEXT);
+
+  dev_in->ChangePage(1);
   VerifyEditorReadOnly(false);
   VerifyEditorText("testtext");
 }
