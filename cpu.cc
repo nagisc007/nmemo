@@ -120,18 +120,18 @@ T_submits _submitsOf(T_cpu_addr addr)
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::EDITOR_READONLY,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::BOOK_CHANGE:
     return _submitsCombined(GPU::Addr::BOOKTAB_INDEX,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::EDITOR_READONLY,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::BOOK_DELETE:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::EDITOR_READONLY,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::BOOK_MOVE:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
@@ -149,14 +149,14 @@ T_submits _submitsOf(T_cpu_addr addr)
     return _submitsCombined(GPU::Addr::FILETAB_INDEX,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::EDITOR_READONLY,
                             GPU::Addr::WINDOW_TITLE,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_CLOSE:
     return _submitsCombined(GPU::Addr::FILETAB_ALL,
                             GPU::Addr::BOOKTAB_ALL,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::EDITOR_READONLY,
                             GPU::Addr::WINDOW_TITLE,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::FILE_NEW:
@@ -191,17 +191,17 @@ T_submits _submitsOf(T_cpu_addr addr)
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::EDITOR_READONLY,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_CHANGE:
     return _submitsCombined(GPU::Addr::PAGELIST_INDEX,
-                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::EDITOR_READONLY,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_DELETE:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
                             GPU::Addr::PAGELIST_ALL,
-                            GPU::Addr::EDITOR_ALL,
+                            GPU::Addr::EDITOR_READONLY,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::PAGE_MOVE:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
@@ -219,7 +219,7 @@ T_submits _submitsOf(T_cpu_addr addr)
                             GPU::Addr::PAGELIST_ALL,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::TEXT_MODIFY:
-    return _submitsCombined(GPU::Addr::FILETAB_STATES,
+    return _submitsCombined(GPU::Addr::NOP,
                             GPU::Addr::BOOKTAB_STATES,
                             GPU::Addr::PAGELIST_STATES);
   case Addr::TEXT_UPDATE:
@@ -644,9 +644,9 @@ T_cpu_result Core::ToModifyText(T_id fid, T_id bid, T_id pid)
   if (!IsValidBookId(&ram, fid, bid, true)) return Result::INVALID_BOOKID;
   if (!IsValidPageId(&ram, bid, pid, true)) return Result::INVALID_PAGEID;
 
-  if (!fileModified(&ram, fid, true) ||
-      !bookModified(&ram, bid, true) ||
-      !pageModified(&ram, pid, true)) {
+  if (fileModified(&ram, fid, true) &&
+      bookModified(&ram, bid, true) &&
+      pageModified(&ram, pid, true)) {
     return Result::SUCCESS_NOEFFECTED;
   }
 

@@ -63,6 +63,7 @@ public:
   bool InitWidgets();
   bool InitConnections();
   // stream
+  bool ToCheckUIandUpdateText();
 
 signals:
   void ToCpu(T_cpu_addr, int i = -1, T_str s = T_str());
