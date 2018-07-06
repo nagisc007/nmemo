@@ -17,6 +17,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMainWindow>
+#include <QMutex>
 #include <QScrollBar>
 #include <QTabBar>
 #include <QTextEdit>
@@ -35,6 +36,7 @@ struct MainReg {
   // members
   T_str filter;
   T_str dirname;
+  bool ui_updating;
 };
 
 // class: MainWindow
@@ -56,6 +58,7 @@ public:
   QScopedPointer<GPU::Core> gpu;
   QScopedPointer<QThread> cpu_th;
   QScopedPointer<QThread> gpu_th;
+  QMutex mutex;
   // methods
   bool InitWidgets();
   bool InitConnections();

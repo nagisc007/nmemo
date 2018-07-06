@@ -8,6 +8,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QBrush>
 #include <QDebug>
 #include <QDir>
 #include <QFileDialog>
@@ -23,6 +24,11 @@ const T_str _FILE_SAVEAS_TITLE = "Save the file as a name";
 const T_str _FILE_SAVEAS_CAPTION = "Input a new name for saving this file";
 const int _PAGELIST_MAXWIDTH = 120;
 const qreal _EDITOR_TABDISTANCE = 40;
+
+bool _IsExistsAddr(T_dev_addr addr, T_dev_addr target)
+{
+  return (static_cast<int>(addr) & static_cast<int>(target)) != 0;
+}
 
 T_str _filePathOpened(QWidget* parent, const T_str& caption, const T_str& path,
                       const T_str& filter, T_str* selected)
@@ -41,12 +47,46 @@ int _fromWithTo(T_index from, T_index to)
   return static_cast<int>(from) << 8 | static_cast<int>(to);
 }
 
+bool _SwapTabLabels(QTabBar* tab, T_strs strs)
+{
+  while (tab->count() > 0)
+    tab->removeTab(0);
+  for (auto& v: strs)
+    tab->addTab(v);
+
+  return true;
+}
+
+bool _SwapListWidgetLabels(QListWidget* list, T_strs strs)
+{
+  list->clear();
+  list->addItems(strs);
+  return true;
+}
+
+bool _ChangeTabColors(QTabBar* tab, T_states states)
+{
+  for (int i = 0; i < states.size(); ++i) {
+    tab->setTabTextColor(i, states.at(i) ? Qt::black: Qt::red);
+  }
+  return true;
+}
+
+bool _ChangeListWidgetColors(QListWidget* list, T_states states)
+{
+  for (int i = 0; i < states.size(); ++i) {
+    list->item(i)->setForeground(QBrush(states.at(i) ? Qt::black: Qt::red));
+  }
+  return true;
+}
+
 }  // inner global
 
 // struct: MainReg
 MainReg::MainReg():
   filter(DEFAULT::SELECTED_FILTER),
-  dirname(QDir::currentPath())
+  dirname(QDir::currentPath()),
+  ui_updating(false)
 {}
 
 // class: Mainwindow
@@ -166,43 +206,51 @@ auto MainWindow::InitConnections() -> bool
 // filetab
 void MainWindow::OnFileTabCurrentChanged(const T_index index)
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_CHANGE, index);
 }
 
 void MainWindow::OnFileTabCloseRequested(const T_index index)
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_CLOSE, index);
 }
 
 void MainWindow::OnFileTabMoved(const T_index from, const T_index to)
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_MOVE, _fromWithTo(from, to));
 }
 
 // booktab
 void MainWindow::OnBookTabCurrentChanged(const T_index index)
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_CHANGE, index);
 }
 
 void MainWindow::OnBookTabCloseRequested(const T_index index)
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_DELETE, index);
 }
 
 void MainWindow::OnBookTabMoved(const T_index from, const T_index to)
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_MOVE, _fromWithTo(from, to));
 }
 
 // pagelist
 void MainWindow::OnPageListCurrentRowChanged(const T_index index)
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_CHANGE, index);
 }
 
 void MainWindow::OnPageListItemDoubleClicked(const T_item* item)
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_RENAME, pagelist->row(item),
              _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
                            item->text()));
@@ -211,34 +259,163 @@ void MainWindow::OnPageListItemDoubleClicked(const T_item* item)
 /* slots: Editor */
 void MainWindow::OnEditorTextChanged()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::TEXT_MODIFY, 0, editor->toPlainText());
 }
 
 // slots
-void MainWindow::FromCpuError(T_cpu_result)
+void MainWindow::FromCpuError(T_cpu_result res)
 {
-
+  qDebug() << "CPU Error: " << static_cast<int>(res);
 }
 
-void MainWindow::FromGpu(T_dev_addr, T_ivec, T_strs, T_states)
+void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states states)
 {
+  if (_IsExistsAddr(addr, DEV::Addr::EDITOR)) {
+    qDebug() << "from gpu: " <<static_cast<int>(addr) << "|"<< ivec.size() << "|"<<strs << "|"<<states.size();
+    if (_IsExistsAddr(addr, DEV::Addr::EDITOR_TEXT)) {
+      qDebug() << "editor text";
+    }
+  }
 
+  // window
+  if (_IsExistsAddr(addr, DEV::Addr::WINDOW_TITLE)) {
+    qDebug() << "window";
+    mutex.lock();
+    reg.ui_updating = true;
+    setWindowTitle(strs.at(0));
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+
+  // filetab
+  if (_IsExistsAddr(addr, DEV::Addr::FILETAB_LABELS)) {
+    qDebug() << "filetab: labels";
+    mutex.lock();
+    reg.ui_updating = true;
+    while (filetab->count() > 0)
+      filetab->removeTab(0);
+    for (auto& v: strs)
+      filetab->addTab(v);
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  if (_IsExistsAddr(addr, DEV::Addr::FILETAB_INDEX)) {
+    qDebug() << "filetab: index";
+    mutex.lock();
+    reg.ui_updating = true;
+    filetab->setCurrentIndex(ivec.at(0));
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  if (_IsExistsAddr(addr, DEV::Addr::FILETAB_STATES)) {
+    qDebug() << "filetab: states";
+    mutex.lock();
+    reg.ui_updating = true;
+    for (int i = 0; i < states.size(); ++i) {
+      filetab->setTabTextColor(i, states.at(i) ? Qt::black: Qt::red);
+    }
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  // booktab
+  if (_IsExistsAddr(addr, DEV::Addr::BOOKTAB_LABELS)) {
+    qDebug() << "booktab: label:"<<strs.size();
+    mutex.lock();
+    reg.ui_updating = true;
+    while (booktab->count() > 0)
+      booktab->removeTab(0);
+    for (auto& v: strs)
+      booktab->addTab(v);
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  if (_IsExistsAddr(addr, DEV::Addr::BOOKTAB_INDEX)) {
+    qDebug() << "booktab: index:"<<ivec.at(0);
+    mutex.lock();
+    reg.ui_updating = true;
+    booktab->setCurrentIndex(ivec.at(0));
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  if (_IsExistsAddr(addr, DEV::Addr::BOOKTAB_STATES)) {
+    qDebug() << "booktab: states:"<<states.size();
+    mutex.lock();
+    reg.ui_updating = true;
+    for (int i = 0; i < states.size(); ++i) {
+      booktab->setTabTextColor(i, states.at(i) ? Qt::black: Qt::red);
+    }
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  // pagelist
+  if (_IsExistsAddr(addr, DEV::Addr::PAGELIST_LABELS)) {
+    mutex.lock();
+    reg.ui_updating = true;
+    pagelist->clear();
+    pagelist->addItems(strs);
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  if (_IsExistsAddr(addr, DEV::Addr::PAGELIST_INDEX)) {
+    mutex.lock();
+    reg.ui_updating = true;
+    pagelist->setCurrentRow(ivec.at(0));
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  if (_IsExistsAddr(addr, DEV::Addr::PAGELIST_STATES)) {
+    mutex.lock();
+    reg.ui_updating = true;
+    for (int i = 0; i < states.size(); ++i) {
+      pagelist->item(i)->setForeground(QBrush(states.at(i) ? Qt::black: Qt::red));
+    }
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  // editor
+  if (_IsExistsAddr(addr, DEV::Addr::EDITOR_READONLY)) {
+    mutex.lock();
+    reg.ui_updating = true;
+    editor->setReadOnly(ivec.at(0));
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  if (_IsExistsAddr(addr, DEV::Addr::EDITOR_TEXT)) {
+    qDebug() << "editor text too";
+    mutex.lock();
+    reg.ui_updating = true;
+    editor->setText(strs.at(0));
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  // statusbar
+  if (_IsExistsAddr(addr, DEV::Addr::STATUS_MESSAGE)) {
+    mutex.lock();
+    reg.ui_updating = true;
+    statusBar()->showMessage(strs.at(0), DEFAULT::STATUS_MESSAGE_TIME);
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
+  qDebug() << "from gpu out";
 }
 
-void MainWindow::FromGpuError(T_gpu_result)
+void MainWindow::FromGpuError(T_gpu_result res)
 {
-
+  qDebug() << "GPU Error: " << static_cast<int>(res);
 }
 
 // slots: menus
 void MainWindow::on_fileNew_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_NEW, 0,
              _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION, DEFAULT::FILE_TITLE));
 }
 
 void MainWindow::on_fileOpen_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_OPEN, 0,
              _filePathOpened(this, _FILE_OPEN_CAPTION, reg.dirname, COMMON::FILE_FILTER,
                              &reg.dirname));
@@ -246,11 +423,13 @@ void MainWindow::on_fileOpen_triggered()
 
 void MainWindow::on_fileSave_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_SAVE, filetab->currentIndex());
 }
 
 void MainWindow::on_fileSaveAs_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_SAVEAS, filetab->currentIndex(),
              _nameInputted(this, _FILE_SAVEAS_TITLE, _FILE_SAVEAS_CAPTION,
                            filetab->tabText(filetab->currentIndex())));
@@ -258,6 +437,7 @@ void MainWindow::on_fileSaveAs_triggered()
 
 void MainWindow::on_fileRename_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_RENAME, filetab->currentIndex(),
              _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
                            filetab->tabText(filetab->currentIndex())));
@@ -265,58 +445,69 @@ void MainWindow::on_fileRename_triggered()
 
 void MainWindow::on_fileClose_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_CLOSE, filetab->currentIndex());
 }
 
 void MainWindow::on_appQuit_triggered()
 {
+  if (reg.ui_updating) return;
   close();
 }
 
 void MainWindow::on_editUndo_triggered()
 {
+  if (reg.ui_updating) return;
   if (editor->isReadOnly()) return;
   editor->undo();
 }
 
 void MainWindow::on_editRedo_triggered()
 {
+  if (reg.ui_updating) return;
   if (editor->isReadOnly()) return;
   editor->redo();
 }
 
 void MainWindow::on_editCut_triggered()
 {
+  if (reg.ui_updating) return;
   if (editor->isReadOnly()) return;
   editor->cut();
 }
 
 void MainWindow::on_editCopy_triggered()
 {
+  if (reg.ui_updating) return;
   if (editor->isReadOnly()) return;
   editor->copy();
 }
 
 void MainWindow::on_editPaste_triggered()
 {
+  if (reg.ui_updating) return;
   if (editor->isReadOnly()) return;
   editor->paste();
 }
 
 void MainWindow::on_editErase_triggered()
 {
+  if (reg.ui_updating) return;
   if (editor->isReadOnly()) return;
   editor->textCursor().removeSelectedText();
 }
 
 void MainWindow::on_editSelectAll_triggered()
 {
+  if (reg.ui_updating) return;
   if (editor->isReadOnly()) return;
   editor->selectAll();
 }
 
 void MainWindow::on_bookAdd_triggered()
 {
+  if (reg.ui_updating) return;
+
   emit ToCpu(CPU::Addr::BOOK_ADD, 0,
              _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
                            DEFAULT::BOOK_TITLE));
@@ -324,11 +515,13 @@ void MainWindow::on_bookAdd_triggered()
 
 void MainWindow::on_bookDelete_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_DELETE, booktab->currentIndex());
 }
 
 void MainWindow::on_bookRename_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_RENAME, booktab->currentIndex(),
              _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
                            booktab->tabText(booktab->currentIndex())));
@@ -336,39 +529,46 @@ void MainWindow::on_bookRename_triggered()
 
 void MainWindow::on_bookMoveNext_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_MOVE,
              _fromWithTo(booktab->currentIndex(), booktab->currentIndex() + 1));
 }
 
 void MainWindow::on_bookMovePrevious_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_MOVE,
              _fromWithTo(booktab->currentIndex(), booktab->currentIndex() - 1));
 }
 
 void MainWindow::on_booksSortAtoZ_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_SORT, Qt::AscendingOrder);
 }
 
 void MainWindow::on_booksSortZtoA_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_SORT, Qt::DescendingOrder);
 }
 
 void MainWindow::on_pageAdd_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_ADD, 0,
              _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION, DEFAULT::PAGE_TITLE));
 }
 
 void MainWindow::on_pageDelete_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_DELETE, pagelist->currentRow());
 }
 
 void MainWindow::on_pageRename_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_RENAME, pagelist->currentRow(),
              _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
                            pagelist->item(pagelist->currentRow())->text()));
@@ -376,28 +576,33 @@ void MainWindow::on_pageRename_triggered()
 
 void MainWindow::on_pageMoveNext_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_MOVE,
              _fromWithTo(pagelist->currentRow(), pagelist->currentRow() + 1));
 }
 
 void MainWindow::on_pageMovePrevious_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_MOVE,
              _fromWithTo(pagelist->currentRow(), pagelist->currentRow() - 1));
 }
 
 void MainWindow::on_pagesSortAtoZ_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_SORT, Qt::AscendingOrder);
 }
 
 void MainWindow::on_pagesSortZtoA_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_SORT, Qt::DescendingOrder);
 }
 
 void MainWindow::on_toggleFullscreen_triggered()
 {
+  if (reg.ui_updating) return;
   if (isFullScreen()) {
     ui->toggleFullscreen->setChecked(false);
     showNormal();
@@ -409,41 +614,49 @@ void MainWindow::on_toggleFullscreen_triggered()
 
 void MainWindow::on_fileChangeNext_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_CHANGE, filetab->currentIndex() + 1);
 }
 
 void MainWindow::on_fileChangePrevious_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::FILE_CHANGE, filetab->currentIndex() - 1);
 }
 
 void MainWindow::on_bookChangeNext_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_CHANGE, booktab->currentIndex() + 1);
 }
 
 void MainWindow::on_bookChangePrevious_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::BOOK_CHANGE, booktab->currentIndex() - 1);
 }
 
 void MainWindow::on_pageChangeNext_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_CHANGE, pagelist->currentRow() + 1);
 }
 
 void MainWindow::on_pageChangePrevious_triggered()
 {
+  if (reg.ui_updating) return;
   emit ToCpu(CPU::Addr::PAGE_CHANGE, pagelist->currentRow() - 1);
 }
 
 void MainWindow::on_appAboutQt_triggered()
 {
+  if (reg.ui_updating) return;
   QMessageBox::aboutQt(this);
 }
 
 void MainWindow::on_appAboutApp_triggered()
 {
+  if (reg.ui_updating) return;
   auto title = QString("About %1")
       .arg(APP::NAME);
   auto msg = QString("<h3>About %1 %2</h3><p>%3<br>Licensed by %4.<br>%5</p><p>%6</p>")
