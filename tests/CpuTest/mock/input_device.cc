@@ -61,9 +61,9 @@ void Input::DeletePage(T_index i)
   emit ToCpu(CPU::Addr::PAGE_DELETE, i, T_str());
 }
 
-void Input::ModifyText(T_str text)
+void Input::ModifyText()
 {
-  emit ToCpu(CPU::Addr::TEXT_MODIFY, 0, text);
+  emit ToCpu(CPU::Addr::TEXT_MODIFY, 0, T_str());
 }
 
 void Input::MoveBook(T_index from, T_index to)
@@ -81,9 +81,9 @@ void Input::MovePage(T_index from, T_index to)
   emit ToCpu(CPU::Addr::PAGE_MOVE, (from << 8) | to, T_str());
 }
 
-void Input::NewFile()
+void Input::NewFile(T_str s)
 {
-  emit ToCpu(CPU::Addr::FILE_NEW, 0, T_str());
+  emit ToCpu(CPU::Addr::FILE_NEW, 0, s);
 }
 
 void Input::OpenFile(T_str s)
@@ -114,6 +114,11 @@ void Input::SaveFile(T_index i)
 void Input::SaveAsFile(T_index i, T_str path)
 {
   emit ToCpu(CPU::Addr::FILE_SAVEAS, i, path);
+}
+
+void Input::UpdateText(T_str text)
+{
+  emit ToCpu(CPU::Addr::TEXT_UPDATE, 0, text);
 }
 
 }  // ns DEV

@@ -112,6 +112,9 @@ T_str pageTextOf(const Ram*, T_id, bool is_validated = true, T_id fid = -1, T_id
 T_states fileStatesOf(const Ram*);
 T_states bookStatesOf(const Ram*, T_id, bool is_validated = true);
 T_states pageStatesOf(const Ram*, T_id, bool is_validated = true, T_id fid = -1);
+bool fileModified(const Ram*, T_id, bool is_validated = true);
+bool bookModified(const Ram*, T_id, bool is_validated = true, T_id fid = -1);
+bool pageModified(const Ram*, T_id, bool is_validated = true, T_id fid = -1, T_id bid = -1);
 bool UpdateCurrentFileId(Ram*, T_id);
 bool UpdateCurrentBookId(Ram*, T_id, T_id, bool is_validated = true);
 bool UpdateCurrentPageId(Ram*, T_id, T_id, bool is_validated = true, T_id fid = -1);

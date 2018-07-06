@@ -182,6 +182,12 @@ T_strs bookLabelsOf(const Ram* ram, T_id fid, bool is_validated)
   return res;
 }
 
+bool bookModified(const Ram* ram, T_id bid, bool is_validated, T_id fid)
+{
+  return is_validated || IsValidBookId(ram, fid, bid, false) ?
+        ram->books.at(bid)->modified: false;
+}
+
 T_states bookStatesOf(const Ram* ram, T_id fid, bool is_validated)
 {
   if (!is_validated && !IsValidFileId(ram, fid)) return T_states();
@@ -230,6 +236,11 @@ T_strs fileLabelsOf(const Ram* ram)
   return res;
 }
 
+bool fileModified(const Ram* ram, T_id fid, bool is_validated)
+{
+  return is_validated || IsValidFileId(ram, fid) ? ram->files.at(fid)->modified: false;
+}
+
 T_str filePathOf(const Ram* ram, T_id fid, bool is_validated)
 {
   return is_validated || IsValidFileId(ram, fid) ? ram->files.at(fid)->path: T_str();
@@ -274,6 +285,12 @@ T_strs pageLabelsOf(const Ram* ram, T_id bid, bool is_validated, T_id fid)
     res << ram->pages.at(id)->label;
   }
   return res;
+}
+
+bool pageModified(const Ram* ram, T_id pid, bool is_validated, T_id fid, T_id bid)
+{
+  return is_validated || IsValidPageId(ram, bid, pid, false, fid) ?
+        ram->pages.at(pid)->modified: false;
 }
 
 T_states pageStatesOf(const Ram* ram, T_id bid, bool is_validated, T_id fid)

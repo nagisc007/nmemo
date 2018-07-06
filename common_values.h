@@ -46,6 +46,8 @@ extern const QString PAGE_TEXT;
 extern const QString PAGE_CAUTION_TEXT;
 extern const int STATUS_MESSAGE_TIME;
 extern const QString SELECTED_FILTER;
+extern const QColor MODIFY_LABEL_COLOR;
+extern const QColor NORMAL_LABEL_COLOR;
 
 }  // ns DEFAULT
 
@@ -101,8 +103,6 @@ extern const QString GET_PAGE_TITLE;
 extern const QString GET_PAGE_CAPTION;
 extern const QString LOAD_FILE_CAPTION;
 extern const QString SAVE_FILE_CAPTION;
-extern const QColor TAB_MODIFIED_COLOR;
-extern const QColor TAB_UNMODIFIED_COLOR;
 
 }  // ns Nmemo::VALUE
 

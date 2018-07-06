@@ -46,6 +46,8 @@ const QString PAGE_TEXT = "New memo";
 const QString PAGE_CAUTION_TEXT = "(Please create a new page!!)";
 const int STATUS_MESSAGE_TIME = 3000;  // ms
 const QString SELECTED_FILTER = "Memo file (*.memo)";
+const QColor MODIFY_LABEL_COLOR = QColor(Qt::red);
+const QColor NORMAL_LABEL_COLOR = QColor(Qt::black);
 
 }  // ns DEFAULT
 
@@ -96,10 +98,6 @@ const QString LOAD_FILE_CAPTION = "Load file";
 const QString SAVE_FILE_CAPTION = "Save file";
 const QString ASK_UNSAVED_TITLE = "Unsaved file exits";
 const QString ASK_UNSAVED_MESSAGE = "The file is unsaved. Save this file?";
-
-/* for tabbar */
-const QColor TAB_MODIFIED_COLOR = QColor::fromRgb(0,0,0);
-const QColor TAB_UNMODIFIED_COLOR = QColor::fromRgb(255,0,0);
 
 /* for items */
 const QString DEFAULT_LISTITEM_NAME = "New Page";

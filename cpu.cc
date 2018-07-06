@@ -221,8 +221,9 @@ T_submits _submitsOf(T_cpu_addr addr)
   case Addr::TEXT_MODIFY:
     return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
-                            GPU::Addr::PAGELIST_STATES,
-                            GPU::Addr::EDITOR_TEXT);
+                            GPU::Addr::PAGELIST_STATES);
+  case Addr::TEXT_UPDATE:
+    return _submitsCombined(GPU::Addr::EDITOR_TEXT);
   case Addr::NOP: return 0;
   }
 }
@@ -280,6 +281,7 @@ T_str _statusMessageOf(T_cpu_addr addr)
   case Addr::PAGE_RENAME: return MSG::PAGE_RENAMED;
   case Addr::PAGE_SORT: return MSG::PAGES_SORTED;
   case Addr::TEXT_MODIFY:
+  case Addr::TEXT_UPDATE:
   case Addr::NOP:
     return T_str();
   }
@@ -305,6 +307,8 @@ void Core::FromDev(T_cpu_addr addr, int i, const T_str& s)
   auto result = ToProcess(addr, i, s);
   if (result == Result::SUCCESS) {
     result = ToGpuData(addr);
+  } else if (result == Result::SUCCESS_NOEFFECTED) {
+    return;
   }
   if (result == Result::SUCCESS) {
     emit ToGpu(GPU::Addr::FLUSH);
@@ -634,13 +638,18 @@ T_cpu_result Core::ToGpuDataOfWindow(T_submits submits)
   return Result::SUCCESS;
 }
 
-T_cpu_result Core::ToModifyText(T_id fid, T_id bid, T_id pid, const T_str& text)
+T_cpu_result Core::ToModifyText(T_id fid, T_id bid, T_id pid)
 {
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   if (!IsValidBookId(&ram, fid, bid, true)) return Result::INVALID_BOOKID;
   if (!IsValidPageId(&ram, bid, pid, true)) return Result::INVALID_PAGEID;
 
-  if (!UpdatePageText(&ram, pid, text, true)) return Result::INVALID_OPERATION;
+  if (!fileModified(&ram, fid, true) ||
+      !bookModified(&ram, bid, true) ||
+      !pageModified(&ram, pid, true)) {
+    return Result::SUCCESS_NOEFFECTED;
+  }
+
   if (!UpdateFileModified(&ram, fid, true, true) ||
       !UpdateBookModified(&ram, bid, true, true) ||
       !UpdatePageModified(&ram, pid, true, true))
@@ -825,7 +834,12 @@ T_cpu_result Core::ToProcess(T_cpu_addr addr, int i, const T_str& s)
   case Addr::TEXT_MODIFY: {
     auto fid = currentFileId(&ram);
     auto bid = currentBookId(&ram, fid, false);
-    return ToModifyText(fid, bid, currentPageId(&ram, bid, false, fid), s);
+    return ToModifyText(fid, bid, currentPageId(&ram, bid, false, fid));
+  }
+  case Addr::TEXT_UPDATE: {
+    auto fid = currentFileId(&ram);
+    auto bid = currentBookId(&ram, fid, false);
+    return ToUpdateText(fid, bid, currentPageId(&ram, bid, false, fid), s);
   }
   case Addr::NOP:
     return Result::SUCCESS;
@@ -933,6 +947,17 @@ T_cpu_result Core::ToSortPages(T_id fid, T_id bid, T_order order)
   if (!SortPages(&ram, bid, order, true) ||
       !UpdateCurrentPageId(&ram, bid, currentPageId(&ram, bid, true), true))
     return Result::INVALID_OPERATION;
+
+  return Result::SUCCESS;
+}
+
+T_cpu_result Core::ToUpdateText(T_id fid, T_id bid, T_id pid, const T_str& text)
+{
+  if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
+  if (!IsValidBookId(&ram, fid, bid, true)) return Result::INVALID_BOOKID;
+  if (!IsValidPageId(&ram, bid, pid, true)) return Result::INVALID_PAGEID;
+
+  if (!UpdatePageText(&ram, pid, text, true)) return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
 }

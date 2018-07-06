@@ -71,6 +71,7 @@ enum class Addr {
   PAGE_RENAME,
   PAGE_SORT,
   TEXT_MODIFY,
+  TEXT_UPDATE,
 };
 
 enum class Irq {
@@ -80,6 +81,7 @@ enum class Irq {
 
 enum class Result {
   SUCCESS,
+  SUCCESS_NOEFFECTED,
   INVALID_FILEID,
   INVALID_FILEINDEX,
   INVALID_BOOKID,

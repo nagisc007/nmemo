@@ -22,7 +22,7 @@ public:
   explicit Input(QObject *parent = nullptr);
   // test methods
   void Reset();
-  void NewFile();
+  void NewFile(T_str s = DEFAULT::FILE_TITLE);
   void OpenFile(T_str);
   void CloseFile(T_index);
   void ChangeFile(T_index);
@@ -40,7 +40,8 @@ public:
   void ChangePage(T_index);
   void MovePage(T_index, T_index);
   void RenamePage(T_index, T_str);
-  void ModifyText(T_str);
+  void ModifyText();
+  void UpdateText(T_str);
 
 signals:
   void ToCpu(T_cpu_addr, int, T_str);

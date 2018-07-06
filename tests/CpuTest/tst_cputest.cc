@@ -78,6 +78,12 @@ public:
     auto bid = CPU::currentBookId(&cpu->ram, fid, false);
     QCOMPARE(CPU::pageStatesOf(&cpu->ram, bid, false, fid), states);
   }
+  void VerifyPageText(T_str text) {
+    auto fid = CPU::currentFileId(&cpu->ram);
+    auto bid = CPU::currentBookId(&cpu->ram, fid, false);
+    auto pid = CPU::currentPageId(&cpu->ram, bid, false, fid);
+    QCOMPARE(CPU::pageTextOf(&cpu->ram, pid, false, fid, bid), text);
+  }
 
 public slots:
   void FromCpuError(T_cpu_result r) {
@@ -117,6 +123,7 @@ private Q_SLOTS:
   void testCasePageMove1();
   void testCasePageRename0();
   void testCasePageRename1();
+  void testCaseTextModify1();
   void testCaseFileOpen0();
   void testCaseFileSave0();
   void testCaseFileOpen1();
@@ -436,6 +443,7 @@ void CpuTest::testCasePageAdd1()
   VerifyPageSize(1);
   T_states st(1, true);
   VerifyPageStates(st);
+  VerifyPageText(DEFAULT::PAGE_TEXT);
 }
 
 void CpuTest::testCasePageDelete0()
@@ -443,6 +451,7 @@ void CpuTest::testCasePageDelete0()
   dev_in->DeletePage(0);
   VerifyPageIndex(-1);
   VerifyPageSize(0);
+  VerifyPageText("");
 }
 
 void CpuTest::testCasePageDelete1()
@@ -457,6 +466,7 @@ void CpuTest::testCasePageDelete1()
   VerifyPageSize(1);
   T_states st(1, true);
   VerifyPageStates(st);
+  VerifyPageText(DEFAULT::PAGE_TEXT);
 }
 
 void CpuTest::testCasePageChange0()
@@ -464,6 +474,7 @@ void CpuTest::testCasePageChange0()
   dev_in->ChangePage(0);
   VerifyPageIndex(-1);
   VerifyPageSize(0);
+  VerifyPageText("");
 }
 
 void CpuTest::testCasePageChange1()
@@ -477,6 +488,7 @@ void CpuTest::testCasePageChange1()
   VerifyPageLabels(T_strs{"test1", "test2"});
   T_states st(2, true);
   VerifyPageStates(st);
+  VerifyPageText(DEFAULT::PAGE_TEXT);
 }
 
 void CpuTest::testCasePageMove0()
@@ -484,6 +496,7 @@ void CpuTest::testCasePageMove0()
   dev_in->MovePage(10, 100);
   VerifyPageIndex(-1);
   VerifyPageSize(0);
+  VerifyPageText("");
 }
 
 void CpuTest::testCasePageMove1()
@@ -499,6 +512,7 @@ void CpuTest::testCasePageMove1()
   VerifyPageSize(3);
   T_states st(3, true);
   VerifyPageStates(st);
+  VerifyPageText(DEFAULT::PAGE_TEXT);
 }
 
 void CpuTest::testCasePageRename0()
@@ -507,6 +521,7 @@ void CpuTest::testCasePageRename0()
   VerifyPageIndex(-1);
   VerifyPageLabels(T_strs());
   VerifyPageSize(0);
+  VerifyPageText("");
 }
 
 void CpuTest::testCasePageRename1()
@@ -520,6 +535,31 @@ void CpuTest::testCasePageRename1()
   VerifyPageSize(1);
   T_states st(1, true);
   VerifyPageStates(st);
+  VerifyPageText(DEFAULT::PAGE_TEXT);
+}
+
+void CpuTest::testCaseTextModify1()
+{
+  dev_in->OpenFile("test_memo.memo");
+  VerifyFileIndex(0);
+  VerifyFileLabels(T_strs{"test_memo.memo"});
+  VerifyFileSize(1);
+  T_states st(1, false);
+  VerifyFileStates(st);
+  VerifyBookIndex(0);
+  VerifyBookLabels(T_strs{"testbook"});
+  VerifyBookSize(1);
+  VerifyBookStates(st);
+  VerifyPageIndex(0);
+  VerifyPageLabels(T_strs{"testpage"});
+  VerifyPageSize(1);
+  VerifyPageStates(st);
+
+  dev_in->ModifyText();
+  T_states st2(1, false);
+  VerifyFileStates(st2);
+  VerifyBookStates(st2);
+  VerifyPageStates(st2);
 }
 
 QTEST_MAIN(CpuTest)
