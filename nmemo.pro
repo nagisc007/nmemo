@@ -28,8 +28,6 @@ CONFIG(release, debug | release):DEFINES += QT_NO_DEBUG_OUTPUT
 SOURCES += \
         main.cc \
         mainwindow.cc \
-    utils.cc \
-    core.cc \
     common_values.cc \
     cpu.cc \
     gpu.cc \
@@ -39,8 +37,6 @@ SOURCES += \
 HEADERS += \
         mainwindow.h \
     common_types.h \
-    utils.h \
-    core.h \
     common_values.h \
     cpu.h \
     gpu.h \

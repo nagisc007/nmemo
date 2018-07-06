@@ -158,6 +158,7 @@ using T_gpu_result = GPU::Result;
 using T_id = int;
 using T_ids = QVector<T_id>;
 using T_index = int;
+using T_item = QListWidgetItem;
 using T_ivec = QVector<int>;
 using T_order = Qt::SortOrder;
 using T_states = QBitArray;

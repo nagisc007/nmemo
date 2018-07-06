@@ -31,6 +31,7 @@ extern const QString FILE_EXTENSION;
 extern const QString FILE_PREFIX;
 extern const QString FILE_VERSION;
 extern const QString FILE_BASE_VERSION;
+extern const QString FILE_FILTER;
 extern const QString SPLITTER;
 
 }  // ns COMMON
@@ -44,6 +45,7 @@ extern const QString PAGE_TITLE;
 extern const QString PAGE_TEXT;
 extern const QString PAGE_CAUTION_TEXT;
 extern const int STATUS_MESSAGE_TIME;
+extern const QString SELECTED_FILTER;
 
 }  // ns DEFAULT
 
@@ -99,8 +101,6 @@ extern const QString GET_PAGE_TITLE;
 extern const QString GET_PAGE_CAPTION;
 extern const QString LOAD_FILE_CAPTION;
 extern const QString SAVE_FILE_CAPTION;
-extern const QString FILE_FILTER;
-extern const QString DEFAULT_SELECTED_FILTER;
 extern const QColor TAB_MODIFIED_COLOR;
 extern const QColor TAB_UNMODIFIED_COLOR;
 

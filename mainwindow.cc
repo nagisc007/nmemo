@@ -9,629 +9,449 @@
 #include "ui_mainwindow.h"
 
 #include <QDebug>
+#include <QDir>
+#include <QFileDialog>
+#include <QInputDialog>
 #include <QMessageBox>
 
-/* class */
-MainWindow::MainWindow(QWidget *parent) :
-  QMainWindow(parent),
-  // class
+namespace {
+
+const T_str _FILE_NEW_TITLE = "New file name";
+const T_str _FILE_NEW_CAPTION = "Input a file name";
+const T_str _FILE_OPEN_CAPTION = "Open a memo file";
+const T_str _FILE_SAVEAS_TITLE = "Save the file as a name";
+const T_str _FILE_SAVEAS_CAPTION = "Input a new name for saving this file";
+const int _PAGELIST_MAXWIDTH = 120;
+const qreal _EDITOR_TABDISTANCE = 40;
+
+T_str _filePathOpened(QWidget* parent, const T_str& caption, const T_str& path,
+                      const T_str& filter, T_str* selected)
+{
+  return QFileDialog::getOpenFileName(parent, caption, path, filter, selected);
+}
+
+T_str _nameInputted(QWidget* parent, const T_str& title, const T_str& caption,
+                    const T_str& name)
+{
+  return QInputDialog::getText(parent, title, caption, QLineEdit::Normal, name);
+}
+
+int _fromWithTo(T_index from, T_index to)
+{
+  return static_cast<int>(from) << 8 | static_cast<int>(to);
+}
+
+}  // inner global
+
+// struct: MainReg
+MainReg::MainReg():
+  filter(DEFAULT::SELECTED_FILTER),
+  dirname(QDir::currentPath())
+{}
+
+// class: Mainwindow
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
   ui(new Ui::MainWindow),
-  tabbar(new QTabBar(this)),
+  filetab(new QTabBar(this)),
+  booktab(new QTabBar(this)),
   pagelist(new QListWidget(this)),
   editor(new QTextEdit(this)),
-  mode_label(new QLabel(this)),
-  sys(new Core::System()),
-  // register
-  r_ui_updated(true),
-  r_current_mode(EditMode::PLAIN),
-  r_filter_selected(Nmemo::VALUE::DEFAULT_SELECTED_FILTER),
-  r_dirname(QDir::currentPath())
-  // utils
+  cpu(new CPU::Core()),
+  gpu(new GPU::Core()),
+  cpu_th(new QThread()),
+  gpu_th(new QThread())
 {
   ui->setupUi(this);
   if (!InitWidgets()) {
     qWarning() << "MainWindow: cannot initialize widgets!";
     exit(EXIT_FAILURE);
   }
-  if (!InitActions()) {
+  if (!InitConnections()) {
     qWarning() << "MainWindow: cannot initialize actions!";
     exit(EXIT_FAILURE);
   }
   qDebug() << "MainWindow: construct";
+  emit ToCpuIrq(CPU::Irq::RESET);
 }
 
 MainWindow::~MainWindow()
 {
-  if (sys) sys.reset();
+  if (cpu_th) {
+    cpu_th->quit();
+    cpu_th->wait();
+    cpu_th.reset();
+  }
+  if (gpu_th) {
+    gpu_th->quit();
+    gpu_th->wait();
+    gpu_th.reset();
+  }
   delete ui;
   qDebug() << "MainWindow: destruct";
 }
 
-/* methods: base */
+// override methods
+void MainWindow::closeEvent(QCloseEvent* evt)
+{
+  QWidget::closeEvent(evt);
+}
+
+// methods: base
 auto MainWindow::InitWidgets() -> bool
-{
-  return ToInitWidgetsProperties() &&
-      ToInitWidgetsLayouts();
-}
-
-auto MainWindow::InitActions() -> bool
-{
-  connect(tabbar.data(), &QTabBar::currentChanged, this, &MainWindow::OnTabCurrentChanged);
-  connect(tabbar.data(), &QTabBar::tabCloseRequested, this, &MainWindow::OnTabCloseRequested);
-  connect(tabbar.data(), &QTabBar::tabMoved, this, &MainWindow::OnTabMoved);
-  connect(pagelist.data(), &QListWidget::currentRowChanged,
-          this, &MainWindow::OnListCurrentRowChanged);
-  connect(pagelist.data(), &QListWidget::itemDoubleClicked,
-          this, &MainWindow::OnListItemDoubleClicked);
-  connect(editor.data(), &QTextEdit::textChanged, this, &MainWindow::OnEditorTextChanged);
-  connect(this, &MainWindow::asSystemData, sys.data(), &Core::System::ToSystemData);
-  connect(sys.data(), &Core::System::asTabBarData, this, &MainWindow::ToTabBar);
-  connect(sys.data(), &Core::System::asPageListData, this, &MainWindow::ToPageList);
-  connect(sys.data(), &Core::System::asEditorData, this, &MainWindow::ToEditor);
-  connect(sys.data(), &Core::System::asStatusBarData, this, &MainWindow::ToStatusBar);
-  connect(sys.data(), &Core::System::asTitleBarData, this, &MainWindow::ToTitleBar);
-  connect(sys.data(), &Core::System::asFileNameRequest,
-          this, &MainWindow::on_actSaveAs_triggered);
-  return true;
-}
-
-auto MainWindow::ToInitWidgetsLayouts() -> bool
 {
   // layout
   auto mainLayout = new QVBoxLayout();
-  auto subLayout = new QHBoxLayout();
+  auto fileLayout = new QVBoxLayout();
+  auto bookLayout = new QHBoxLayout();
   auto mainWidget = new QWidget();
-  subLayout->addWidget(editor.data());
-  subLayout->addWidget(pagelist.data());
-  mainLayout->addWidget(tabbar.data());
-  mainLayout->addLayout(subLayout);
+  bookLayout->addWidget(editor.data());
+  bookLayout->addWidget(pagelist.data());
+  fileLayout->addWidget(booktab.data());
+  fileLayout->addLayout(bookLayout);
+  mainLayout->addLayout(fileLayout);
+  mainLayout->addWidget(filetab.data());
   mainWidget->setLayout(mainLayout);
   setCentralWidget(mainWidget);
-  // statusbar
-  statusBar()->addPermanentWidget(mode_label.data());
 
-  return true;
-}
-
-auto MainWindow::ToInitWidgetsProperties() -> bool
-{
   // props
-  tabbar->setTabsClosable(true);
-  tabbar->setMovable(true);
-  pagelist->setMaximumWidth(Nmemo::PROP::LISTVIEW_MAX_WIDTH);
-  editor->setTabStopDistance(Nmemo::PROP::EDIT_TAB_DISTANCE);
+  filetab->setTabsClosable(true);
+  filetab->setMovable(true);
+  booktab->setTabsClosable(true);
+  booktab->setMovable(true);
+  pagelist->setMaximumWidth(_PAGELIST_MAXWIDTH);
+  editor->setTabStopDistance(_EDITOR_TABDISTANCE);
   editor->setReadOnly(true);
   editor->setAcceptRichText(false);
-  // statusbar
-  mode_label->setText("Mode");
 
   return true;
 }
 
-/* methods: features */
-auto MainWindow::ExistsUnsavedAll() -> bool
+auto MainWindow::InitConnections() -> bool
 {
-  for (int i = 0, size = tabbar->count(); i < size; ++i) {
-    if (isUnsaved(i)) {
-      return true;
-    }
-  }
-  return false;
+  // dev to cpu
+  connect(this, &MainWindow::ToCpu, cpu.data(), &CPU::Core::FromDev);
+  connect(this, &MainWindow::ToCpuIrq, cpu.data(), &CPU::Core::FromIrq);
+  // dev to gpu
+  connect(this, &MainWindow::ToGpuIrq, gpu.data(), &GPU::Core::FromIrq);
+  // cpu to gpu
+  connect(cpu.data(), &CPU::Core::ToGpu, gpu.data(), &GPU::Core::FromCpu);
+  connect(cpu.data(), &CPU::Core::ToGpuIrq, gpu.data(), &GPU::Core::FromIrq);
+  // cpu to dev
+  connect(cpu.data(), &CPU::Core::ToError, this, &MainWindow::FromCpuError);
+  // gpu to dev
+  connect(gpu.data(), &GPU::Core::ToDev, this, &MainWindow::FromGpu);
+  connect(gpu.data(), &GPU::Core::ToError, this, &MainWindow::FromGpuError);
+
+  // filetab to main
+  connect(filetab.data(), &QTabBar::currentChanged, this, &MainWindow::OnFileTabCurrentChanged);
+  connect(filetab.data(), &QTabBar::tabCloseRequested,
+          this, &MainWindow::OnFileTabCloseRequested);
+  connect(filetab.data(), &QTabBar::tabMoved, this, &MainWindow::OnFileTabMoved);
+  // booktab to main
+  connect(booktab.data(), &QTabBar::currentChanged, this, &MainWindow::OnBookTabCurrentChanged);
+  connect(booktab.data(), &QTabBar::tabCloseRequested,
+          this, &MainWindow::OnBookTabCloseRequested);
+  connect(booktab.data(), &QTabBar::tabMoved, this, &MainWindow::OnBookTabMoved);
+  // pagelist to main
+  connect(pagelist.data(), &QListWidget::currentRowChanged,
+          this, &MainWindow::OnPageListCurrentRowChanged);
+  connect(pagelist.data(), &QListWidget::itemDoubleClicked,
+          this, &MainWindow::OnPageListItemDoubleClicked);
+  // editor to main
+  connect(editor.data(), &QTextEdit::textChanged, this, &MainWindow::OnEditorTextChanged);
+
+  return true;
 }
 
-auto MainWindow::UpdateNote() -> void
+// filetab
+void MainWindow::OnFileTabCurrentChanged(const T_index index)
 {
-  if (!r_ui_updated || editor->isReadOnly()) return;
-
-  emit asSystemData(OpCode::NOTE_CACHE,
-                    QVariant(UIP::Editor::textFetch(r_current_mode, editor.data())),
-                    QVariant(UIP::Editor::posFetch(editor.data())),
-                    QVariant(0));
+  emit ToCpu(CPU::Addr::FILE_CHANGE, index);
 }
 
-auto MainWindow::isDeletedBook() -> bool
+void MainWindow::OnFileTabCloseRequested(const T_index index)
 {
-  auto result = QMessageBox::question(this, "Delete book",
-                                      "The book deleted?",
-                                      QMessageBox::Ok, QMessageBox::No);
-  return (result == QMessageBox::Ok);
+  emit ToCpu(CPU::Addr::FILE_CLOSE, index);
 }
 
-auto MainWindow::isDeletedPage() -> bool
+void MainWindow::OnFileTabMoved(const T_index from, const T_index to)
 {
-  auto result = QMessageBox::question(this, "Delete page",
-                                      "The page deleted?",
-                                      QMessageBox::Ok, QMessageBox::No);
-  return (result == QMessageBox::Ok);
+  emit ToCpu(CPU::Addr::FILE_MOVE, _fromWithTo(from, to));
 }
 
-auto MainWindow::isApplyedClosed() -> bool
+// booktab
+void MainWindow::OnBookTabCurrentChanged(const T_index index)
 {
-  auto result = QMessageBox::question(this, "Nmemo",
-                                      "Are you sure want to close Nmemo?",
-                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-  return result != QMessageBox::No;
+  emit ToCpu(CPU::Addr::BOOK_CHANGE, index);
 }
 
-/* slots: Devices */
-void MainWindow::ToTabBar(const T_sig sig, const T_arg arg0, const T_arg arg1,
-                          const T_arg arg2)
+void MainWindow::OnBookTabCloseRequested(const T_index index)
 {
-  u_mutex.lock();
-  r_ui_updated = false;
-  UIP::TabBar::ToUpdate(sig, tabbar.data(), arg0, arg1, arg2);
-  u_mutex.unlock();
-
-  r_ui_updated = true;
+  emit ToCpu(CPU::Addr::BOOK_DELETE, index);
 }
 
-void MainWindow::ToPageList(const T_sig sig, const T_arg arg0, const T_arg arg1)
+void MainWindow::OnBookTabMoved(const T_index from, const T_index to)
 {
-  u_mutex.lock();
-  r_ui_updated = false;
-  UIP::PageList::ToUpdate(sig, pagelist.data(), arg0, arg1);
-  u_mutex.unlock();
-
-  r_ui_updated = true;
+  emit ToCpu(CPU::Addr::BOOK_MOVE, _fromWithTo(from, to));
 }
 
-void MainWindow::ToEditor(const T_sig sig, const T_arg arg0, const T_arg arg1,
-                          const T_arg arg2, const T_arg arg3)
+// pagelist
+void MainWindow::OnPageListCurrentRowChanged(const T_index index)
 {
-  u_mutex.lock();
-  r_ui_updated = false;
-  UIP::Editor::ToUpdate(sig, editor.data(), arg0, arg1, arg2, arg3);
-  if (Utl::Sig::Exists(sig, Sig::EDITOR_MODE)) {
-    UIP::StatusBar::ToUpdate(sig, this, arg0, arg1);
-    r_current_mode = static_cast<EditMode>(arg1.toInt());
-  }
-  if (r_current_mode == EditMode::HTML) {
-    editor->setAcceptRichText(true);
-  } else {
-    editor->setAcceptRichText(false);
-  }
-  u_mutex.unlock();
-
-  r_ui_updated = true;
+  emit ToCpu(CPU::Addr::PAGE_CHANGE, index);
 }
 
-void MainWindow::ToStatusBar(const T_sig sig, const T_arg arg0, const T_arg arg1)
+void MainWindow::OnPageListItemDoubleClicked(const T_item* item)
 {
-  u_mutex.lock();
-  r_ui_updated = false;
-  UIP::StatusBar::ToUpdate(sig, this, arg0, arg1);
-  u_mutex.unlock();
-
-  r_ui_updated = true;
-}
-
-void MainWindow::ToTitleBar(const T_sig sig, const T_arg arg0)
-{
-  u_mutex.lock();
-  r_ui_updated = false;
-  UIP::TitleBar::ToUpdate(sig, this, arg0);
-  u_mutex.unlock();
-
-  r_ui_updated = true;
-}
-
-/* slots: TabBar */
-void MainWindow::OnTabCurrentChanged(const T_index index)
-{
-  if (!isUiUpdated()) return;
-
-  UpdateNote();
-  emit asSystemData(OpCode::BOOK_CHANGE, QVariant(index), QVariant(0), QVariant(0));
-}
-
-void MainWindow::OnTabCloseRequested(const T_index index)
-{
-  if (!isUiUpdated()) return;
-
-  if (isUnsaved(index)) {
-    if (!isDeletedBook()) {
-      on_actSave_triggered();
-      return;
-    }
-  }
-
-  UpdateNote();
-  emit asSystemData(OpCode::BOOK_DELETE, QVariant(index), QVariant(0), QVariant(0));
-}
-
-void MainWindow::OnTabMoved(const T_index from, const T_index to)
-{
-  if (!isUiUpdated()) return;
-
-  emit asSystemData(OpCode::BOOK_MOVE, QVariant(from), QVariant(to), QVariant(0));
-}
-
-/* slots: PageList */
-void MainWindow::OnListCurrentRowChanged(const T_index index)
-{
-  if (!isUiUpdated()) return;
-
-  UpdateNote();
-  emit asSystemData(OpCode::PAGE_CHANGE, QVariant(index), QVariant(0), QVariant(0));
-}
-
-void MainWindow::OnListItemDoubleClicked(const T_item* item)
-{
-  if (!isUiUpdated()) return;
-
-  auto index = pagelist->row(item);
-  auto name = Utl::Name::Input(this, Nmemo::VALUE::GET_PAGE_TITLE,
-                               Nmemo::VALUE::GET_PAGE_CAPTION, item->text());
-
-  emit asSystemData(OpCode::PAGE_RENAME, QVariant(index), QVariant(name), QVariant(0));
+  emit ToCpu(CPU::Addr::PAGE_RENAME, pagelist->row(item),
+             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+                           item->text()));
 }
 
 /* slots: Editor */
 void MainWindow::OnEditorTextChanged()
 {
-  if (!isUiUpdated() || editor->isReadOnly()) return;
-
-  emit asSystemData(OpCode::NOTE_MODIFY, QVariant(0), QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::TEXT_MODIFY, 0, editor->toPlainText());
 }
 
-/* slots: menus - File */
-void MainWindow::on_actNew_triggered()
+// slots
+void MainWindow::FromCpuError(T_cpu_result)
 {
-  if (!isUiUpdated()) return;
 
-  UpdateNote();
-  emit asSystemData(OpCode::BOOK_ADD, QVariant(Nmemo::VALUE::DEFAULT_FILENAME),
-                    QVariant(0), QVariant(0));
 }
 
-void MainWindow::on_actOpen_triggered()
+void MainWindow::FromGpu(T_dev_addr, T_ivec, T_strs, T_states)
 {
-  if (!isUiUpdated()) return;
 
-  auto path = Utl::Path::Load::Input(this, Nmemo::VALUE::LOAD_FILE_CAPTION, r_dirname,
-                                    Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
-  if (path.isEmpty()) return;
-  r_dirname = QDir(path).absolutePath();
-  UpdateNote();
-  emit asSystemData(OpCode::FILE_LOAD, QVariant(path), QVariant(0), QVariant(0));
 }
 
-void MainWindow::on_actClose_triggered()
+void MainWindow::FromGpuError(T_gpu_result)
 {
-  if (!isUiUpdated()) return;
 
-  OnTabCloseRequested(UIP::TabBar::indexFetch(tabbar.data()));
 }
 
-void MainWindow::on_actSave_triggered()
+// slots: menus
+void MainWindow::on_fileNew_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  UpdateNote();
-  emit asSystemData(OpCode::FILE_SAVE, QVariant(0), QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::FILE_NEW, 0,
+             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION, DEFAULT::FILE_TITLE));
 }
 
-void MainWindow::on_actSaveAs_triggered()
+void MainWindow::on_fileOpen_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  auto path = Utl::Path::Save::Input(this, Nmemo::VALUE::SAVE_FILE_CAPTION,
-                                    r_dirname,
-                                    Nmemo::VALUE::FILE_FILTER, &r_filter_selected);
-  if (path.isEmpty()) return;
-  r_dirname = QDir(path).absolutePath();
-  UpdateNote();
-  emit asSystemData(OpCode::FILE_SAVEAS, QVariant(path), QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::FILE_OPEN, 0,
+             _filePathOpened(this, _FILE_OPEN_CAPTION, reg.dirname, COMMON::FILE_FILTER,
+                             &reg.dirname));
 }
 
-void MainWindow::on_actQuit_triggered()
+void MainWindow::on_fileSave_triggered()
 {
-  if (!isUiUpdated()) return;
+  emit ToCpu(CPU::Addr::FILE_SAVE, filetab->currentIndex());
+}
 
+void MainWindow::on_fileSaveAs_triggered()
+{
+  emit ToCpu(CPU::Addr::FILE_SAVEAS, filetab->currentIndex(),
+             _nameInputted(this, _FILE_SAVEAS_TITLE, _FILE_SAVEAS_CAPTION,
+                           filetab->tabText(filetab->currentIndex())));
+}
+
+void MainWindow::on_fileRename_triggered()
+{
+  emit ToCpu(CPU::Addr::FILE_RENAME, filetab->currentIndex(),
+             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+                           filetab->tabText(filetab->currentIndex())));
+}
+
+void MainWindow::on_fileClose_triggered()
+{
+  emit ToCpu(CPU::Addr::FILE_CLOSE, filetab->currentIndex());
+}
+
+void MainWindow::on_appQuit_triggered()
+{
   close();
 }
 
-/* slots: menus - Edit */
-void MainWindow::on_actUndo_triggered()
+void MainWindow::on_editUndo_triggered()
 {
-  if (isUiUpdated()) UIP::Editor::Act::Undo(editor.data());
+  if (editor->isReadOnly()) return;
+  editor->undo();
 }
 
-void MainWindow::on_actRedo_triggered()
+void MainWindow::on_editRedo_triggered()
 {
-  if (isUiUpdated()) UIP::Editor::Act::Redo(editor.data());
+  if (editor->isReadOnly()) return;
+  editor->redo();
 }
 
-void MainWindow::on_actCut_triggered()
+void MainWindow::on_editCut_triggered()
 {
-  if (isUiUpdated()) UIP::Editor::Act::Cut(editor.data());
+  if (editor->isReadOnly()) return;
+  editor->cut();
 }
 
-void MainWindow::on_actCopy_triggered()
+void MainWindow::on_editCopy_triggered()
 {
-  if (isUiUpdated()) UIP::Editor::Act::Copy(editor.data());
+  if (editor->isReadOnly()) return;
+  editor->copy();
 }
 
-void MainWindow::on_actPaste_triggered()
+void MainWindow::on_editPaste_triggered()
 {
-  if (isUiUpdated()) UIP::Editor::Act::Paste(editor.data());
+  if (editor->isReadOnly()) return;
+  editor->paste();
 }
 
-void MainWindow::on_actErase_triggered()
+void MainWindow::on_editErase_triggered()
 {
-  if (isUiUpdated()) UIP::Editor::Act::Erase(editor.data());
+  if (editor->isReadOnly()) return;
+  editor->textCursor().removeSelectedText();
 }
 
-void MainWindow::on_actSelectAll_triggered()
+void MainWindow::on_editSelectAll_triggered()
 {
-  if (isUiUpdated()) UIP::Editor::Act::SelectAll(editor.data());
+  if (editor->isReadOnly()) return;
+  editor->selectAll();
 }
 
-/* slots: menus - Book */
-void MainWindow::on_actAddItem_triggered()
+void MainWindow::on_bookAdd_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  auto name = Utl::Name::Input(this, Nmemo::VALUE::GET_PAGE_TITLE,
-                               Nmemo::VALUE::GET_PAGE_CAPTION,
-                               Nmemo::VALUE::DEFAULT_LISTITEM_NAME);
-  if (name.isEmpty()) return;
-
-  UpdateNote();
-  emit asSystemData(OpCode::PAGE_ADD, QVariant(name), QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::BOOK_ADD, 0,
+             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+                           DEFAULT::BOOK_TITLE));
 }
 
-void MainWindow::on_actDeleteItem_triggered()
+void MainWindow::on_bookDelete_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  if (!isDeletedPage()) return;
-
-  auto index = UIP::PageList::indexFetch(pagelist.data());
-  UpdateNote();
-  emit asSystemData(OpCode::PAGE_DELETE, QVariant(index), QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::BOOK_DELETE, booktab->currentIndex());
 }
 
-void MainWindow::on_actRenameItem_triggered()
+void MainWindow::on_bookRename_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  OnListItemDoubleClicked(UIP::PageList::itemFetch(pagelist.data()));
+  emit ToCpu(CPU::Addr::BOOK_RENAME, booktab->currentIndex(),
+             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+                           booktab->tabText(booktab->currentIndex())));
 }
 
-void MainWindow::on_actMoveNext_triggered()
+void MainWindow::on_bookMoveNext_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  auto index = UIP::PageList::indexFetch(pagelist.data());
-  emit asSystemData(OpCode::PAGE_MOVE, QVariant(index), QVariant(index+1), QVariant(0));
+  emit ToCpu(CPU::Addr::BOOK_MOVE,
+             _fromWithTo(booktab->currentIndex(), booktab->currentIndex() + 1));
 }
 
-void MainWindow::on_actMovePrevious_triggered()
+void MainWindow::on_bookMovePrevious_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  auto index = UIP::PageList::indexFetch(pagelist.data());
-  emit asSystemData(OpCode::PAGE_MOVE, QVariant(index), QVariant(index-1), QVariant(0));
+  emit ToCpu(CPU::Addr::BOOK_MOVE,
+             _fromWithTo(booktab->currentIndex(), booktab->currentIndex() - 1));
 }
 
-void MainWindow::on_actSort_AtoZ_triggered()
+void MainWindow::on_booksSortAtoZ_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  emit asSystemData(OpCode::PAGE_SORT, QVariant(Qt::AscendingOrder), QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::BOOK_SORT, Qt::AscendingOrder);
 }
 
-void MainWindow::on_actSort_ZtoA_triggered()
+void MainWindow::on_booksSortZtoA_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  emit asSystemData(OpCode::PAGE_SORT, QVariant(Qt::DescendingOrder), QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::BOOK_SORT, Qt::DescendingOrder);
 }
 
-/* slots: menus - View */
-void MainWindow::on_actFullscreen_triggered()
+void MainWindow::on_pageAdd_triggered()
+{
+  emit ToCpu(CPU::Addr::PAGE_ADD, 0,
+             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION, DEFAULT::PAGE_TITLE));
+}
+
+void MainWindow::on_pageDelete_triggered()
+{
+  emit ToCpu(CPU::Addr::PAGE_DELETE, pagelist->currentRow());
+}
+
+void MainWindow::on_pageRename_triggered()
+{
+  emit ToCpu(CPU::Addr::PAGE_RENAME, pagelist->currentRow(),
+             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+                           pagelist->item(pagelist->currentRow())->text()));
+}
+
+void MainWindow::on_pageMoveNext_triggered()
+{
+  emit ToCpu(CPU::Addr::PAGE_MOVE,
+             _fromWithTo(pagelist->currentRow(), pagelist->currentRow() + 1));
+}
+
+void MainWindow::on_pageMovePrevious_triggered()
+{
+  emit ToCpu(CPU::Addr::PAGE_MOVE,
+             _fromWithTo(pagelist->currentRow(), pagelist->currentRow() - 1));
+}
+
+void MainWindow::on_pagesSortAtoZ_triggered()
+{
+  emit ToCpu(CPU::Addr::PAGE_SORT, Qt::AscendingOrder);
+}
+
+void MainWindow::on_pagesSortZtoA_triggered()
+{
+  emit ToCpu(CPU::Addr::PAGE_SORT, Qt::DescendingOrder);
+}
+
+void MainWindow::on_toggleFullscreen_triggered()
 {
   if (isFullScreen()) {
-    ui->actFullscreen->setChecked(false);
+    ui->toggleFullscreen->setChecked(false);
     showNormal();
   } else {
-    ui->actFullscreen->setChecked(true);
+    ui->toggleFullscreen->setChecked(true);
     showFullScreen();
   }
 }
 
-void MainWindow::on_actEditPlainText_triggered()
+void MainWindow::on_fileChangeNext_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  UpdateNote();
-  emit asSystemData(OpCode::NOTE_CHANGE_MODE, QVariant(static_cast<int>(EditMode::PLAIN)),
-                    QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::FILE_CHANGE, filetab->currentIndex() + 1);
 }
 
-void MainWindow::on_actEditRichText_triggered()
+void MainWindow::on_fileChangePrevious_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  UpdateNote();
-  emit asSystemData(OpCode::NOTE_CHANGE_MODE, QVariant(static_cast<int>(EditMode::HTML)),
-                    QVariant(0), QVariant(0));
+  emit ToCpu(CPU::Addr::FILE_CHANGE, filetab->currentIndex() - 1);
 }
 
-void MainWindow::on_actNextTab_triggered()
+void MainWindow::on_bookChangeNext_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  OnTabCurrentChanged(UIP::TabBar::indexFetch(tabbar.data()) + 1);
+  emit ToCpu(CPU::Addr::BOOK_CHANGE, booktab->currentIndex() + 1);
 }
 
-void MainWindow::on_actPreviousTab_triggered()
+void MainWindow::on_bookChangePrevious_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  OnTabCurrentChanged(UIP::TabBar::indexFetch(tabbar.data()) - 1);
+  emit ToCpu(CPU::Addr::BOOK_CHANGE, booktab->currentIndex() - 1);
 }
 
-void MainWindow::on_actNextItem_triggered()
+void MainWindow::on_pageChangeNext_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  OnListCurrentRowChanged(UIP::PageList::indexFetch(pagelist.data()) + 1);
+  emit ToCpu(CPU::Addr::PAGE_CHANGE, pagelist->currentRow() + 1);
 }
 
-void MainWindow::on_actPreviousItem_triggered()
+void MainWindow::on_pageChangePrevious_triggered()
 {
-  if (!isUiUpdated()) return;
-
-  OnListCurrentRowChanged(UIP::PageList::indexFetch(pagelist.data()) - 1);
+  emit ToCpu(CPU::Addr::PAGE_CHANGE, pagelist->currentRow() - 1);
 }
 
-/* slots: menus - Help */
-void MainWindow::on_actAboutQt_triggered()
+void MainWindow::on_appAboutQt_triggered()
 {
   QMessageBox::aboutQt(this);
 }
 
-void MainWindow::on_actAboutApp_triggered()
+void MainWindow::on_appAboutApp_triggered()
 {
   auto title = QString("About %1")
-      .arg(APP::VALUE::NAME);
+      .arg(APP::NAME);
   auto msg = QString("<h3>About %1 %2</h3><p>%3<br>Licensed by %4.<br>%5</p><p>%6</p>")
-      .arg(APP::VALUE::NAME)
-      .arg(APP::VALUE::VERSION)
-      .arg(APP::VALUE::DESCRIPTION)
-      .arg(APP::VALUE::LICENSE)
-      .arg(APP::VALUE::COPYRIGHT)
-      .arg(APP::VALUE::AUTHORS);
+      .arg(APP::NAME)
+      .arg(APP::VERSION_STRING)
+      .arg(APP::DESCRIPTION)
+      .arg(APP::LICENSE)
+      .arg(APP::COPYRIGHT)
+      .arg(APP::AUTHORS);
   QMessageBox::about(this, title, msg);
 }
-
-/* override */
-void MainWindow::closeEvent(QCloseEvent* evt)
-{
-  if (ExistsUnsavedAll()) {
-    if (!isApplyedClosed()) {
-      evt->ignore();
-      return;
-    }
-  }
-
-  QWidget::closeEvent(evt);
-}
-
-/* process: UI Process */
-namespace UIP {
-
-namespace TitleBar {
-
-auto ToUpdate(const T_sig sig, MainWindow* m, const T_arg arg) -> bool
-{
-  bool is_updated = false;
-  if (Utl::Sig::Exists(sig, Sig::TITLE)) {
-    m->setWindowTitle(arg.toString());
-    is_updated = true;
-  }
-  return is_updated;
-}
-
-}  // ns UIP::TitleBar
-
-namespace StatusBar {
-
-auto ToUpdate(const T_sig sig, MainWindow* win, const T_arg arg_txt,
-              const T_arg arg_opt) -> bool
-{
-  bool is_updated = false;
-  if (Utl::Sig::Exists(sig, Sig::STATUS_MESSAGE)) {
-    win->statusBar()->showMessage(arg_txt.toString(), arg_opt.toInt());
-    is_updated = true;
-  }
-  if (Utl::Sig::Exists(sig, Sig::EDITOR_MODE)) {
-    auto mode = static_cast<EditMode>(arg_opt.toInt());
-    if (mode == EditMode::HTML) {
-      win->mode_label->setText("HTML");
-    } else {
-      win->mode_label->setText("TEXT");
-    }
-  }
-  return is_updated;
-}
-
-}  // ns UIP::StatusBar
-
-namespace TabBar {
-
-auto ToUpdate(const T_sig sig, QTabBar* tbar, const T_arg arg_i,
-              const T_arg arg_names, const T_arg arg_stats) -> bool
-{
-  if (Utl::Sig::Exists(sig, Sig::TAB_NAME)) {
-    Utl::Widget::Names::Merge<QTabBar>(tbar, arg_names.toStringList());
-  }
-  if (Utl::Sig::Exists(sig, Sig::TAB_INDEX)) {
-    tbar->setCurrentIndex(arg_i.toInt());
-  }
-  if (Utl::Sig::Exists(sig, Sig::TAB_STATE)) {
-    ColorsUpdate(tbar, arg_stats);
-  }
-  return true;
-}
-
-auto ColorsUpdate(QTabBar* tbar, const T_arg arg) -> bool
-{
-  auto stats = arg.toList();
-  for (int i = 0, size = tbar->count(); i < size; ++i) {
-    auto v = stats.at(i);
-    tbar->setTabData(i, v);
-    auto stat = v.toBool();
-    tbar->setTabTextColor(i, stat ? Nmemo::VALUE::TAB_MODIFIED_COLOR:
-                                    Nmemo::VALUE::TAB_UNMODIFIED_COLOR);
-  }
-  return true;
-}
-
-}  // ns UIP::TabBar
-
-namespace PageList {
-
-auto ToUpdate(const T_sig sig, QListWidget* li, const T_arg arg_i,
-              const T_arg arg_names) -> bool
-{
-  if (Utl::Sig::Exists(sig, Sig::LIST_NAME)) {
-    Utl::Widget::Names::Merge<QListWidget>(li, arg_names.toStringList());
-  }
-  if (Utl::Sig::Exists(sig, Sig::LIST_INDEX)) {
-    li->setCurrentRow(arg_i.toInt());
-  }
-  return true;
-}
-
-}  // ns UIP::PageList
-
-namespace Editor {
-
-auto ToUpdate(const T_sig sig, QTextEdit* editor, const T_arg arg_txt,
-              const T_arg arg_mode, const T_arg arg_pos, const T_arg arg_stat) -> bool
-{
-  auto mode = Utl::Sig::Exists(sig, Sig::EDITOR_MODE) ?
-                                      static_cast<EditMode>(arg_mode.toInt()):
-        EditMode::PLAIN;
-  if (Utl::Sig::Exists(sig, Sig::EDITOR_TEXT)) {
-    if (mode == EditMode::HTML) {
-      editor->setText(arg_txt.toString());
-    } else {
-      editor->setPlainText(arg_txt.toString());
-    }
-  }
-  if (Utl::Sig::Exists(sig, Sig::EDITOR_POS)) {
-    editor->verticalScrollBar()->setSliderPosition(arg_pos.toInt());
-  }
-  if (Utl::Sig::Exists(sig, Sig::EDITOR_STATE)) {
-    editor->setReadOnly(!arg_stat.toBool());
-  }
-  return true;
-}
-
-}  // ns UIP::Editor
-
-}  // ns UIP

@@ -41,82 +41,75 @@
     <property name="title">
      <string>File(&amp;F)</string>
     </property>
-    <addaction name="actNew"/>
-    <addaction name="actOpen"/>
+    <addaction name="fileNew"/>
+    <addaction name="fileOpen"/>
     <addaction name="separator"/>
-    <addaction name="actSave"/>
-    <addaction name="actSaveAs"/>
+    <addaction name="fileSave"/>
+    <addaction name="fileSaveAs"/>
+    <addaction name="fileRename"/>
     <addaction name="separator"/>
-    <addaction name="actionRename_R"/>
+    <addaction name="fileClose"/>
     <addaction name="separator"/>
-    <addaction name="actClose"/>
-    <addaction name="separator"/>
-    <addaction name="actQuit"/>
+    <addaction name="appQuit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>Edit(&amp;E)</string>
     </property>
-    <addaction name="actUndo"/>
-    <addaction name="actRedo"/>
+    <addaction name="editUndo"/>
+    <addaction name="editRedo"/>
     <addaction name="separator"/>
-    <addaction name="actCut"/>
-    <addaction name="actCopy"/>
-    <addaction name="actPaste"/>
-    <addaction name="actErase"/>
-    <addaction name="separator"/>
-    <addaction name="actSelectAll"/>
+    <addaction name="editCut"/>
+    <addaction name="editCopy"/>
+    <addaction name="editPaste"/>
+    <addaction name="editErase"/>
+    <addaction name="editSelectAll"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help(&amp;H)</string>
     </property>
-    <addaction name="actAboutQt"/>
-    <addaction name="actAboutApp"/>
+    <addaction name="appAboutQt"/>
+    <addaction name="appAboutApp"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
      <string>View(&amp;V)</string>
     </property>
+    <addaction name="toggleFullscreen"/>
     <addaction name="separator"/>
+    <addaction name="fileChangeNext"/>
+    <addaction name="fileChangePrevious"/>
     <addaction name="separator"/>
-    <addaction name="actFullscreen"/>
+    <addaction name="bookChangeNext"/>
+    <addaction name="bookChangePrevious"/>
     <addaction name="separator"/>
-    <addaction name="actionNextFile"/>
-    <addaction name="actionPreviousFile"/>
-    <addaction name="separator"/>
-    <addaction name="actNextTab"/>
-    <addaction name="actPreviousTab"/>
-    <addaction name="separator"/>
-    <addaction name="actNextItem"/>
-    <addaction name="actPreviousItem"/>
+    <addaction name="pageChangeNext"/>
+    <addaction name="pageChangePrevious"/>
    </widget>
    <widget class="QMenu" name="menuBook">
     <property name="title">
      <string>Book(&amp;B)</string>
     </property>
-    <addaction name="actAddItem"/>
-    <addaction name="actDeleteItem"/>
-    <addaction name="separator"/>
-    <addaction name="actRenameItem"/>
-    <addaction name="separator"/>
-    <addaction name="actMoveNext"/>
-    <addaction name="actMovePrevious"/>
-    <addaction name="separator"/>
-    <addaction name="actSort_AtoZ"/>
-    <addaction name="actSort_ZtoA"/>
+    <addaction name="bookAdd"/>
+    <addaction name="bookDelete"/>
+    <addaction name="bookRename"/>
+    <addaction name="bookMoveNext"/>
+    <addaction name="bookMovePrevious"/>
+    <addaction name="booksSortAtoZ"/>
+    <addaction name="booksSortZtoA"/>
    </widget>
    <widget class="QMenu" name="menuPage_P">
     <property name="title">
      <string>Page(&amp;P)</string>
     </property>
-    <addaction name="actionAdd_A"/>
-    <addaction name="actionDelete_D"/>
-    <addaction name="actionRename_R_2"/>
-    <addaction name="actionMoveNext"/>
-    <addaction name="actionMovePrevious_P"/>
-    <addaction name="actionSortAtoZ"/>
-    <addaction name="actionSortZtoA"/>
+    <addaction name="pageAdd"/>
+    <addaction name="pageDelete"/>
+    <addaction name="pageRename"/>
+    <addaction name="pageMoveNext"/>
+    <addaction name="pageMovePrevious"/>
+    <addaction name="pagesSortAtoZ"/>
+    <addaction name="pagesSortZtoA"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -133,53 +126,67 @@
     <bool>false</bool>
    </attribute>
    <addaction name="separator"/>
-   <addaction name="actAddItem"/>
-   <addaction name="actDeleteItem"/>
-   <addaction name="actRenameItem"/>
    <addaction name="separator"/>
-   <addaction name="actSort_AtoZ"/>
-   <addaction name="actSort_ZtoA"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actOpen">
+  <action name="fileNew">
    <property name="text">
-    <string>Open(O)</string>
+    <string>New(&amp;N)</string>
    </property>
    <property name="toolTip">
-    <string>Open file</string>
+    <string>Create a new file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="fileOpen">
+   <property name="text">
+    <string>Open(&amp;O)</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actClose">
-   <property name="text">
-    <string>Close(&amp;C)</string>
-   </property>
-   <property name="toolTip">
-    <string>Close file</string>
-   </property>
-  </action>
-  <action name="actSave">
+  <action name="fileSave">
    <property name="text">
     <string>Save(&amp;S)</string>
    </property>
    <property name="toolTip">
-    <string>Save the current file</string>
+    <string>Save the file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actSaveAs">
+  <action name="fileSaveAs">
    <property name="text">
-    <string>Save As(&amp;A)</string>
+    <string>SaveAs</string>
    </property>
    <property name="toolTip">
-    <string>Save the current file as the name</string>
+    <string>Save the file as a name</string>
    </property>
   </action>
-  <action name="actQuit">
+  <action name="fileRename">
+   <property name="text">
+    <string>Rename(&amp;R)</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename the file</string>
+   </property>
+  </action>
+  <action name="fileClose">
+   <property name="text">
+    <string>Close(&amp;C)</string>
+   </property>
+   <property name="toolTip">
+    <string>Close the file</string>
+   </property>
+  </action>
+  <action name="appQuit">
    <property name="text">
     <string>Quit(&amp;Q)</string>
    </property>
@@ -190,127 +197,193 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actAboutQt">
-   <property name="text">
-    <string>About Qt</string>
-   </property>
-  </action>
-  <action name="actAboutApp">
-   <property name="text">
-    <string>About Nmemo</string>
-   </property>
-  </action>
-  <action name="actNew">
-   <property name="text">
-    <string>New(&amp;N)</string>
-   </property>
-   <property name="toolTip">
-    <string>New file</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
-   </property>
-  </action>
-  <action name="actUndo">
+  <action name="editUndo">
    <property name="text">
     <string>Undo(&amp;U)</string>
    </property>
    <property name="toolTip">
-    <string>Undo</string>
+    <string>Undo edited texts</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
    </property>
   </action>
-  <action name="actRedo">
+  <action name="editRedo">
    <property name="text">
     <string>Redo(&amp;R)</string>
    </property>
    <property name="toolTip">
-    <string>Redo</string>
+    <string>Redo edited texts</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+Z</string>
+    <string>Ctrl+Y</string>
    </property>
   </action>
-  <action name="actCut">
+  <action name="editCut">
    <property name="text">
     <string>Cut(&amp;T)</string>
    </property>
    <property name="toolTip">
-    <string>Cut</string>
+    <string>Cut the selection text</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
    </property>
   </action>
-  <action name="actCopy">
+  <action name="editCopy">
    <property name="text">
     <string>Copy(&amp;C)</string>
    </property>
    <property name="toolTip">
-    <string>Copy</string>
+    <string>Copy the selection text</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
    </property>
   </action>
-  <action name="actPaste">
+  <action name="editPaste">
    <property name="text">
     <string>Paste(&amp;P)</string>
    </property>
    <property name="toolTip">
-    <string>Paste</string>
+    <string>Paste the copied text</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
    </property>
   </action>
-  <action name="actErase">
+  <action name="editErase">
    <property name="text">
     <string>Erase(&amp;D)</string>
    </property>
    <property name="toolTip">
-    <string>Erase</string>
+    <string>Erase the selection text</string>
    </property>
   </action>
-  <action name="actSelectAll">
+  <action name="editSelectAll">
    <property name="text">
     <string>SelectAll(&amp;A)</string>
    </property>
    <property name="toolTip">
-    <string>SelectAll</string>
+    <string>Select all texts</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
    </property>
   </action>
-  <action name="actAddItem">
+  <action name="bookAdd">
    <property name="text">
     <string>Add(&amp;A)</string>
    </property>
-   <property name="iconText">
-    <string>Add</string>
-   </property>
    <property name="toolTip">
-    <string>Add a new item</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+N</string>
+    <string>Add a new book</string>
    </property>
   </action>
-  <action name="actDeleteItem">
+  <action name="bookDelete">
    <property name="text">
     <string>Delete(&amp;D)</string>
    </property>
-   <property name="iconText">
-    <string>Delete</string>
-   </property>
    <property name="toolTip">
-    <string>Delete the item</string>
+    <string>Delete the book</string>
    </property>
   </action>
-  <action name="actFullscreen">
+  <action name="bookRename">
+   <property name="text">
+    <string>Rename(&amp;R)</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename the book</string>
+   </property>
+  </action>
+  <action name="bookMoveNext">
+   <property name="text">
+    <string>MoveNext(&amp;N)</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the book to Next</string>
+   </property>
+  </action>
+  <action name="bookMovePrevious">
+   <property name="text">
+    <string>MovePrevious(&amp;P)</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the book to Previous</string>
+   </property>
+  </action>
+  <action name="booksSortAtoZ">
+   <property name="text">
+    <string>Sort AtoZ</string>
+   </property>
+   <property name="toolTip">
+    <string>Sort books as AtoZ</string>
+   </property>
+  </action>
+  <action name="booksSortZtoA">
+   <property name="text">
+    <string>Sort ZtoA</string>
+   </property>
+   <property name="toolTip">
+    <string>Sort books as ZtoA</string>
+   </property>
+  </action>
+  <action name="pageAdd">
+   <property name="text">
+    <string>Add(&amp;A)</string>
+   </property>
+   <property name="toolTip">
+    <string>Add a new page</string>
+   </property>
+  </action>
+  <action name="pageDelete">
+   <property name="text">
+    <string>Delete(&amp;D)</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete the page</string>
+   </property>
+  </action>
+  <action name="pageRename">
+   <property name="text">
+    <string>Rename(&amp;R)</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename the page</string>
+   </property>
+  </action>
+  <action name="pageMoveNext">
+   <property name="text">
+    <string>MoveNext(&amp;N)</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the page to Next</string>
+   </property>
+  </action>
+  <action name="pageMovePrevious">
+   <property name="text">
+    <string>MovePrevious(&amp;P)</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the page to Previous</string>
+   </property>
+  </action>
+  <action name="pagesSortAtoZ">
+   <property name="text">
+    <string>Sort AtoZ</string>
+   </property>
+   <property name="toolTip">
+    <string>Sort pages as AtoZ</string>
+   </property>
+  </action>
+  <action name="pagesSortZtoA">
+   <property name="text">
+    <string>Sort ZtoA</string>
+   </property>
+   <property name="toolTip">
+    <string>Sort pages as ZtoA</string>
+   </property>
+  </action>
+  <action name="toggleFullscreen">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -318,175 +391,65 @@
     <string>Fullscreen(&amp;F)</string>
    </property>
    <property name="toolTip">
-    <string>Toggle Fullscreen mode</string>
+    <string>toggle Fullscreen mode</string>
    </property>
   </action>
-  <action name="actRenameItem">
+  <action name="fileChangeNext">
    <property name="text">
-    <string>Rename(&amp;R)</string>
-   </property>
-   <property name="iconText">
-    <string>Rename</string>
+    <string>NextFile</string>
    </property>
    <property name="toolTip">
-    <string>Rename the item</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+M</string>
+    <string>Change to Next File</string>
    </property>
   </action>
-  <action name="actMoveNext">
+  <action name="fileChangePrevious">
    <property name="text">
-    <string>MoveNext(&amp;N)</string>
+    <string>PreviousFile</string>
    </property>
    <property name="toolTip">
-    <string>Move the item to Next</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Down</string>
+    <string>Change to Previous File</string>
    </property>
   </action>
-  <action name="actMovePrevious">
-   <property name="text">
-    <string>MovePrevious(&amp;P)</string>
-   </property>
-   <property name="toolTip">
-    <string>Move the item to Previous</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Up</string>
-   </property>
-  </action>
-  <action name="actNextTab">
+  <action name="bookChangeNext">
    <property name="text">
     <string>NextBook</string>
    </property>
    <property name="toolTip">
-    <string>Change to Next tab</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+Right</string>
+    <string>Change to Next Book</string>
    </property>
   </action>
-  <action name="actPreviousTab">
+  <action name="bookChangePrevious">
    <property name="text">
     <string>PreviousBook</string>
    </property>
    <property name="toolTip">
-    <string>Change to Previous tab</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+Left</string>
+    <string>Change to Previous Book</string>
    </property>
   </action>
-  <action name="actNextItem">
+  <action name="pageChangeNext">
    <property name="text">
     <string>NextPage</string>
    </property>
    <property name="toolTip">
-    <string>Change to Next Item</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+Down</string>
+    <string>Change to Next Page</string>
    </property>
   </action>
-  <action name="actPreviousItem">
+  <action name="pageChangePrevious">
    <property name="text">
     <string>PreviousPage</string>
    </property>
    <property name="toolTip">
-    <string>Change to Previous Item</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+Up</string>
+    <string>Change to Previous Page</string>
    </property>
   </action>
-  <action name="actSort_AtoZ">
+  <action name="appAboutQt">
    <property name="text">
-    <string>Sort AtoZ</string>
-   </property>
-   <property name="iconText">
-    <string>AtoZ</string>
-   </property>
-   <property name="toolTip">
-    <string>Sort items as AtoZ</string>
+    <string>About Qt</string>
    </property>
   </action>
-  <action name="actSort_ZtoA">
+  <action name="appAboutApp">
    <property name="text">
-    <string>Sort ZtoA</string>
-   </property>
-   <property name="iconText">
-    <string>ZtoA</string>
-   </property>
-   <property name="toolTip">
-    <string>Sort items as ZtoA</string>
-   </property>
-  </action>
-  <action name="actEditPlainText">
-   <property name="text">
-    <string>PlainText</string>
-   </property>
-   <property name="toolTip">
-    <string>Set Plain Text mode</string>
-   </property>
-  </action>
-  <action name="actEditRichText">
-   <property name="text">
-    <string>RichText</string>
-   </property>
-   <property name="toolTip">
-    <string>Set Rich Text mode</string>
-   </property>
-  </action>
-  <action name="actionRename_R">
-   <property name="text">
-    <string>Rename(&amp;R)</string>
-   </property>
-  </action>
-  <action name="actionAdd_A">
-   <property name="text">
-    <string>Add(&amp;A)</string>
-   </property>
-  </action>
-  <action name="actionDelete_D">
-   <property name="text">
-    <string>Delete(&amp;D)</string>
-   </property>
-  </action>
-  <action name="actionRename_R_2">
-   <property name="text">
-    <string>Rename(&amp;R)</string>
-   </property>
-  </action>
-  <action name="actionMoveNext">
-   <property name="text">
-    <string>MoveNext(&amp;N)</string>
-   </property>
-  </action>
-  <action name="actionMovePrevious_P">
-   <property name="text">
-    <string>MovePrevious(&amp;P)</string>
-   </property>
-  </action>
-  <action name="actionSortAtoZ">
-   <property name="text">
-    <string>SortAtoZ</string>
-   </property>
-  </action>
-  <action name="actionSortZtoA">
-   <property name="text">
-    <string>SortZtoA</string>
-   </property>
-  </action>
-  <action name="actionNextFile">
-   <property name="text">
-    <string>NextFile</string>
-   </property>
-  </action>
-  <action name="actionPreviousFile">
-   <property name="text">
-    <string>PreviousFile</string>
+    <string>About Nmemo</string>
    </property>
   </action>
  </widget>

@@ -31,6 +31,7 @@ const QString FILE_EXTENSION = "memo";
 const QString FILE_PREFIX = "__NMEMO_DATA__";
 const QString FILE_VERSION = "2";
 const QString FILE_BASE_VERSION = "1";
+const QString FILE_FILTER = "Memo file (*.memo);;All Files (*)";
 const QString SPLITTER = "///";
 
 }  // ns COMMON
@@ -44,6 +45,7 @@ const QString PAGE_TITLE = "NewPage";
 const QString PAGE_TEXT = "New memo";
 const QString PAGE_CAUTION_TEXT = "(Please create a new page!!)";
 const int STATUS_MESSAGE_TIME = 3000;  // ms
+const QString SELECTED_FILTER = "Memo file (*.memo)";
 
 }  // ns DEFAULT
 
@@ -92,8 +94,6 @@ namespace VALUE {
 const QString DEFAULT_FILENAME = "Undefined";
 const QString LOAD_FILE_CAPTION = "Load file";
 const QString SAVE_FILE_CAPTION = "Save file";
-const QString FILE_FILTER = "Memo file (*.memo);;All Files (*)";
-const QString DEFAULT_SELECTED_FILTER = "Memo file (*.memo)";
 const QString ASK_UNSAVED_TITLE = "Unsaved file exits";
 const QString ASK_UNSAVED_MESSAGE = "The file is unsaved. Save this file?";
 

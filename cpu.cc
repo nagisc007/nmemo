@@ -789,7 +789,7 @@ T_cpu_result Core::ToProcess(T_cpu_addr addr, int i, const T_str& s)
   case Addr::BOOK_SORT: return ToSortBooks(currentFileId(&ram), static_cast<Qt::SortOrder>(i));
   case Addr::FILE_CHANGE: return ToChangeFile(i);
   case Addr::FILE_CLOSE: return ToCloseFile(i);
-  case Addr::FILE_NEW: return ToCreateFile(DEFAULT::FILE_TITLE);
+  case Addr::FILE_NEW: return ToCreateFile(s);
   case Addr::FILE_OPEN: return ToOpenFile(s);
   case Addr::FILE_MOVE: return ToMoveFile(_fromIndex(i), _toIndex(i));
   case Addr::FILE_RENAME: return ToRenameFile(i, s);

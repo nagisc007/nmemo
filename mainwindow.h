@@ -8,7 +8,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "core.h"
+#include "common_types.h"
+#include "common_values.h"
+#include "cpu.h"
+#include "gpu.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -17,6 +20,7 @@
 #include <QScrollBar>
 #include <QTabBar>
 #include <QTextEdit>
+#include <QThread>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QCloseEvent>
@@ -25,188 +29,101 @@ namespace Ui {
 class MainWindow;
 }
 
-/* class: MainWindow */
+// struct: MainReg
+struct MainReg {
+  MainReg();
+  // members
+  T_str filter;
+  T_str dirname;
+};
+
+// class: MainWindow
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
 
 public:
-  /* con[de]structor */
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
-  /* members: class */
+  // members
   Ui::MainWindow *ui;
-  QScopedPointer<QTabBar> tabbar;
+  MainReg reg;
+  QScopedPointer<QTabBar> filetab;
+  QScopedPointer<QTabBar> booktab;
   QScopedPointer<QListWidget> pagelist;
   QScopedPointer<QTextEdit> editor;
-  QScopedPointer<QLabel> mode_label;
-  QScopedPointer<Core::System> sys;
-  /* members: register */
-  bool r_ui_updated;
-  T_mode r_current_mode;
-  T_filter r_filter_selected;
-  T_dirname r_dirname;
-  /* members: utils */
-  QMutex u_mutex;
-  /* methods: base */
+  QScopedPointer<CPU::Core> cpu;
+  QScopedPointer<GPU::Core> gpu;
+  QScopedPointer<QThread> cpu_th;
+  QScopedPointer<QThread> gpu_th;
+  // methods
   bool InitWidgets();
-  bool InitActions();
-  bool ToInitWidgetsLayouts();
-  bool ToInitWidgetsProperties();
-  /* methods: features */
-  bool ExistsUnsavedAll();
-  void UpdateNote();
-  bool isDeletedBook();
-  bool isDeletedPage();
-  bool isApplyedClosed();
-  /* methods: utils */
-  inline constexpr bool isUnsaved(const T_index i) {
-    return i < tabbar->count() && !tabbar->tabData(i).toBool();
-  }
-  inline constexpr bool isUiUpdated() {
-    return r_ui_updated;
-  }
+  bool InitConnections();
+  // stream
 
 signals:
-  void asSystemData(T_code, T_arg, T_arg, T_arg);
+  void ToCpu(T_cpu_addr, int i = -1, T_str s = T_str());
+  void ToCpuIrq(T_cpu_irq);
+  void ToGpuIrq(T_gpu_irq);
 
 public slots:
-  /* for output */
-  void ToTabBar(const T_sig, const T_arg, const T_arg, const T_arg);
-  void ToPageList(const T_sig, const T_arg, const T_arg);
-  void ToEditor(const T_sig, const T_arg, const T_arg, const T_arg, const T_arg);
-  void ToTitleBar(const T_sig, const T_arg);
-  void ToStatusBar(const T_sig, const T_arg, const T_arg);
-  /* for tabbar */
-  void OnTabCurrentChanged(const T_index);
-  void OnTabCloseRequested(const T_index);
-  void OnTabMoved(const T_index, const T_index);
-  /* for pagelist */
-  void OnListCurrentRowChanged(const T_index);
-  void OnListItemDoubleClicked(const T_item*);
-  /* for editor */
-  void OnEditorTextChanged();
+  void FromGpu(T_dev_addr, T_ivec, T_strs, T_states);
+  void FromCpuError(T_cpu_result);
+  void FromGpuError(T_gpu_result);
 
 private slots:
-  /* menus: File */
-  void on_actNew_triggered();
-  void on_actOpen_triggered();
-  void on_actClose_triggered();
-  void on_actSave_triggered();
-  void on_actSaveAs_triggered();
-  void on_actQuit_triggered();
-  /* menus: Edit */
-  void on_actUndo_triggered();
-  void on_actRedo_triggered();
-  void on_actCut_triggered();
-  void on_actCopy_triggered();
-  void on_actPaste_triggered();
-  void on_actErase_triggered();
-  void on_actSelectAll_triggered();
-  /* menus: Book */
-  void on_actAddItem_triggered();
-  void on_actDeleteItem_triggered();
-  void on_actRenameItem_triggered();
-  void on_actMoveNext_triggered();
-  void on_actMovePrevious_triggered();
-  void on_actSort_AtoZ_triggered();
-  void on_actSort_ZtoA_triggered();
-  /* menus: View */
-  void on_actFullscreen_triggered();
-  void on_actEditPlainText_triggered();
-  void on_actEditRichText_triggered();
-  void on_actNextTab_triggered();
-  void on_actPreviousTab_triggered();
-  void on_actNextItem_triggered();
-  void on_actPreviousItem_triggered();
-  /* menus: Help */
-  void on_actAboutQt_triggered();
-  void on_actAboutApp_triggered();
+  // ui
+  void OnFileTabCurrentChanged(const T_index);
+  void OnFileTabCloseRequested(const T_index);
+  void OnFileTabMoved(const T_index, const T_index);
+  void OnBookTabCurrentChanged(const T_index);
+  void OnBookTabCloseRequested(const T_index);
+  void OnBookTabMoved(const T_index, const T_index);
+  void OnPageListCurrentRowChanged(const T_index);
+  void OnPageListItemDoubleClicked(const T_item*);
+  void OnEditorTextChanged();
+  // menus
+  void on_fileNew_triggered();
+  void on_fileOpen_triggered();
+  void on_fileSave_triggered();
+  void on_fileSaveAs_triggered();
+  void on_fileRename_triggered();
+  void on_fileClose_triggered();
+  void on_appQuit_triggered();
+  void on_editUndo_triggered();
+  void on_editRedo_triggered();
+  void on_editCut_triggered();
+  void on_editCopy_triggered();
+  void on_editPaste_triggered();
+  void on_editErase_triggered();
+  void on_editSelectAll_triggered();
+  void on_bookAdd_triggered();
+  void on_bookDelete_triggered();
+  void on_bookRename_triggered();
+  void on_bookMoveNext_triggered();
+  void on_bookMovePrevious_triggered();
+  void on_booksSortAtoZ_triggered();
+  void on_booksSortZtoA_triggered();
+  void on_pageAdd_triggered();
+  void on_pageDelete_triggered();
+  void on_pageRename_triggered();
+  void on_pageMoveNext_triggered();
+  void on_pageMovePrevious_triggered();
+  void on_pagesSortAtoZ_triggered();
+  void on_pagesSortZtoA_triggered();
+  void on_toggleFullscreen_triggered();
+  void on_fileChangeNext_triggered();
+  void on_fileChangePrevious_triggered();
+  void on_bookChangeNext_triggered();
+  void on_bookChangePrevious_triggered();
+  void on_pageChangeNext_triggered();
+  void on_pageChangePrevious_triggered();
+  void on_appAboutQt_triggered();
+  void on_appAboutApp_triggered();
 
 private:
   /* override */
   void closeEvent(QCloseEvent*) override;
 };
-
-/* process: UI Process */
-namespace UIP {
-
-namespace TitleBar {
-
-bool ToUpdate(const T_sig, MainWindow*, const T_arg);
-
-}  // ns UIP:TitleBar
-
-namespace StatusBar {
-
-bool ToUpdate(const T_sig, MainWindow*, const T_arg, const T_arg);
-
-}  // ns UIP:StatusBar
-
-namespace TabBar {
-
-inline T_index indexFetch(const QTabBar* tbar) {
-  return tbar->currentIndex();
-}
-
-bool ToUpdate(const T_sig, QTabBar*, const T_arg, const T_arg, const T_arg);
-bool ColorsUpdate(QTabBar*, const T_arg);
-
-}  // ns UIP:TabBar
-
-namespace PageList {
-
-inline T_index indexFetch(const QListWidget* li) {
-  return li->currentRow();
-}
-inline T_item* itemFetch(const QListWidget* li) {
-  return li->currentItem();
-}
-
-bool ToUpdate(const T_sig, QListWidget*, const T_arg, const T_arg);
-
-}  // ns UIP:PageList
-
-namespace Editor {
-
-inline T_text textFetch(const T_mode mode, const QTextEdit* editor) {
-  return mode == EditMode::HTML ? editor->toHtml(): editor->toPlainText();
-}
-
-inline T_pos posFetch(const QTextEdit* editor) {
-  return editor->verticalScrollBar()->sliderPosition();
-}
-
-namespace Act {
-
-inline void Undo(QTextEdit* e) {
-  if (!e->isReadOnly()) e->undo();
-}
-inline void Redo(QTextEdit* e) {
-  if (!e->isReadOnly()) e->redo();
-}
-inline void Cut(QTextEdit* e) {
-  if (!e->isReadOnly()) e->cut();
-}
-inline void Copy(QTextEdit* e) {
-  if (!e->isReadOnly()) e->copy();
-}
-inline void Paste(QTextEdit* e) {
-  if (!e->isReadOnly()) e->paste();
-}
-inline void Erase(QTextEdit* e) {
-  if (!e->isReadOnly()) e->textCursor().removeSelectedText();
-}
-inline void SelectAll(QTextEdit* e) {
-  if (!e->isReadOnly()) e->selectAll();
-}
-
-}  // ns UIP::Editor::Act
-
-bool ToUpdate(const T_sig, QTextEdit*, const T_arg, const T_arg, const T_arg, const T_arg);
-
-}  // ns UIP:Editor
-
-}  // namespace UIP
 
 #endif // MAINWINDOW_H
