@@ -990,7 +990,7 @@ void GpuTest::testCaseTextModify1()
   dev_in->NewFile();
   dev_in->AddBook("testbook");
   dev_in->AddPage("testpage");
-  dev_in->ModifyText("testtext");
+  dev_in->UpdateText("testtext");
   VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
@@ -1007,7 +1007,7 @@ void GpuTest::testCaseTextModify1()
   VerifyEditorReadOnly(false);
   VerifyEditorText("testtext");
 
-  dev_in->ModifyText("testtext tested");
+  dev_in->UpdateText("testtext tested");
   VerifyEditorReadOnly(false);
   VerifyEditorText("testtext tested");
 }
@@ -1018,7 +1018,7 @@ void GpuTest::testCaseTextModify2()
   dev_in->AddBook("testbook");
   dev_in->AddPage("test1");
   dev_in->AddPage("test2");
-  dev_in->ModifyText("testtext");
+  dev_in->UpdateText("testtext");
   VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
   VerifyFileTabLabels(T_strs{"NewFile"});
   VerifyFileIndex(0);
