@@ -40,6 +40,7 @@ public:
   void ChangePage(T_index);
   void MovePage(T_index, T_index);
   void RenamePage(T_index, T_str);
+  void ModifyText(T_str);
 
 signals:
   void ToCpu(T_cpu_addr, int, T_str);

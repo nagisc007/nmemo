@@ -55,6 +55,7 @@ public:
   T_cpu_result ToMovePage(T_id, T_id, T_index, T_index);
   T_cpu_result ToRenamePage(T_id, T_id, T_index, const T_str&);
   T_cpu_result ToSortPages(T_id, T_id, T_order);
+  T_cpu_result ToModifyText(T_id, T_id, T_id, const T_str&);
 
 signals:
   void ToError(T_cpu_result);

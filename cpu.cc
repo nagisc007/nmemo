@@ -634,6 +634,21 @@ T_cpu_result Core::ToGpuDataOfWindow(T_submits submits)
   return Result::SUCCESS;
 }
 
+T_cpu_result Core::ToModifyText(T_id fid, T_id bid, T_id pid, const T_str& text)
+{
+  if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
+  if (!IsValidBookId(&ram, fid, bid, true)) return Result::INVALID_BOOKID;
+  if (!IsValidPageId(&ram, bid, pid, true)) return Result::INVALID_PAGEID;
+
+  if (!UpdatePageText(&ram, pid, text, true)) return Result::INVALID_OPERATION;
+  if (!UpdateFileModified(&ram, fid, true, true) ||
+      !UpdateBookModified(&ram, bid, true, true) ||
+      !UpdatePageModified(&ram, pid, true, true))
+    return Result::INVALID_OPERATION;
+
+  return Result::SUCCESS;
+}
+
 T_cpu_result Core::ToMoveBook(T_id fid, T_index from, T_index to)
 {
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
@@ -807,10 +822,14 @@ T_cpu_result Core::ToProcess(T_cpu_addr addr, int i, const T_str& s)
     auto fid = currentFileId(&ram);
     return ToSortPages(fid, currentBookId(&ram, fid, false), static_cast<Qt::SortOrder>(i));
   }
-  default:
-    break;
+  case Addr::TEXT_MODIFY: {
+    auto fid = currentFileId(&ram);
+    auto bid = currentBookId(&ram, fid, false);
+    return ToModifyText(fid, bid, currentPageId(&ram, bid, false, fid), s);
   }
-  return Result::SUCCESS;
+  case Addr::NOP:
+    return Result::SUCCESS;
+  }
 }
 
 T_cpu_result Core::ToRenameBook(T_id fid, T_index idx, const T_str& name)

@@ -120,6 +120,8 @@ bool UpdateBookModified(Ram*, T_id, bool, bool is_validated = true, T_id fid = -
 bool UpdatePageModified(Ram*, T_id, bool, bool is_validated = true,
                         T_id fid = -1, T_id bid = -1);
 bool UpdateFilePath(Ram*, T_id, const T_str&, bool is_validated = true);
+bool UpdatePageText(Ram*, T_id, const T_str&, bool is_validated = true,
+                    T_id fid = -1, T_id bid = -1);
 bool AppendFileIds(Ram*, T_id);
 bool RemoveFileIds(Ram*, T_id);
 bool AddFile(Ram*, T_id, const T_str&);

@@ -61,6 +61,11 @@ void Input::DeletePage(T_index i)
   emit ToCpu(CPU::Addr::PAGE_DELETE, i, T_str());
 }
 
+void Input::ModifyText(T_str text)
+{
+  emit ToCpu(CPU::Addr::TEXT_MODIFY, 0, text);
+}
+
 void Input::MoveBook(T_index from, T_index to)
 {
   emit ToCpu(CPU::Addr::BOOK_MOVE, (from << 8) | to, T_str());

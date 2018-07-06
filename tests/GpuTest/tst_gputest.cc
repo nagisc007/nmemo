@@ -44,7 +44,7 @@ public:
   QScopedPointer<QStatusBar> statusbar;
   QScopedPointer<QWindow> window;
 public slots:
-  void FromGpu(T_dev_addr addr, T_ivec i, T_strs s, T_states st) {
+  void FromGpu(T_dev_addr addr, T_ivec iv, T_strs s, T_states st) {
     if (_IsExists(addr, DEV::Addr::WINDOW_TITLE)) {
       window->setTitle(s.at(0));
     }
@@ -60,7 +60,7 @@ public slots:
       }
     }
     if (_IsExists(addr, DEV::Addr::FILETAB_INDEX)) {
-      filetab->setCurrentIndex(i.at(0));
+      filetab->setCurrentIndex(iv.at(0));
     }
     if (_IsExists(addr, DEV::Addr::FILETAB_STATES)) {
       for (int i = 0; i < st.size(); ++i) {
@@ -76,7 +76,7 @@ public slots:
       }
     }
     if (_IsExists(addr, DEV::Addr::BOOKTAB_INDEX)) {
-      booktab->setCurrentIndex(i.at(0));
+      booktab->setCurrentIndex(iv.at(0));
     }
     if (_IsExists(addr, DEV::Addr::BOOKTAB_STATES)) {
       for (int i = 0; i < st.size(); ++i) {
@@ -88,12 +88,18 @@ public slots:
       pagelist->addItems(s);
     }
     if (_IsExists(addr, DEV::Addr::PAGELIST_INDEX)) {
-      pagelist->setCurrentRow(i.at(0));
+      pagelist->setCurrentRow(iv.at(0));
     }
     if (_IsExists(addr, DEV::Addr::PAGELIST_STATES)) {
       for (int i = 0; i < st.size(); ++i) {
         pagelist->item(i)->setForeground(QBrush(st.at(i) ? Qt::black: Qt::red));
       }
+    }
+    if (_IsExists(addr, DEV::Addr::EDITOR_READONLY)) {
+      editor->setReadOnly(iv.at(0));
+    }
+    if (_IsExists(addr, DEV::Addr::EDITOR_TEXT)) {
+      editor->setText(s.at(0));
     }
   }
   void FromCpuError(T_cpu_result r) {
@@ -151,6 +157,12 @@ public slots:
                QBrush(st.at(i) ? Qt::black: Qt::red));
     }
   }
+  void VerifyEditorReadOnly(bool is_ro) {
+    QCOMPARE(editor->isReadOnly(), is_ro);
+  }
+  void VerifyEditorText(T_str text) {
+    QCOMPARE(editor->toPlainText(), text);
+  }
 private Q_SLOTS:
   void init();
   void cleanup();
@@ -185,6 +197,7 @@ private Q_SLOTS:
   void testCasePageMove1();
   void testCasePageRename0();
   void testCasePageRename1();
+  void testCaseTextModify1();
   void testCaseFileOpen1();
   void testCaseFileSave1();
 };
@@ -866,6 +879,29 @@ void GpuTest::testCasePageRename1()
   VerifyPageListIndex(0);
   T_states pst(1, true);
   VerifyPageListColors(pst);
+}
+
+void GpuTest::testCaseTextModify1()
+{
+  dev_in->NewFile();
+  dev_in->AddBook("testbook");
+  dev_in->AddPage("testpage");
+  dev_in->ModifyText("testtext");
+  VerifyWindowTitle(DEFAULT::WINDOW_TITLE);
+  VerifyFileTabLabels(T_strs{"NewFile"});
+  VerifyFileIndex(0);
+  T_states fst(1, true);
+  VerifyFileColors(fst);
+  VerifyBookTabLabels(T_strs{"testbook"});
+  VerifyBookTabIndex(0);
+  T_states bst(1, true);
+  VerifyBookColors(bst);
+  VerifyPageListLabels(T_strs{"testpage"});
+  VerifyPageListIndex(0);
+  T_states pst(1, true);
+  VerifyPageListColors(pst);
+  VerifyEditorReadOnly(false);
+  VerifyEditorText("testtext");
 }
 
 QTEST_MAIN(GpuTest)

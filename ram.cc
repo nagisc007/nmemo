@@ -360,6 +360,14 @@ bool UpdatePageModified(Ram* ram, T_id pid, bool modified, bool is_validated, T_
   return true;
 }
 
+bool UpdatePageText(Ram* ram, T_id pid, const T_str& text, bool is_validated, T_id fid, T_id bid)
+{
+  if (!is_validated && !IsValidPageId(ram, bid, pid, false, fid)) return false;
+
+  ram->pages.at(pid)->text = text;
+  return true;
+}
+
 bool AddBook(Ram* ram, T_id bid, const T_str& name)
 {
   if (bid < 0) return false;
