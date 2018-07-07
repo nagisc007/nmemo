@@ -445,6 +445,9 @@
    <property name="toolTip">
     <string>Change to Next Book</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Right</string>
+   </property>
   </action>
   <action name="bookChangePrevious">
    <property name="text">
@@ -452,6 +455,9 @@
    </property>
    <property name="toolTip">
     <string>Change to Previous Book</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Left</string>
    </property>
   </action>
   <action name="pageChangeNext">
