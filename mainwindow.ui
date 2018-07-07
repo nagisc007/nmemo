@@ -446,7 +446,7 @@
     <string>Change to Next Book</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Right</string>
+    <string>Alt+Right</string>
    </property>
   </action>
   <action name="bookChangePrevious">
@@ -457,7 +457,7 @@
     <string>Change to Previous Book</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Left</string>
+    <string>Alt+Left</string>
    </property>
   </action>
   <action name="pageChangeNext">
@@ -468,7 +468,7 @@
     <string>Change to Next Page</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Down</string>
+    <string>Alt+Down</string>
    </property>
   </action>
   <action name="pageChangePrevious">
@@ -479,7 +479,7 @@
     <string>Change to Previous Page</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Up</string>
+    <string>Alt+Up</string>
    </property>
   </action>
   <action name="appAboutQt">
