@@ -405,6 +405,8 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
     mutex.unlock();
     reg.ui_updating = false;
   }
+  // focus
+  editor->setFocus();
 }
 
 void MainWindow::FromGpuError(T_gpu_result res)
