@@ -482,9 +482,12 @@ void MainWindow::on_fileOpen_triggered()
 {
   if (!ToCheckUIandUpdateText()) return;
 
-  emit ToCpu(CPU::Addr::FILE_OPEN, 0,
-             _filePathOpened(this, _FILE_OPEN_CAPTION, reg.dirname, COMMON::FILE_FILTER,
-                             &reg.dirname));
+  auto path = _filePathOpened(this, _FILE_OPEN_CAPTION, reg.dirname, COMMON::FILE_FILTER,
+                              &reg.dirname);
+  if (path.isEmpty()) return;
+
+  reg.dirname = QDir(path).absolutePath();
+  emit ToCpu(CPU::Addr::FILE_OPEN, 0, path);
 }
 
 void MainWindow::on_fileSave_triggered()
@@ -498,11 +501,14 @@ void MainWindow::on_fileSaveAs_triggered()
 {
   if (!ToCheckUIandUpdateText()) return;
 
-  emit ToCpu(CPU::Addr::FILE_SAVEAS, filetab->currentIndex(),
-             _filePathSaved(this, _FILE_SAVEAS_CAPTION,
-                            QString("%1/%2").arg(reg.dirname)
-                            .arg(filetab->tabData(filetab->currentIndex()).toString()),
-                            COMMON::FILE_FILTER, &reg.filter));
+  auto path = _filePathSaved(this, _FILE_SAVEAS_CAPTION,
+                             QString("%1/%2").arg(reg.dirname)
+                             .arg(filetab->tabData(filetab->currentIndex()).toString()),
+                             COMMON::FILE_FILTER, &reg.filter);
+  if (path.isEmpty()) return;
+
+  reg.dirname = QDir(path).absolutePath();
+  emit ToCpu(CPU::Addr::FILE_SAVEAS, filetab->currentIndex(), path);
 }
 
 void MainWindow::on_fileRename_triggered()
