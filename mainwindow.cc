@@ -20,15 +20,37 @@ namespace {
 
 const T_str _FILE_NEW_TITLE = "New file name";
 const T_str _FILE_NEW_CAPTION = "Input a file name";
+const T_str _FILE_RENAME_TITLE = "Rename the file";
+const T_str _FILE_RENAME_CAPTION = "Input this file name";
 const T_str _FILE_OPEN_CAPTION = "Open a memo file";
 const T_str _FILE_SAVEAS_TITLE = "Save the file as a name";
 const T_str _FILE_SAVEAS_CAPTION = "Input a new name for saving this file";
+const T_str _FILE_IS_CLOSED_TITLE = "Close the file";
+const T_str _FILE_IS_CLOSED_CAPTION = "Is this file closed?";
+const T_str _BOOK_NEW_TITLE = "New book name";
+const T_str _BOOK_NEW_CAPTION = "Input a book name";
+const T_str _BOOK_RENAME_TITLE = "Rename the book";
+const T_str _BOOK_RENAME_CAPTION = "Input this book name";
+const T_str _BOOK_IS_DELETED_TITLE = "Delete the book";
+const T_str _BOOK_IS_DELETED_CAPTION = "Is this book deleted?";
+const T_str _PAGE_NEW_TITLE = "New page name";
+const T_str _PAGE_NEW_CAPTION = "Input a page name";
+const T_str _PAGE_RENAME_TITLE = "Rename the page";
+const T_str _PAGE_RENAME_CAPTION = "Input this page name";
+const T_str _PAGE_IS_DELETED_TITLE = "Delete the page";
+const T_str _PAGE_IS_DELETED_CAPTION = "Is this page deleted?";
 const int _PAGELIST_MAXWIDTH = 120;
 const qreal _EDITOR_TABDISTANCE = 40;
 
 bool _IsExistsAddr(T_dev_addr addr, T_dev_addr target)
 {
   return (static_cast<int>(addr) & static_cast<int>(target)) != 0;
+}
+
+bool _IsOkDeleted(QWidget* parent, const T_str& title, const T_str& caption)
+{
+  return QMessageBox::question(parent, title, caption,
+                               QMessageBox::No, QMessageBox::Ok) == QMessageBox::Ok;
 }
 
 T_strs _baseNamesOf(T_strs strs)
@@ -241,6 +263,8 @@ void MainWindow::OnFileTabCloseRequested(const T_index index)
 {
   if (!ToCheckUIandUpdateText()) return;
 
+  if (!_IsOkDeleted(this, _FILE_IS_CLOSED_TITLE, _FILE_IS_CLOSED_CAPTION)) return;
+
   emit ToCpu(CPU::Addr::FILE_CLOSE, index);
 }
 
@@ -262,6 +286,8 @@ void MainWindow::OnBookTabCurrentChanged(const T_index index)
 void MainWindow::OnBookTabCloseRequested(const T_index index)
 {
   if (!ToCheckUIandUpdateText()) return;
+
+  if (!_IsOkDeleted(this, _BOOK_IS_DELETED_TITLE, _BOOK_IS_DELETED_CAPTION)) return;
 
   emit ToCpu(CPU::Addr::BOOK_DELETE, index);
 }
@@ -286,7 +312,7 @@ void MainWindow::OnPageListItemDoubleClicked(const T_item* item)
   if (!ToCheckUIandUpdateText()) return;
 
   emit ToCpu(CPU::Addr::PAGE_RENAME, pagelist->row(item),
-             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+             _nameInputted(this, _PAGE_RENAME_TITLE, _PAGE_RENAME_CAPTION,
                            item->text()));
 }
 
@@ -466,13 +492,15 @@ void MainWindow::on_fileRename_triggered()
   if (!ToCheckUIandUpdateText()) return;
 
   emit ToCpu(CPU::Addr::FILE_RENAME, filetab->currentIndex(),
-             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+             _nameInputted(this, _FILE_RENAME_TITLE, _FILE_RENAME_CAPTION,
                            filetab->tabData(filetab->currentIndex()).toString()));
 }
 
 void MainWindow::on_fileClose_triggered()
 {
   if (!ToCheckUIandUpdateText()) return;
+
+  if (!_IsOkDeleted(this, _FILE_IS_CLOSED_TITLE, _FILE_IS_CLOSED_CAPTION)) return;
 
   emit ToCpu(CPU::Addr::FILE_CLOSE, filetab->currentIndex());
 }
@@ -538,13 +566,15 @@ void MainWindow::on_bookAdd_triggered()
   if (!ToCheckUIandUpdateText()) return;
 
   emit ToCpu(CPU::Addr::BOOK_ADD, 0,
-             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+             _nameInputted(this, _BOOK_NEW_TITLE, _BOOK_NEW_CAPTION,
                            DEFAULT::BOOK_TITLE));
 }
 
 void MainWindow::on_bookDelete_triggered()
 {
   if (!ToCheckUIandUpdateText()) return;
+
+  if (!_IsOkDeleted(this, _BOOK_IS_DELETED_TITLE, _BOOK_IS_DELETED_CAPTION)) return;
 
   emit ToCpu(CPU::Addr::BOOK_DELETE, booktab->currentIndex());
 }
@@ -554,7 +584,7 @@ void MainWindow::on_bookRename_triggered()
   if (!ToCheckUIandUpdateText()) return;
 
   emit ToCpu(CPU::Addr::BOOK_RENAME, booktab->currentIndex(),
-             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+             _nameInputted(this, _BOOK_RENAME_TITLE, _BOOK_RENAME_CAPTION,
                            booktab->tabText(booktab->currentIndex())));
 }
 
@@ -593,12 +623,14 @@ void MainWindow::on_pageAdd_triggered()
   if (!ToCheckUIandUpdateText()) return;
 
   emit ToCpu(CPU::Addr::PAGE_ADD, 0,
-             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION, DEFAULT::PAGE_TITLE));
+             _nameInputted(this, _PAGE_NEW_TITLE, _PAGE_NEW_CAPTION, DEFAULT::PAGE_TITLE));
 }
 
 void MainWindow::on_pageDelete_triggered()
 {
   if (!ToCheckUIandUpdateText()) return;
+
+  if (!_IsOkDeleted(this, _PAGE_IS_DELETED_TITLE, _PAGE_IS_DELETED_CAPTION)) return;
 
   emit ToCpu(CPU::Addr::PAGE_DELETE, pagelist->currentRow());
 }
@@ -608,7 +640,7 @@ void MainWindow::on_pageRename_triggered()
   if (!ToCheckUIandUpdateText()) return;
 
   emit ToCpu(CPU::Addr::PAGE_RENAME, pagelist->currentRow(),
-             _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
+             _nameInputted(this, _PAGE_RENAME_TITLE, _PAGE_RENAME_CAPTION,
                            pagelist->item(pagelist->currentRow())->text()));
 }
 
