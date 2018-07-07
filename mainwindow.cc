@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QInputDialog>
 #include <QMessageBox>
 
@@ -30,10 +31,25 @@ bool _IsExistsAddr(T_dev_addr addr, T_dev_addr target)
   return (static_cast<int>(addr) & static_cast<int>(target)) != 0;
 }
 
+T_strs _baseNamesOf(T_strs strs)
+{
+  T_strs res;
+  for (auto& v: strs) {
+    res << QFileInfo(v).baseName();
+  }
+  return res;
+}
+
 T_str _filePathOpened(QWidget* parent, const T_str& caption, const T_str& path,
                       const T_str& filter, T_str* selected)
 {
   return QFileDialog::getOpenFileName(parent, caption, path, filter, selected);
+}
+
+T_str _filePathSaved(QWidget* parent, const T_str& caption, const T_str& path,
+                      const T_str& filter, T_str* selected)
+{
+  return QFileDialog::getSaveFileName(parent, caption, path, filter, selected);
 }
 
 T_str _nameInputted(QWidget* parent, const T_str& title, const T_str& caption,
@@ -45,6 +61,14 @@ T_str _nameInputted(QWidget* parent, const T_str& title, const T_str& caption,
 int _fromWithTo(T_index from, T_index to)
 {
   return static_cast<int>(from) << 8 | static_cast<int>(to);
+}
+
+bool _SetFilePathsToTabData(QTabBar* tab, T_strs strs)
+{
+  for (int i = 0; i < strs.size(); ++i) {
+    tab->setTabData(i, QVariant(strs.at(i)));
+  }
+  return true;
 }
 
 bool _SwapTabLabels(QTabBar* tab, T_strs strs)
@@ -67,7 +91,8 @@ bool _SwapListWidgetLabels(QListWidget* list, T_strs strs)
 bool _ChangeTabColors(QTabBar* tab, T_states states)
 {
   for (int i = 0; i < states.size(); ++i) {
-    tab->setTabTextColor(i, states.at(i) ? Qt::black: Qt::red);
+    tab->setTabTextColor(i, states.at(i) ? DEFAULT::MODIFY_LABEL_COLOR:
+                                           DEFAULT::NORMAL_LABEL_COLOR);
   }
   return true;
 }
@@ -75,7 +100,8 @@ bool _ChangeTabColors(QTabBar* tab, T_states states)
 bool _ChangeListWidgetColors(QListWidget* list, T_states states)
 {
   for (int i = 0; i < states.size(); ++i) {
-    list->item(i)->setForeground(QBrush(states.at(i) ? Qt::black: Qt::red));
+    list->item(i)->setForeground(QBrush(states.at(i) ? DEFAULT::MODIFY_LABEL_COLOR:
+                                                       DEFAULT::NORMAL_LABEL_COLOR));
   }
   return true;
 }
@@ -293,10 +319,8 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
   if (_IsExistsAddr(addr, DEV::Addr::FILETAB_LABELS)) {
     mutex.lock();
     reg.ui_updating = true;
-    while (filetab->count() > 0)
-      filetab->removeTab(0);
-    for (auto& v: strs)
-      filetab->addTab(v);
+    _SwapTabLabels(filetab.data(), _baseNamesOf(strs));
+    _SetFilePathsToTabData(filetab.data(), strs);
     mutex.unlock();
     reg.ui_updating = false;
   }
@@ -310,9 +334,7 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
   if (_IsExistsAddr(addr, DEV::Addr::FILETAB_STATES)) {
     mutex.lock();
     reg.ui_updating = true;
-    for (int i = 0; i < states.size(); ++i) {
-      filetab->setTabTextColor(i, states.at(i) ? Qt::red: Qt::black);
-    }
+    _ChangeTabColors(filetab.data(), states);
     mutex.unlock();
     reg.ui_updating = false;
   }
@@ -320,10 +342,7 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
   if (_IsExistsAddr(addr, DEV::Addr::BOOKTAB_LABELS)) {
     mutex.lock();
     reg.ui_updating = true;
-    while (booktab->count() > 0)
-      booktab->removeTab(0);
-    for (auto& v: strs)
-      booktab->addTab(v);
+    _SwapTabLabels(booktab.data(), strs);
     mutex.unlock();
     reg.ui_updating = false;
   }
@@ -337,9 +356,7 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
   if (_IsExistsAddr(addr, DEV::Addr::BOOKTAB_STATES)) {
     mutex.lock();
     reg.ui_updating = true;
-    for (int i = 0; i < states.size(); ++i) {
-      booktab->setTabTextColor(i, states.at(i) ? Qt::red: Qt::black);
-    }
+    _ChangeTabColors(booktab.data(), states);
     mutex.unlock();
     reg.ui_updating = false;
   }
@@ -347,8 +364,7 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
   if (_IsExistsAddr(addr, DEV::Addr::PAGELIST_LABELS)) {
     mutex.lock();
     reg.ui_updating = true;
-    pagelist->clear();
-    pagelist->addItems(strs);
+    _SwapListWidgetLabels(pagelist.data(), strs);
     mutex.unlock();
     reg.ui_updating = false;
   }
@@ -362,9 +378,7 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
   if (_IsExistsAddr(addr, DEV::Addr::PAGELIST_STATES)) {
     mutex.lock();
     reg.ui_updating = true;
-    for (int i = 0; i < states.size(); ++i) {
-      pagelist->item(i)->setForeground(QBrush(states.at(i) ? Qt::red: Qt::black));
-    }
+    _ChangeListWidgetColors(pagelist.data(), states);
     mutex.unlock();
     reg.ui_updating = false;
   }
@@ -439,8 +453,10 @@ void MainWindow::on_fileSaveAs_triggered()
   if (!ToCheckUIandUpdateText()) return;
 
   emit ToCpu(CPU::Addr::FILE_SAVEAS, filetab->currentIndex(),
-             _nameInputted(this, _FILE_SAVEAS_TITLE, _FILE_SAVEAS_CAPTION,
-                           filetab->tabText(filetab->currentIndex())));
+             _filePathSaved(this, _FILE_SAVEAS_CAPTION,
+                            QString("%1/%2").arg(reg.dirname)
+                            .arg(filetab->tabData(filetab->currentIndex()).toString()),
+                            COMMON::FILE_FILTER, &reg.filter));
 }
 
 void MainWindow::on_fileRename_triggered()
@@ -449,7 +465,7 @@ void MainWindow::on_fileRename_triggered()
 
   emit ToCpu(CPU::Addr::FILE_RENAME, filetab->currentIndex(),
              _nameInputted(this, _FILE_NEW_TITLE, _FILE_NEW_CAPTION,
-                           filetab->tabText(filetab->currentIndex())));
+                           filetab->tabData(filetab->currentIndex()).toString()));
 }
 
 void MainWindow::on_fileClose_triggered()

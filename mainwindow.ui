@@ -125,7 +125,11 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="bookAdd"/>
+   <addaction name="bookDelete"/>
    <addaction name="separator"/>
+   <addaction name="pageAdd"/>
+   <addaction name="pageDelete"/>
    <addaction name="separator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -275,13 +279,22 @@
    <property name="text">
     <string>Add(&amp;A)</string>
    </property>
+   <property name="iconText">
+    <string>Add Book</string>
+   </property>
    <property name="toolTip">
     <string>Add a new book</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+B</string>
    </property>
   </action>
   <action name="bookDelete">
    <property name="text">
     <string>Delete(&amp;D)</string>
+   </property>
+   <property name="iconText">
+    <string>Del Book</string>
    </property>
    <property name="toolTip">
     <string>Delete the book</string>
@@ -331,13 +344,22 @@
    <property name="text">
     <string>Add(&amp;A)</string>
    </property>
+   <property name="iconText">
+    <string>Add Page</string>
+   </property>
    <property name="toolTip">
     <string>Add a new page</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+P</string>
    </property>
   </action>
   <action name="pageDelete">
    <property name="text">
     <string>Delete(&amp;D)</string>
+   </property>
+   <property name="iconText">
+    <string>Del Page</string>
    </property>
    <property name="toolTip">
     <string>Delete the page</string>
@@ -358,6 +380,9 @@
    <property name="toolTip">
     <string>Move the page to Next</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Down</string>
+   </property>
   </action>
   <action name="pageMovePrevious">
    <property name="text">
@@ -365,6 +390,9 @@
    </property>
    <property name="toolTip">
     <string>Move the page to Previous</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Up</string>
    </property>
   </action>
   <action name="pagesSortAtoZ">
@@ -433,6 +461,9 @@
    <property name="toolTip">
     <string>Change to Next Page</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Down</string>
+   </property>
   </action>
   <action name="pageChangePrevious">
    <property name="text">
@@ -440,6 +471,9 @@
    </property>
    <property name="toolTip">
     <string>Change to Previous Page</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Up</string>
    </property>
   </action>
   <action name="appAboutQt">

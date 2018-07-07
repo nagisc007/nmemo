@@ -219,7 +219,7 @@ T_submits _submitsOf(T_cpu_addr addr)
                             GPU::Addr::PAGELIST_ALL,
                             GPU::Addr::STATUS_MESSAGE);
   case Addr::TEXT_MODIFY:
-    return _submitsCombined(GPU::Addr::NOP,
+    return _submitsCombined(GPU::Addr::FILETAB_STATES,
                             GPU::Addr::BOOKTAB_STATES,
                             GPU::Addr::PAGELIST_STATES);
   case Addr::TEXT_UPDATE:
