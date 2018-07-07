@@ -57,6 +57,7 @@ public:
   T_cpu_result ToSortPages(T_id, T_id, T_order);
   T_cpu_result ToModifyText(T_id, T_id, T_id);
   T_cpu_result ToUpdateText(T_id, T_id, T_id, const T_str&);
+  T_cpu_result ToUpdateModified(T_id, T_id, T_id, bool, bool is_validated = true);
 
 signals:
   void ToError(T_cpu_result);

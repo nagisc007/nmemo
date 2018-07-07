@@ -352,6 +352,7 @@ T_cpu_result Core::ToAddBook(T_id fid, const T_str& name)
       !AppendBookIds(&ram, fid, bid) ||
       !UpdateCurrentBookId(&ram, fid, bid)) return Result::INVALID_OPERATION;
 
+  ToUpdateModified(fid, bid, -1, true, false);
   return Result::SUCCESS;
 }
 
@@ -367,6 +368,7 @@ T_cpu_result Core::ToAddPage(T_id fid, T_id bid, const T_str& name, const T_str&
       !AppendPageIds(&ram, bid, pid, true) ||
       !UpdateCurrentPageId(&ram, bid, pid, true)) return Result::INVALID_OPERATION;
 
+  ToUpdateModified(fid, bid, pid, true, true);
   return Result::SUCCESS;
 }
 
@@ -455,6 +457,7 @@ T_cpu_result Core::ToDeleteBook(T_id fid, T_index idx)
   }
   if (!PushId(&ram, IdAddr::BOOK, bid)) return Result::INVALID_BOOKID;
 
+  ToUpdateModified(fid, bid, -1, true, false);
   return Result::SUCCESS;
 }
 
@@ -477,6 +480,7 @@ T_cpu_result Core::ToDeletePage(T_id fid, T_id bid, T_index idx)
   }
   if (!PushId(&ram, IdAddr::PAGE, pid)) return Result::INVALID_PAGEID;
 
+  ToUpdateModified(fid, bid, currentPageId(&ram, bid, true), true, false);
   return Result::SUCCESS;
 }
 
@@ -650,12 +654,7 @@ T_cpu_result Core::ToModifyText(T_id fid, T_id bid, T_id pid)
     return Result::SUCCESS_NOEFFECTED;
   }
 
-  if (!UpdateFileModified(&ram, fid, true, true) ||
-      !UpdateBookModified(&ram, bid, true, true) ||
-      !UpdatePageModified(&ram, pid, true, true))
-    return Result::INVALID_OPERATION;
-
-  return Result::SUCCESS;
+  return ToUpdateModified(fid, bid, pid, true, true);
 }
 
 T_cpu_result Core::ToMoveBook(T_id fid, T_index from, T_index to)
@@ -673,6 +672,7 @@ T_cpu_result Core::ToMoveBook(T_id fid, T_index from, T_index to)
       !UpdateCurrentBookId(&ram, fid, bookIdOf(&ram, fid, to, true), true))
     return Result::INVALID_OPERATION;
 
+  UpdateFileModified(&ram, fid, true, true);
   return Result::SUCCESS;
 }
 
@@ -704,6 +704,8 @@ T_cpu_result Core::ToMovePage(T_id fid, T_id bid, T_index from, T_index to)
       !UpdateCurrentPageId(&ram, bid, pageIdOf(&ram, bid, to, true), true))
     return Result::INVALID_OPERATION;
 
+  UpdateFileModified(&ram, fid, true, true);
+  UpdateBookModified(&ram, bid, true, true);
   return Result::SUCCESS;
 }
 
@@ -776,13 +778,11 @@ T_cpu_result Core::ToOpenFile(const T_str& path)
     return Result::INVALID_OPERATION;
 
   // update modified
-  for (auto& id: bookIdsOf(&ram, fid, true)) {
-    UpdateBookModified(&ram, id, false, true);
-    for (auto& pid: pageIdsOf(&ram, id, true)) {
-      UpdatePageModified(&ram, pid, false, true);
+  for (auto& bid: bookIdsOf(&ram, fid, true)) {
+    for (auto& pid: pageIdsOf(&ram, bid, true)) {
+      ToUpdateModified(fid, bid, pid, false, false);
     }
   }
-  UpdateFileModified(&ram, fid, false, true);
 
   return Result::SUCCESS;
 }
@@ -859,6 +859,8 @@ T_cpu_result Core::ToRenameBook(T_id fid, T_index idx, const T_str& name)
 
   if (!RenameBook(&ram, bid, name, true)) return Result::INVALID_OPERATION;
 
+  UpdateFileModified(&ram, fid, true, true);
+  UpdateBookModified(&ram, bid, true, true);
   return Result::SUCCESS;
 }
 
@@ -871,6 +873,7 @@ T_cpu_result Core::ToRenameFile(T_index idx, const T_str& name)
 
   if (!RenameFile(&ram, fid, name, true)) return Result::INVALID_OPERATION;
 
+  UpdateFileModified(&ram, fid, true, true);
   return Result::SUCCESS;
 }
 
@@ -888,6 +891,7 @@ T_cpu_result Core::ToRenamePage(T_id fid, T_id bid, T_index idx, const T_str& na
 
   if (!RenamePage(&ram, pid, name, true)) return Result::INVALID_OPERATION;
 
+  ToUpdateModified(fid, bid, pid, true, true);
   return Result::SUCCESS;
 }
 
@@ -917,13 +921,10 @@ T_cpu_result Core::ToSaveFile(T_index idx, const T_str& path)
 
   if (!UpdateFilePath(&ram, fid, va_path, true)) return Result::INVALID_OPERATION;
 
-  for (auto& id: bookIdsOf(&ram, fid, true)) {
-    UpdateBookModified(&ram, id, false, false, fid);
-    for (auto& pid: pageIdsOf(&ram, id, false, fid)) {
-      UpdatePageModified(&ram, pid, false, false, fid, id);
-    }
+  for (auto& bid: bookIdsOf(&ram, fid, true)) {
+    for (auto& pid: pageIdsOf(&ram, bid, false, fid))
+      ToUpdateModified(fid, bid, pid, false, false);
   }
-  UpdateFileModified(&ram, fid, false, true);
 
   return Result::SUCCESS;
 }
@@ -936,6 +937,7 @@ T_cpu_result Core::ToSortBooks(T_id fid, T_order order)
       !UpdateCurrentBookId(&ram, fid, currentBookId(&ram, fid, true), true))
     return Result::INVALID_OPERATION;
 
+  UpdateFileModified(&ram, fid, true, true);
   return Result::SUCCESS;
 }
 
@@ -948,6 +950,8 @@ T_cpu_result Core::ToSortPages(T_id fid, T_id bid, T_order order)
       !UpdateCurrentPageId(&ram, bid, currentPageId(&ram, bid, true), true))
     return Result::INVALID_OPERATION;
 
+  UpdateFileModified(&ram, fid, true, true);
+  UpdateBookModified(&ram, bid, true, true);
   return Result::SUCCESS;
 }
 
@@ -958,6 +962,17 @@ T_cpu_result Core::ToUpdateText(T_id fid, T_id bid, T_id pid, const T_str& text)
   if (!IsValidPageId(&ram, bid, pid, true)) return Result::INVALID_PAGEID;
 
   if (!UpdatePageText(&ram, pid, text, true)) return Result::INVALID_OPERATION;
+
+  return Result::SUCCESS;
+}
+
+T_cpu_result Core::ToUpdateModified(T_id fid, T_id bid, T_id pid, bool modified,
+                                    bool is_validated)
+{
+  if (!UpdateFileModified(&ram, fid, modified, is_validated) ||
+      !UpdateBookModified(&ram, bid, modified, is_validated, fid) ||
+      !UpdatePageModified(&ram, pid, modified, is_validated, fid, bid))
+    return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
 }
