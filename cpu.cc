@@ -734,6 +734,19 @@ T_cpu_result Core::ToOpenFile(const T_str& path)
 {
   if (!IsValidPath(path)) return Result::INVALID_PATH;
 
+  // check path already exists
+  auto paths = fileLabelsOf(&ram);
+  int is_exists_samepath = -1;
+  for (int i = 0; i < paths.size(); ++i) {
+    if (paths.at(i) == path) {
+      is_exists_samepath = i;
+      break;
+    }
+  }
+  if (is_exists_samepath >= 0) {
+    return ToChangeFile(fileIndexOf(&ram, fileIdOf(&ram, is_exists_samepath)));
+  }
+
   QFile file(path);
   if (!file.open(QIODevice::ReadOnly)) return Result::ERR_NOTOPEN_FILE;
 
