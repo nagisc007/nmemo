@@ -38,6 +38,16 @@ int _toIndex(int i)
   return i & 0xff;
 }
 
+int _sliderPosOf(int i)
+{
+  return (i >> 16) & 0xffff;
+}
+
+int _cursorPosOf(int i)
+{
+  return i & 0xffff;
+}
+
 QPair<T_strs, T_strs> _fileDataDecoded(T_strs data)
 {
   T_strs booklabels;
@@ -237,6 +247,13 @@ T_ivec _ivecPacked(int i)
 {
   T_ivec res;
   res << i;
+  return res;
+}
+
+T_ivec _ivecCompressedForEditor(int i, int spos, int cpos)
+{
+  T_ivec res;
+  res << i << spos << cpos;
   return res;
 }
 
@@ -551,6 +568,8 @@ T_cpu_result Core::ToGpuDataOfBookTab(T_submits submits)
 T_cpu_result Core::ToGpuDataOfEditor(T_submits submits)
 {
   T_str text;
+  int spos = 0;
+  int cpos = 0;
   bool is_ro = true;
   auto fid = currentFileId(&ram);
   auto bid = currentBookId(&ram, fid, false);
@@ -562,12 +581,14 @@ T_cpu_result Core::ToGpuDataOfEditor(T_submits submits)
     text = DEFAULT::PAGE_CAUTION_TEXT;
   } else if (_IsExistsSubmit(submits, GPU::Addr::EDITOR_TEXT)) {
     text = pageTextOf(&ram, pid, false, fid, bid);
+    spos = pageSliderPosOf(&ram, pid, true);
+    cpos = pageCursorPosOf(&ram, pid, true);
   }
   if (_IsExistsSubmit(submits, GPU::Addr::EDITOR_READONLY)) {
     // NOTE: use to force readonly setting
   }
   emit ToGpu(_gpuAddrFetched(submits, GPU::Addr::EDITOR_ALL),
-             _ivecPacked(is_ro), _strsPacked(text));
+             _ivecCompressedForEditor(is_ro, spos, cpos), _strsPacked(text));
   return Result::SUCCESS;
 }
 
@@ -839,7 +860,8 @@ T_cpu_result Core::ToProcess(T_cpu_addr addr, int i, const T_str& s)
   case Addr::TEXT_UPDATE: {
     auto fid = currentFileId(&ram);
     auto bid = currentBookId(&ram, fid, false);
-    return ToUpdateText(fid, bid, currentPageId(&ram, bid, false, fid), s);
+    return ToUpdateText(fid, bid, currentPageId(&ram, bid, false, fid),
+                        _sliderPosOf(i), _cursorPosOf(i), s);
   }
   case Addr::NOP:
     return Result::SUCCESS;
@@ -955,13 +977,15 @@ T_cpu_result Core::ToSortPages(T_id fid, T_id bid, T_order order)
   return Result::SUCCESS;
 }
 
-T_cpu_result Core::ToUpdateText(T_id fid, T_id bid, T_id pid, const T_str& text)
+T_cpu_result Core::ToUpdateText(T_id fid, T_id bid, T_id pid, int spos, int cpos,
+                                const T_str& text)
 {
   if (!IsValidFileId(&ram, fid)) return Result::INVALID_FILEID;
   if (!IsValidBookId(&ram, fid, bid, true)) return Result::INVALID_BOOKID;
   if (!IsValidPageId(&ram, bid, pid, true)) return Result::INVALID_PAGEID;
 
-  if (!UpdatePageText(&ram, pid, text, true)) return Result::INVALID_OPERATION;
+  if (!UpdatePagePosition(&ram, pid, spos, cpos, true) ||
+      !UpdatePageText(&ram, pid, text, true)) return Result::INVALID_OPERATION;
 
   return Result::SUCCESS;
 }

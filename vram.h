@@ -52,8 +52,10 @@ enum class IRegAddr {
   BOOK_INDEX,
   PAGE_INDEX,
   TEXT_READONLY,
+  TEXT_SLIDER_POS,
+  TEXT_CURSOR_POS,
 };
-const int IREG_SIZE = 4;
+const int IREG_SIZE = 6;
 
 enum class SRegAddr {
   TITLE,
@@ -69,6 +71,7 @@ bool UpdateBookIndex(Vram*, T_index);
 bool UpdatePageIndex(Vram*, T_index);
 bool UpdateEditorReadOnly(Vram*, bool);
 bool UpdateEditorText(Vram*, const T_str&);
+bool UpdateEditorPosition(Vram*, int, int);
 bool UpdateWindowTitle(Vram*, const T_str&);
 bool UpdateStatusMessage(Vram*, const T_str&);
 bool UpdateFileLabels(Vram*, T_strs);

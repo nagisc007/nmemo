@@ -2,7 +2,7 @@
  *                                                                         *
  *   Copyright (C) 2018 by N.T.WORKS                                       *
  *                                                                         *
- *   Licensed under GPLv2 or any later version                             *
+ *   Licensed under GPLv3                                                  *
  *                                                                         *
  ***************************************************************************/
 #include "mainwindow.h"
@@ -50,7 +50,13 @@ bool _IsExistsAddr(T_dev_addr addr, T_dev_addr target)
 bool _IsOkDeleted(QWidget* parent, const T_str& title, const T_str& caption)
 {
   return QMessageBox::question(parent, title, caption,
-                               QMessageBox::No, QMessageBox::Ok) == QMessageBox::Ok;
+                               QMessageBox::No | QMessageBox::Ok,
+                               QMessageBox::No) == QMessageBox::Ok;
+}
+
+bool _IsModified(QTabBar* tab, T_index i)
+{
+  return tab->tabTextColor(i) == DEFAULT::MODIFY_LABEL_COLOR;
 }
 
 T_strs _baseNamesOf(T_strs strs)
@@ -72,6 +78,11 @@ T_str _filePathSaved(QWidget* parent, const T_str& caption, const T_str& path,
                       const T_str& filter, T_str* selected)
 {
   return QFileDialog::getSaveFileName(parent, caption, path, filter, selected);
+}
+
+int _editorPosCompressed(int spos, int cpos)
+{
+  return ((spos & 0xffff) << 16) | (cpos & 0xffff);
 }
 
 T_str _nameInputted(QWidget* parent, const T_str& title, const T_str& caption,
@@ -408,6 +419,14 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
     mutex.unlock();
     reg.ui_updating = false;
   }
+  // statusbar
+  if (_IsExistsAddr(addr, DEV::Addr::STATUS_MESSAGE)) {
+    mutex.lock();
+    reg.ui_updating = true;
+    statusBar()->showMessage(strs.at(0), DEFAULT::STATUS_MESSAGE_TIME);
+    mutex.unlock();
+    reg.ui_updating = false;
+  }
   // editor
   if (_IsExistsAddr(addr, DEV::Addr::EDITOR_READONLY)) {
     mutex.lock();
@@ -420,19 +439,15 @@ void MainWindow::FromGpu(T_dev_addr addr, T_ivec ivec, T_strs strs, T_states sta
     mutex.lock();
     reg.ui_updating = true;
     editor->setText(strs.at(0));
+    // focus
+    editor->verticalScrollBar()->setSliderPosition(ivec.at(1));
+    auto textcursor = editor->textCursor();
+    textcursor.setPosition(ivec.at(2));
+    editor->setTextCursor(textcursor);
+    editor->setFocus();
     mutex.unlock();
     reg.ui_updating = false;
   }
-  // statusbar
-  if (_IsExistsAddr(addr, DEV::Addr::STATUS_MESSAGE)) {
-    mutex.lock();
-    reg.ui_updating = true;
-    statusBar()->showMessage(strs.at(0), DEFAULT::STATUS_MESSAGE_TIME);
-    mutex.unlock();
-    reg.ui_updating = false;
-  }
-  // focus
-  editor->setFocus();
 }
 
 void MainWindow::FromGpuError(T_gpu_result res)
@@ -447,7 +462,10 @@ bool MainWindow::ToCheckUIandUpdateText()
 
   if (editor->isReadOnly()) return true;
 
-  emit ToCpu(CPU::Addr::TEXT_UPDATE, 0, editor->toPlainText());
+  emit ToCpu(CPU::Addr::TEXT_UPDATE,
+             _editorPosCompressed(editor->verticalScrollBar()->sliderPosition(),
+                                  editor->textCursor().position()),
+             editor->toPlainText());
   return true;
 }
 
@@ -508,6 +526,17 @@ void MainWindow::on_fileClose_triggered()
 void MainWindow::on_appQuit_triggered()
 {
   if (!ToCheckUIandUpdateText()) return;
+
+  bool is_exists_modified = false;
+  for (int i = 0; i < filetab->count(); ++i) {
+    if (_IsModified(filetab.data(), i)) {
+      is_exists_modified = true;
+      break;
+    }
+  }
+  if (is_exists_modified &&
+      !_IsOkDeleted(this, _FILE_IS_CLOSED_TITLE, _FILE_IS_CLOSED_CAPTION))
+    return;
 
   close();
 }

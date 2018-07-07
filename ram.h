@@ -54,6 +54,8 @@ struct Page
   bool modified;
   T_str label;
   T_str text;
+  int slider_pos;
+  int cursor_pos;
   // methods
   void Refresh(const T_str&, const T_str&);
 };
@@ -112,6 +114,8 @@ T_str pageTextOf(const Ram*, T_id, bool is_validated = true, T_id fid = -1, T_id
 T_states fileStatesOf(const Ram*);
 T_states bookStatesOf(const Ram*, T_id, bool is_validated = true);
 T_states pageStatesOf(const Ram*, T_id, bool is_validated = true, T_id fid = -1);
+int pageSliderPosOf(const Ram*, T_id, bool is_validated = true, T_id fid = -1, T_id bid = -1);
+int pageCursorPosOf(const Ram*, T_id, bool is_validated = true, T_id fid = -1, T_id bid = -1);
 bool fileModified(const Ram*, T_id, bool is_validated = true);
 bool bookModified(const Ram*, T_id, bool is_validated = true, T_id fid = -1);
 bool pageModified(const Ram*, T_id, bool is_validated = true, T_id fid = -1, T_id bid = -1);
@@ -125,6 +129,8 @@ bool UpdatePageModified(Ram*, T_id, bool, bool is_validated = true,
 bool UpdateFilePath(Ram*, T_id, const T_str&, bool is_validated = true);
 bool UpdatePageText(Ram*, T_id, const T_str&, bool is_validated = true,
                     T_id fid = -1, T_id bid = -1);
+bool UpdatePagePosition(Ram*, T_id, int, int, bool is_validated = true,
+                        T_id fid = -1, T_id bid = -1);
 bool AppendFileIds(Ram*, T_id);
 bool RemoveFileIds(Ram*, T_id);
 bool AddFile(Ram*, T_id, const T_str&);

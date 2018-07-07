@@ -33,6 +33,8 @@ void Vram::Reset()
   file_states.clear();
   book_states.clear();
   page_states.clear();
+  ireg[static_cast<int>(IRegAddr::TEXT_SLIDER_POS)] = 0;
+  ireg[static_cast<int>(IRegAddr::TEXT_CURSOR_POS)] = 0;
 }
 
 // controls
@@ -66,6 +68,13 @@ bool UpdateEditorReadOnly(Vram* vram, bool is_ro)
 {
   vram->ireg[static_cast<int>(IRegAddr::TEXT_READONLY)] = is_ro;
   vram->breg.setBit(static_cast<int>(BRegAddr::EDITOR_READONLY));
+  return true;
+}
+
+bool UpdateEditorPosition(Vram* vram, int spos, int cpos)
+{
+  vram->ireg[static_cast<int>(IRegAddr::TEXT_SLIDER_POS)] = spos;
+  vram->ireg[static_cast<int>(IRegAddr::TEXT_CURSOR_POS)] = cpos;
   return true;
 }
 

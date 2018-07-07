@@ -29,7 +29,7 @@ public:
   T_gpu_result ToFileTabData(T_gpu_addr, int, T_strs, T_states);
   T_gpu_result ToBookTabData(T_gpu_addr, int, T_strs, T_states);
   T_gpu_result ToPageListData(T_gpu_addr, int, T_strs, T_states);
-  T_gpu_result ToEditorData(T_gpu_addr, bool, const T_str&);
+  T_gpu_result ToEditorData(T_gpu_addr, bool, int, int, const T_str&);
   T_gpu_result ToToolBarData(T_gpu_addr);
   T_gpu_result ToStatusBarData(T_gpu_addr, const T_str&);
   T_gpu_result ToWindowData(T_gpu_addr, const T_str&);

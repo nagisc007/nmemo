@@ -42,6 +42,16 @@ T_states _statesOf(T_ivec i)
   return res;
 }
 
+int _sliderPosOf(T_ivec i)
+{
+  return i.at(1);
+}
+
+int _cursorPosOf(T_ivec i)
+{
+  return i.at(2);
+}
+
 }  // inner global
 
 // class: GPU::Core
@@ -68,7 +78,8 @@ void Core::FromCpu(T_gpu_addr addr, T_ivec ivec, T_strs strs)
     if (result != Result::SUCCESS) emit ToError(result);
   }
   if (_IsExistsAddr(addr, Addr::EDITOR)) {
-    result = ToEditorData(addr, _indexOf(ivec), _strOf(strs));
+    result = ToEditorData(addr, _indexOf(ivec), _sliderPosOf(ivec), _cursorPosOf(ivec),
+                          _strOf(strs));
     if (result != Result::SUCCESS) emit ToError(result);
   }
   if (_IsExistsAddr(addr, Addr::FILETAB)) {
@@ -181,13 +192,16 @@ T_gpu_result Core::ToFlushData()
   states.clear();
 
   // editor
-  if (vram.breg.at(static_cast<int>(BRegAddr::EDITOR_TEXT))) {
-    strs = T_strs{vram.sreg.at(static_cast<int>(SRegAddr::TEXT))};
-    submits |= static_cast<int>(DEV::Addr::EDITOR_TEXT);
-  }
   if (vram.breg.at(static_cast<int>(BRegAddr::EDITOR_READONLY))) {
     ivec.append(vram.ireg.at(static_cast<int>(IRegAddr::TEXT_READONLY)));
     submits |= static_cast<int>(DEV::Addr::EDITOR_READONLY);
+  }
+  if (vram.breg.at(static_cast<int>(BRegAddr::EDITOR_TEXT))) {
+    if (ivec.size() != 1) ivec.append(0);
+    ivec.append(vram.ireg.at(static_cast<int>(IRegAddr::TEXT_SLIDER_POS)));
+    ivec.append(vram.ireg.at(static_cast<int>(IRegAddr::TEXT_CURSOR_POS)));
+    strs = T_strs{vram.sreg.at(static_cast<int>(SRegAddr::TEXT))};
+    submits |= static_cast<int>(DEV::Addr::EDITOR_TEXT);
   }
   if (submits > 0) {
     emit ToDev(static_cast<T_dev_addr>(submits), ivec, strs, states);
@@ -241,13 +255,15 @@ T_gpu_result Core::ToBookTabData(T_gpu_addr addr, int idx, T_strs labels, T_stat
   return Result::SUCCESS;
 }
 
-T_gpu_result Core::ToEditorData(T_gpu_addr addr, bool is_ro, const T_str& text)
+T_gpu_result Core::ToEditorData(T_gpu_addr addr, bool is_ro, int spos, int cpos,
+                                const T_str& text)
 {
   if (_IsExistsAddr(addr, Addr::EDITOR_READONLY)) {
     UpdateEditorReadOnly(&vram, is_ro);
   }
   if (_IsExistsAddr(addr, Addr::EDITOR_TEXT)) {
     UpdateEditorText(&vram, text);
+    UpdateEditorPosition(&vram, spos, cpos);
   }
 
   return Result::SUCCESS;

@@ -58,7 +58,9 @@ void Book::Refresh(const T_str& s)
 Page::Page(const T_str& s0, const T_str& s1):
   modified(true),
   label(s0),
-  text(s1)
+  text(s1),
+  slider_pos(0),
+  cursor_pos(0)
 {}
 
 void Page::Refresh(const T_str& s0, const T_str& s1)
@@ -66,6 +68,8 @@ void Page::Refresh(const T_str& s0, const T_str& s1)
   modified = true;
   label = s0;
   text = s1;
+  slider_pos = 0;
+  cursor_pos = 0;
 }
 
 // struct: Ram
@@ -257,6 +261,13 @@ T_states fileStatesOf(const Ram* ram)
   return res;
 }
 
+int pageCursorPosOf(const Ram* ram, T_id pid, bool is_validated, T_id fid, T_id bid)
+{
+  return is_validated ||
+      IsValidPageId(ram, bid, pid, false, fid) ?
+        ram->pages.at(pid)->cursor_pos: 0;
+}
+
 T_id pageIdOf(const Ram* ram, T_id bid, T_index idx, bool is_validated, T_id fid)
 {
   return is_validated ||
@@ -291,6 +302,13 @@ bool pageModified(const Ram* ram, T_id pid, bool is_validated, T_id fid, T_id bi
 {
   return is_validated || IsValidPageId(ram, bid, pid, false, fid) ?
         ram->pages.at(pid)->modified: false;
+}
+
+int pageSliderPosOf(const Ram* ram, T_id pid, bool is_validated, T_id fid, T_id bid)
+{
+  return is_validated ||
+      IsValidPageId(ram, bid, pid, false, fid) ?
+        ram->pages.at(pid)->slider_pos: 0;
 }
 
 T_states pageStatesOf(const Ram* ram, T_id bid, bool is_validated, T_id fid)
@@ -374,6 +392,16 @@ bool UpdatePageModified(Ram* ram, T_id pid, bool modified, bool is_validated, T_
   if (!is_validated && !IsValidPageId(ram, bid, pid, false, fid)) return false;
 
   ram->pages.at(pid)->modified = modified;
+  return true;
+}
+
+bool UpdatePagePosition(Ram* ram, T_id pid, int spos, int cpos, bool is_validated,
+                        T_id fid, T_id bid)
+{
+  if (!is_validated && !IsValidPageId(ram, bid, pid, false, fid)) return false;
+
+  ram->pages.at(pid)->slider_pos = spos;
+  ram->pages.at(pid)->cursor_pos = cpos;
   return true;
 }
 
