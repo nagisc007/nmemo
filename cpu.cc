@@ -289,8 +289,8 @@ T_str _statusMessageOf(T_cpu_addr addr)
 
 T_str _titleOf(const T_str& path)
 {
-  Q_UNUSED(path);
-  return DEFAULT::WINDOW_TITLE;
+  return QFileInfo(path).suffix() == COMMON::FILE_EXTENSION ?
+        QFileInfo(path).absoluteDir().dirName(): DEFAULT::WINDOW_TITLE;
 }
 
 }  // inner global
